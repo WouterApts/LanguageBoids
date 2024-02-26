@@ -54,106 +54,135 @@ void Boid::SetAcceleration(Eigen::Vector2f acceleration) {
     acc = std::move(acceleration);
 }
 
-Eigen::Vector2f Boid::CalcAcceleration(const std::vector<std::shared_ptr<Boid>> &nearby_boids,
-                                       std::vector<std::shared_ptr<Obstacle>> &obstacles,
-                                       World world) const {
+void Boid::UpdateAcceleration(const std::vector<Boid*>& nearby_boids, World& world) {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (!nearby_boids.empty()) {
-        Eigen::VectorXf language_similarities = CalcLanguageSimilarities(nearby_boids);
-
-        Eigen::MatrixXf positions(2, nearby_boids.size());
-        Eigen::MatrixXf velocities(2, nearby_boids.size());
-        for(Eigen::Index i = 0; i < nearby_boids.size(); ++i) {
-            assert(nearby_boids[i].get() != this);
-            positions.col(i) = nearby_boids[i]->pos;
-            velocities.col(i) = nearby_boids[i]->vel;
-        }
-        acceleration = acceleration + CalcCoherenceAlignmentAcceleration(positions, velocities, language_similarities);
-        acceleration = acceleration + CalcSeparationAcceleration(positions);
+        const Eigen::VectorXf& language_similarities = CalcLanguageSimilarities(nearby_boids);
+        //Coherence & Alignment
+        acceleration += CalcCoherenceAlignmentAcceleration(nearby_boids, language_similarities);
+        //Avoidance
+        acceleration += CalcAvoidanceAcceleration(nearby_boids, language_similarities);
+        //Separation
+        acceleration += CalcSeparationAcceleration(nearby_boids);
     }
 
+    //Avoid World borders
     acceleration = acceleration + AvoidBorders(world.width, world.height);
-    for(auto& obstacle : obstacles) {
-        Eigen::Vector2f normal = obstacle->CalcCollisionNormal(this);
-        if (!normal.isApprox(Eigen::Vector2f::Zero())) {
-           Eigen::Vector2f reflection = vel - 2*vel.dot(normal)*normal;
-           acceleration = reflection; //TODO: use reflection in velocity update
-        }
-    }
 
-    //std::cout << acceleration << std::endl;
-    return acceleration;
+    SetAcceleration(acceleration);
 }
 
-Eigen::Vector2f Boid::CalcCoherenceAlignmentAcceleration(Eigen::MatrixXf &positions, Eigen::MatrixXf &velocities,
-                                                         Eigen::VectorXf &language_similarities) const {
-    if (positions.size() == 0) {
-        return Eigen::Vector2f::Zero();
-    }
+Eigen::Vector2f Boid::CalcCoherenceAlignmentAcceleration(const std::vector<Boid*> &nearby_boids,
+                                                         const Eigen::VectorXf &language_similarities) const {
+
+    Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
+    float total_weight = 0;
 
     // Calculate average position and velocity of neighbouring boids, using the language similarity as weight.
-    Eigen::VectorXf postive_language_similarities = language_similarities.cwiseMax(0);
-
-    float total_weight = postive_language_similarities.sum();
     Eigen::Vector2f avg_pos = Eigen::Vector2f::Zero();
     Eigen::Vector2f avg_vel = Eigen::Vector2f::Zero();
-    for (Eigen::Index i = 0; i < positions.cols(); ++i) {
-        avg_pos = avg_pos + positions.col(i) * postive_language_similarities(i);
-        avg_vel = avg_vel + velocities.col(i) * postive_language_similarities(i);
+    for (size_t i = 0; i < nearby_boids.size(); ++i) {
+        if (language_similarities(i) > 0) {
+            total_weight += language_similarities(i);
+            avg_pos += nearby_boids[i]->pos * language_similarities(i);
+            avg_vel += nearby_boids[i]->vel * language_similarities(i);
+        }
     }
-    avg_pos = avg_pos / total_weight;
-    avg_vel = avg_vel / total_weight;
 
-    // COHERENCE
-    Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
-    Eigen::Vector2f pos_difference = avg_pos - this->pos;
-    acceleration = pos_difference.normalized() * COHERENCE_FACTOR * max_speed;
+    if (total_weight > 0) {
+        avg_pos = avg_pos / total_weight;
+        avg_vel = avg_vel / total_weight;
 
-    // ALIGNMENT
-    Eigen::Vector2f vel_difference = (avg_vel - this->vel);
-    acceleration = acceleration + vel_difference.normalized() * ALIGNMENT_FACTOR * max_speed;
+        // COHERENCE
+        Eigen::Vector2f pos_difference = avg_pos - this->pos;
+        acceleration = pos_difference.normalized() * COHERENCE_FACTOR * max_speed;
+
+        // ALIGNMENT
+        Eigen::Vector2f vel_difference = (avg_vel - this->vel);
+        acceleration += vel_difference.normalized() * ALIGNMENT_FACTOR * max_speed;
+    }
 
     return acceleration;
 }
 
-
-Eigen::Vector2f Boid::CalcSeparationAcceleration(Eigen::MatrixXf &positions) const {
-
-    if (positions.size() == 0) {
-        return Eigen::Vector2f::Zero();
-    }
+Eigen::Vector2f Boid::CalcSeparationAcceleration(std::vector<Boid*> nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
 
-    for (Eigen::Index i = 0; i < positions.cols(); ++i) {
-        Eigen::Vector2f pos_difference = positions.col(i) - this->pos;
+    for (auto & nearby_boid : nearby_boids) {
+        Eigen::Vector2f pos_difference = nearby_boid->pos - this->pos;
         float squared_distance = pos_difference.squaredNorm();
         float squared_avoidance_radius = avoidance_radius * avoidance_radius;
         if (squared_distance <= squared_avoidance_radius) {
             float strength = (squared_avoidance_radius - squared_distance) / squared_avoidance_radius;
-            acceleration = acceleration - pos_difference * max_speed * SEPARATION_FACTOR * (1 + strength);
+            acceleration = acceleration - pos_difference.normalized() * max_speed * SEPARATION_FACTOR * (strength);
         }
     }
 
     return acceleration;
 }
 
+Eigen::Vector2f Boid::CalcAvoidanceAcceleration(const std::vector<Boid*>& nearby_boids, Eigen::VectorXf language_similarities) const {
 
-Eigen::VectorXf Boid::CalcLanguageSimilarities(const std::vector<std::shared_ptr<Boid>> &boids) const {
+    Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
+    const float squared_perception_radius = perception_radius * perception_radius;
+
+    for (size_t i = 0; i < nearby_boids.size(); ++i) {
+        if (language_similarities(i) < 0) {
+            Eigen::Vector2f pos_difference = nearby_boids[i]->pos - this->pos;
+            float squared_distance = pos_difference.squaredNorm();
+            float strength = (squared_perception_radius - squared_distance) / squared_perception_radius;
+            acceleration -= pos_difference.normalized() * max_speed * SEPARATION_FACTOR * (strength);
+        }
+    }
+    return acceleration;
+}
+
+Eigen::Vector2f Boid::CalcSeparationAccelerationAlt(Eigen::MatrixXf &positions) const {
+
+    if (positions.size() == 0) {
+        return Eigen::Vector2f::Zero();
+    }
+
+    Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
+    Eigen::Vector2f avg_pos = Eigen::Vector2f::Zero();
+    int boids_to_avoid = 0;
+    float squared_avoidance_radius = avoidance_radius * avoidance_radius;
+
+    for (Eigen::Index i = 0; i < positions.cols(); ++i) {
+        Eigen::Vector2f pos_difference = positions.col(i) - this->pos;
+        float squared_distance = pos_difference.squaredNorm();
+        if (squared_distance <= squared_avoidance_radius) {
+            avg_pos += positions.col(i);
+            boids_to_avoid++;
+        }
+    }
+
+    if (boids_to_avoid != 0) {
+        avg_pos = avg_pos / boids_to_avoid;
+        Eigen::Vector2f avg_pos_difference = avg_pos - this->pos;
+        float strength = (squared_avoidance_radius - avg_pos_difference.squaredNorm()) / squared_avoidance_radius;
+        acceleration -= avg_pos_difference.normalized() * max_speed * SEPARATION_FACTOR * (strength);
+        return acceleration;
+    } else {
+        return Eigen::Vector2f::Zero();
+    }
+}
+
+Eigen::VectorXf Boid::CalcLanguageSimilarities(const std::vector<Boid *> &boids) const {
     const size_t num_boids = boids.size();
     Eigen::VectorXf similarities(num_boids);
 
     for (Eigen::Index i = 0; i < num_boids; ++i) {
         const Eigen::VectorXi& other_language = boids[i]->language;
-        float distance = (other_language - this->language).cast<float>().norm();
-        similarities[i] = (0.5f - distance / LANGUAGE_MAX_DIFF) * 2.f; // [-1, 1]
+        float distance = (other_language - this->language).cast<float>().squaredNorm();
+        similarities[i] = (0.5f - (distance / LANGUAGE_MAX_DIFF)) * 2.f; // [-1, 1]
     }
-
     return similarities;
 }
 
-void Boid::UpdateLanguage(const std::vector<std::shared_ptr<Boid> > &boids) {
+void Boid::UpdateLanguage(const std::vector<Boid*>& boids, sf::Time delta_time) {
 
     if (boids.empty()) {
         return;
@@ -170,7 +199,8 @@ void Boid::UpdateLanguage(const std::vector<std::shared_ptr<Boid> > &boids) {
     }
 
     // Calculate mutation_chance for each bit in the boid's language
-    Eigen::VectorXf mutation_chance = (language.cast<float>() - avg_language).cwiseAbs()  * LANGUAGE_MUTATION_RATE;
+    Eigen::VectorXf mutation_chance = (language.cast<float>() - avg_language).cwiseAbs()
+                                      * LANGUAGE_MUTATION_RATE * delta_time.asSeconds();
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -186,19 +216,48 @@ void Boid::UpdateLanguage(const std::vector<std::shared_ptr<Boid> > &boids) {
 }
 
 Eigen::Vector2f Boid::AvoidBorders(float width, float height) const {
+    constexpr int buffer_zone = 300;
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
-    if (pos.x() < 0) {
+    if (pos.x() < buffer_zone) {
         acceleration.x() += MAX_SPEED*2;
     }
-    if (pos.x() > width) {
+    if (pos.x() > width - buffer_zone) {
         acceleration.x() -= MAX_SPEED*2;
     }
-    if (pos.y() < 0) {
+    if (pos.y() < buffer_zone) {
         acceleration.y() += MAX_SPEED*2;
     }
-    if (pos.y() > height) {
+    if (pos.y() > height - buffer_zone) {
         acceleration.y() -= MAX_SPEED*2;
     }
     return acceleration;
+}
+
+void Boid::UpdateVelocity(const std::vector<std::shared_ptr<Obstacle>> &obstacles, const sf::Time &delta_time) {
+
+    // Handle collisions
+    Eigen::Vector2f collision_normal = Eigen::Vector2f::Zero();
+    for(auto& obstacle : obstacles) {
+        collision_normal += obstacle->CalcCollisionNormal(this);
+    }
+    if (!collision_normal.isApprox(Eigen::Vector2f::Zero())) {
+        float velocity_along_normal = vel.dot(collision_normal);
+
+        // If the boid is moving away from the collision, do nothing
+        if (velocity_along_normal > 0) {
+            SetVelocity(vel + acc * delta_time.asSeconds());
+        } else {
+            float impulse_magnitude = -(1 + RESTITUTION_COEFFICIENT) * velocity_along_normal;
+            Eigen::Vector2f impulse = collision_normal * impulse_magnitude;
+            //Eigen::Vector2f reflection = vel - 2*vel.dot(normal)*normal;
+            SetVelocity(vel + impulse); //TODO: use reflection in velocity update
+        }
+    } else {
+        SetVelocity(vel + acc * delta_time.asSeconds());
+    }
+}
+
+void Boid::UpdatePosition(const sf::Time &delta_time) {
+    SetPosition(pos + vel * delta_time.asSeconds());
 }
 

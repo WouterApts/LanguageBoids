@@ -15,6 +15,8 @@
 #include "Obstacles.h"
 #include "SpatialGrid.h"
 
+struct BoidParam;
+
 class Simulation : public State {
 public:
 
@@ -25,6 +27,7 @@ public:
     Camera camera;
     std::vector<std::shared_ptr<Boid>> boids;
     SpatialGrid spatial_boid_grid;
+    Boid* selected_boid;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
 
     void AddBoid(const std::shared_ptr<Boid> &boid);
@@ -43,5 +46,6 @@ public:
 };
 
 Boid CreateRandomBoid(int max_x_coord, int max_y_coord, bool random_language = false);
+std::vector<Boid> CreateRandomBoids(const int num_boids, const float min_x_coord, const float max_x_coord, const float min_y_coord, const float max_y_coord);
 
 #endif //SIMULATION_H

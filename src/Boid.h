@@ -28,7 +28,6 @@ public:
 
     sf::Sprite sprite;
 
-
     Eigen::Vector2f pos;
     Eigen::Vector2f vel;
     Eigen::Vector2f acc;
@@ -47,13 +46,21 @@ public:
     void SetVelocity(Eigen::Vector2f velocity);
     void SetAcceleration(Eigen::Vector2f acceleration);
 
-    Eigen::Vector2f CalcAcceleration(const std::vector<std::shared_ptr<Boid>> &nearby_boids, std::vector<std::shared_ptr<Obstacle>> &obstacles, World world) const;
-    Eigen::Vector2f CalcSeparationAcceleration(Eigen::MatrixXf &positions) const;
-    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(Eigen::MatrixXf &positions, Eigen::MatrixXf &velocities, Eigen::VectorXf &language_similarities) const;
+    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<Boid *> &nearby_boids, Eigen::VectorXf language_similarities) const;
+
+    void UpdateAcceleration(const std::vector<Boid*>& nearby_boids, World& world);
+    Eigen::Vector2f CalcSeparationAcceleration(std::vector<Boid *> nearby_boids) const;
+    Eigen::Vector2f CalcSeparationAccelerationAlt(Eigen::MatrixXf &positions) const;
+    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<Boid*>& nearby_boids, const Eigen::VectorXf& language_similarities) const;
+    Eigen::Vector2f CalcCoherenceAlignmentAccelerationAlt(const std::vector<Boid*>& nearby_boids, const Eigen::VectorXf& language_similarities) const;
     Eigen::Vector2f AvoidBorders(float width, float height) const;
 
-    Eigen::VectorXf CalcLanguageSimilarities(const std::vector<std::shared_ptr<Boid>> &boids) const;
-    void UpdateLanguage(const std::vector<std::shared_ptr<Boid> > &boids);
+    void UpdateVelocity(const std::vector<std::shared_ptr<Obstacle>> &obstacles, const sf::Time &delta_time);
+
+    void UpdatePosition(const sf::Time &delta_time);
+
+    Eigen::VectorXf CalcLanguageSimilarities(const std::vector<Boid *> &boids) const;
+    void UpdateLanguage(const std::vector<Boid *> &boids, sf::Time delta_time);
 
 };
 

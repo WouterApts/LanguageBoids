@@ -23,6 +23,8 @@ set(SOURCE_FILES
         SpatialGrid.cpp
         SpatialGrid.h
         World.h
+        Utility.cpp
+        Utility.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

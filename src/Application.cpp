@@ -16,8 +16,8 @@ Application::Application() : context(std::make_shared<Context>()){
 void Application::Run() {
 
     // Create Simulation and push it to the State Stack, which will Initialize and Start it.
-    World world{1600,900};
-    std::unique_ptr<State> simulation = std::make_unique<Simulation>(context, world, 100, 100);
+    World world{6000,3000};
+    std::unique_ptr<State> simulation = std::make_unique<Simulation>(context, world, 1600, 900);
     context->state_manager->AddState(std::move(simulation));
 
     while (context->window->isOpen()) {
