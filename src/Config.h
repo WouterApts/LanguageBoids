@@ -7,7 +7,7 @@
 
 #include <Eigen/Dense>
 
-constexpr int LANGUAGE_SIZE = 20;
+constexpr int LANGUAGE_SIZE = 50;
 inline float LANGUAGE_MAX_DIFF = static_cast<float>(Eigen::VectorXi::Ones(LANGUAGE_SIZE).squaredNorm());
 constexpr float LANGUAGE_MUTATION_RATE = 0.01f;
 

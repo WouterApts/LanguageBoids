@@ -25,12 +25,12 @@ public:
     std::shared_ptr<Context> context;
     World world;
     Camera camera;
-    std::vector<std::shared_ptr<Boid>> boids;
-    SpatialGrid spatial_boid_grid;
+    std::vector<std::shared_ptr<EvoBoid>> boids;
+    SpatialGrid<EvoBoid> spatial_boid_grid;
     Boid* selected_boid;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
 
-    void AddBoid(const std::shared_ptr<Boid> &boid);
+    void AddBoid(const std::shared_ptr<EvoBoid> &boid);
 
     void Init() override;
 
@@ -45,7 +45,7 @@ public:
     void Pause() override;
 };
 
-Boid CreateRandomBoid(int max_x_coord, int max_y_coord, bool random_language = false);
+EvoBoid CreateRandomEvoBoid(int max_x_coord, int max_y_coord, bool random_language = false);
 std::vector<Boid> CreateRandomBoids(const int num_boids, const float min_x_coord, const float max_x_coord, const float min_y_coord, const float max_y_coord);
 
 #endif //SIMULATION_H

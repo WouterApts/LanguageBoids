@@ -7,12 +7,13 @@
 #include <iostream>
 #include <SFML/System/Time.hpp>
 #include <SFML/Window/Event.hpp>
-#include "Boid.h"
-#include "Simulation.h"
 
+#include "Simulation.h"
+#include "Boid.h"
 #include "Application.h"
 #include "Camera.h"
 #include "SpatialGrid.h"
+#include "SpatialGrid.tpp"
 #include "Utility.h"
 #include "World.h"
 
@@ -20,22 +21,22 @@ Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float ca
     : context(context),
       world(world),
       camera(Camera(sf::Vector2f(world.width / 2, world.height / 2), camera_width, camera_height)),
-      spatial_boid_grid(SpatialGrid(world.size().cast<int>(), static_cast<int>(PERCEPTION_RADIUS/2))) {
+      spatial_boid_grid(SpatialGrid<EvoBoid>(world.size().cast<int>(), static_cast<int>(PERCEPTION_RADIUS/2))) {
 
     selected_boid = nullptr;
 };
 
 
-void Simulation::AddBoid(const std::shared_ptr<Boid> &boid) {
+void Simulation::AddBoid(const std::shared_ptr<EvoBoid> &boid) {
     boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (boids)
     spatial_boid_grid.AddBoid(boid);
 }
 
 void Simulation::Init() {
     //Create Random boids
-    int boids_amount = 5000;
+    int boids_amount = 3000;
     for (int i = 0; i < boids_amount; ++i) {
-        auto boid = std::make_shared<Boid>(CreateRandomBoid(world.width, world.height, true));
+        auto boid = std::make_shared<EvoBoid>(CreateRandomEvoBoid(world.width, world.height, true));
         AddBoid(boid);
     }
 
@@ -45,8 +46,10 @@ void Simulation::Init() {
     // auto line = std::make_shared<LineObstacle>(p1, p2, 10, sf::Color::Yellow);
     // obstacles.push_back(line);
 
-    // auto c1 = Eigen::Vector2f(1000, 1000);
-    // obstacles.push_back(std::make_shared<CircleObstacle>(c1, 300, sf::Color::White));
+    auto c1 = Eigen::Vector2f(1000, 1000);
+    obstacles.push_back(std::make_shared<CircleObstacle>(c1, 150, sf::Color::White));
+    auto c2 = Eigen::Vector2f(3000, 1500);
+    obstacles.push_back(std::make_shared<CircleObstacle>(c2, 500, sf::Color::White));
 };
 
 
@@ -55,7 +58,7 @@ void Simulation::Update(sf::Time delta_time) {
     for (const auto& boid: boids) {
 
         //Get boids in perception radius:
-        std::vector<Boid*> perceived_boids = std::move(spatial_boid_grid.RadiusSearch(boid->perception_radius, boid));
+        std::vector<EvoBoid*> perceived_boids = std::move(spatial_boid_grid.RadiusSearch(boid->perception_radius, boid));
 
         //Update boids acceleration
         boid->UpdateAcceleration(perceived_boids, world);
@@ -179,7 +182,7 @@ void Simulation::Pause() {
 };
 
 
-Boid CreateRandomBoid(const int max_x_coord, const int max_y_coord, bool random_language) {
+EvoBoid CreateRandomEvoBoid(const int max_x_coord, const int max_y_coord, bool random_language) {
     // Generate random position
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -219,35 +222,3 @@ struct BoidParam {
     Eigen::VectorXi language;
     float language_influence;
 };
-
-std::vector<Boid> CreateRandomBoids(const int num_boids, const float min_x_coord, const float max_x_coord, const float min_y_coord, const float max_y_coord) {
-    std::vector<Boid> boids;
-
-    // Generate random language vector
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> distribution_language(0, 1);
-    Eigen::VectorXi language = Eigen::VectorXi::Ones(LANGUAGE_SIZE);
-    for (int i = 0; i < LANGUAGE_SIZE; ++i) {
-        language(i) = distribution_language(gen);
-    }
-
-    // Generate random positions close to each other
-    std::uniform_real_distribution<float> disX(min_x_coord, max_x_coord);
-    std::uniform_real_distribution<float> disY(min_y_coord, max_y_coord);
-
-    for (int i = 0; i < num_boids; ++i) {
-        Eigen::Vector2f position(disX(gen), disY(gen));
-
-        // Generate random velocity and acceleration
-        std::uniform_real_distribution<float> disX2(MIN_SPEED, MAX_SPEED);
-        Eigen::Vector2f velocity(disX2(gen), disX2(gen));
-        Eigen::Vector2f acceleration(disX2(gen), disX2(gen));
-
-        float language_influence = 1.0f;
-
-        boids.push_back(Boid{position, velocity, acceleration, language, language_influence});
-    }
-
-    return boids;
-}

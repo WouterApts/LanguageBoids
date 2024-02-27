@@ -20,7 +20,7 @@ set(SOURCE_FILES
         Camera.h
         Obstacles.h
         Obstacles.cpp
-        SpatialGrid.cpp
+        SpatialGrid.tpp
         SpatialGrid.h
         World.h
         Utility.cpp
