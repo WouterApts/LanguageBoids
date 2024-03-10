@@ -12,7 +12,7 @@
 #include "Boid.h"
 #include "Eigen/Dense"
 
-template<typename BoidType>
+template<typename ObjType>
 class SpatialGrid {
 public:
     int cell_size;
@@ -27,18 +27,19 @@ public:
     int CreateKeyFromIndex(int x, int y) const;
     Eigen::Vector2i GetIndex(Eigen::Vector2f position);
 
-    std::map<int, std::unordered_set<std::shared_ptr<BoidType>>> grid;
+    std::map<int, std::unordered_set<std::shared_ptr<ObjType>>> grid;
 
     SpatialGrid(Eigen::Vector2i world_dim, int cell_size);
     ~SpatialGrid() = default;
     void Clear();
 
-    void AddBoid(const std::shared_ptr<BoidType>& boid);
-    void RemoveBoid(const std::shared_ptr<BoidType> &boid);
-    void UpdateBoid(const std::shared_ptr<BoidType> &boid);
+    void AddObj(const std::shared_ptr<ObjType>& obj);
+    void RemoveObj(const std::shared_ptr<ObjType> &obj);
+    void UpdateObj(const std::shared_ptr<ObjType> &obj);
 
-    std::vector<BoidType*> RadiusSearch(float query_radius, const std::shared_ptr<BoidType> &boid = nullptr);
-    std::vector<BoidType*> LocalSearch(Eigen::Vector2f position);
+    std::vector<ObjType*> ObjRadiusSearch(float query_radius, const std::shared_ptr<ObjType> &obj);
+    std::vector<ObjType*> PosRadiusSearch(float query_radius, Eigen::Vector2f position);
+    std::vector<ObjType*> LocalSearch(Eigen::Vector2f position);
 
     void DrawGrid(sf::RenderWindow* window);
 };

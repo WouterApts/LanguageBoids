@@ -7,9 +7,12 @@
 
 #include <Eigen/Dense>
 
+#include "Terrain.h"
+
 struct World {
     float width;
     float height;
+    std::vector<Terrain*> terrains;
     Eigen::Vector2f size() const {
         return {width, height};
     }

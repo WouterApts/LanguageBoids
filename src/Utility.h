@@ -8,6 +8,6 @@
 
 bool isKeyPressedOnce(sf::Keyboard::Key keyCode);
 
-
+float getRandomFloatBetween(float min, float max);
 
 #endif //HELPER_H

@@ -2,12 +2,15 @@
 // Created by wouter on 21-2-2024.
 //
 
-#include "SpatialGrid.h"
+#ifndef SPATIALGRID_TPP
+#define SPATIALGRID_TPP
+
 #include <cmath>
 #include <utility>
+#include "SpatialGrid.h"
 
-template <typename BoidType>
-SpatialGrid<BoidType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_size)
+template <typename ObjType>
+SpatialGrid<ObjType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_size)
     : cell_size(cell_size), world_dimensions(std::move(world_dimensions)), is_visible(false){
 
     grid_dimensions.x() = ceil(this->world_dimensions.x() / static_cast<double>(cell_size));
@@ -59,13 +62,13 @@ SpatialGrid<BoidType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_si
     }
 }
 
-template <typename BoidType>
-int SpatialGrid<BoidType>::CreateKeyFromIndex(int x, int y) const {
+template <typename ObjType>
+int SpatialGrid<ObjType>::CreateKeyFromIndex(int x, int y) const {
     return x + y * grid_dimensions.x();
 }
 
-template <typename BoidType>
-Eigen::Vector2i SpatialGrid<BoidType>::GetIndex(Eigen::Vector2f position) {
+template <typename ObjType>
+Eigen::Vector2i SpatialGrid<ObjType>::GetIndex(Eigen::Vector2f position) {
     float cX = position.x() / world_dimensions.x();
     float cY = position.y() / world_dimensions.y();
 
@@ -75,14 +78,14 @@ Eigen::Vector2i SpatialGrid<BoidType>::GetIndex(Eigen::Vector2f position) {
     return {xIndex, yIndex};
 }
 
-template <typename BoidType>
-void SpatialGrid<BoidType>::DrawGrid(sf::RenderWindow* window) {
+template <typename ObjType>
+void SpatialGrid<ObjType>::DrawGrid(sf::RenderWindow* window) {
     if (is_visible) {
         for (int r = 0; r < grid_dimensions.y(); ++r) {
             for (int c = 0; c < grid_dimensions.x(); ++c) {
                 int key = CreateKeyFromIndex(c, r);
                 if (int num_boids = grid[key].size(); num_boids > 0) {
-                    // Calculate grayscale color value based on number of boids
+                    // Calculate grayscale color value based on number of obj
                     int grayscale_value = std::min(num_boids * 10, 255);
 
                     sf::RectangleShape rect(sf::Vector2f(cell_size, cell_size));
@@ -99,65 +102,91 @@ void SpatialGrid<BoidType>::DrawGrid(sf::RenderWindow* window) {
     }
 }
 
-template<typename BoidType>
-void SpatialGrid<BoidType>::AddBoid(const std::shared_ptr<BoidType>& boid) {
-    auto index = GetIndex(boid->pos);
+template<typename ObjType>
+void SpatialGrid<ObjType>::AddObj(const std::shared_ptr<ObjType>& obj) {
+    auto index = GetIndex(obj->pos);
     int key = CreateKeyFromIndex(index.x(), index.y());
 
-    grid[key].insert(boid);
-    boid->spatial_key = key;
+    grid[key].insert(obj);
+    obj->spatial_key = key;
 }
 
-template<typename BoidType>
-void SpatialGrid<BoidType>::UpdateBoid(const std::shared_ptr<BoidType>& boid) {
-    auto index = GetIndex(boid->pos);
+template<typename ObjType>
+void SpatialGrid<ObjType>::UpdateObj(const std::shared_ptr<ObjType>& obj) {
+    auto index = GetIndex(obj->pos);
     int key = CreateKeyFromIndex(index.x(), index.y());
 
-    if(key != boid->spatial_key) {
-        RemoveBoid(boid);
-        grid[key].insert(boid); // creates a copy of shared_ptr, assigning an additional owner (grid)
-        boid->spatial_key = key;
+    if(key != obj->spatial_key) {
+        RemoveObj(obj);
+        grid[key].insert(obj); // creates a copy of shared_ptr, assigning an additional owner (grid)
+        obj->spatial_key = key;
     }
 }
 
-template<typename BoidType>
-void SpatialGrid<BoidType>::RemoveBoid(const std::shared_ptr<BoidType>& boid) {
-    grid[boid->spatial_key].erase(boid);
+template<typename ObjType>
+void SpatialGrid<ObjType>::RemoveObj(const std::shared_ptr<ObjType>& obj) {
+    grid[obj->spatial_key].erase(obj);
 }
 
-template<typename BoidType>
-std::vector<BoidType*> SpatialGrid<BoidType>::RadiusSearch(float query_radius, const std::shared_ptr<BoidType>& boid) {
+template<typename ObjType>
+std::vector<ObjType*> SpatialGrid<ObjType>::ObjRadiusSearch(float query_radius, const std::shared_ptr<ObjType>& obj) {
 
-    std::vector<BoidType*> boids_in_radius;
+    std::vector<ObjType*> obj_in_radius;
 
     double d = query_radius / static_cast<double>(cell_size); // convert radius in pixel space to grid space
     int d2 = std::floor(d*d);
 
-    int cell_key_of_boid = boid->spatial_key;
+    int obj_cell_key = obj->spatial_key;
 
     for(int i = 0; i < num_offsets_within_distance[d2]; i++) {
-        // Get candidate cell's key by adding the appropriate offset to the cell_key of the querying boid
-        int key = cell_key_of_boid + global_offset[i];
+        // Get candidate cell's key by adding the appropriate offset to the cell_key of the querying object
+        int key = obj_cell_key + global_offset[i];
         // Make sure the key is within the grid bounds
         key = std::min<int>(std::max(0, key), max_possible_key);
 
-        // Check boids within candidate cells
-        for(const auto& other_boid : grid[key]) {
-            if(other_boid.get() == boid.get()) continue;
+        // Check objects within candidate cells
+        for(const auto& other_obj : grid[key]) {
+            if(other_obj.get() == obj.get()) continue;
 
-            Eigen::Vector2f difference = (boid->pos - other_boid->pos);
+            Eigen::Vector2f difference = (obj->pos - other_obj->pos);
             float squared_distance = difference.squaredNorm();
-            if (squared_distance <= query_radius * query_radius) boids_in_radius.push_back(other_boid.get());
+            if (squared_distance <= query_radius * query_radius) obj_in_radius.push_back(other_obj.get());
         }
     }
-
-    return boids_in_radius;
+    return obj_in_radius;
 }
 
-template <typename BoidType>
-std::vector<BoidType*> SpatialGrid<BoidType>::LocalSearch(Eigen::Vector2f position) {
+template<typename ObjType>
+std::vector<ObjType*> SpatialGrid<ObjType>::PosRadiusSearch(float query_radius, Eigen::Vector2f position) {
 
-    std::vector<BoidType*> boids_in_cell;
+    std::vector<ObjType*> obj_in_radius;
+
+    double d = query_radius / static_cast<double>(cell_size); // convert radius in pixel space to grid space
+    int d2 = std::floor(d*d);
+
+    Eigen::Vector2i index = GetIndex(std::move(position));
+    int key_of_position = CreateKeyFromIndex(index.x(), index.y());
+
+    for(int i = 0; i < num_offsets_within_distance[d2]; i++) {
+        // Get candidate cell's key by adding the appropriate offset to the cell_key of the querying object
+        int key = key_of_position + global_offset[i];
+        // Make sure the key is within the grid bounds
+        key = std::min<int>(std::max(0, key), max_possible_key);
+
+        // Check objects within candidate cells
+        for(const auto& other_obj : grid[key]) {
+            Eigen::Vector2f difference = (position - other_obj->pos);
+            float squared_distance = difference.squaredNorm();
+            if (squared_distance <= query_radius * query_radius) obj_in_radius.push_back(other_obj.get());
+        }
+    }
+    return obj_in_radius;
+}
+
+template <typename ObjType>
+std::vector<ObjType*> SpatialGrid<ObjType>::LocalSearch(Eigen::Vector2f position) {
+
+    std::vector<ObjType*> objects_in_cell;
 
     Eigen::Vector2i index = GetIndex(std::move(position));
     int key_of_point = CreateKeyFromIndex(index.x(), index.y());
@@ -166,15 +195,17 @@ std::vector<BoidType*> SpatialGrid<BoidType>::LocalSearch(Eigen::Vector2f positi
         key = std::min<int>(std::max(0, key), max_possible_key);
 
         // Check boids within candidate cells
-        for(const auto& boid : grid[key]) {
-            boids_in_cell.push_back(boid.get());
+        for(const auto& obj : grid[key]) {
+            objects_in_cell.push_back(obj.get());
         }
     }
 
-    return boids_in_cell;
+    return objects_in_cell;
 }
 
-template <typename BoidType>
-void SpatialGrid<BoidType>::Clear() {
+template <typename ObjType>
+void SpatialGrid<ObjType>::Clear() {
     grid.clear();
 }
+
+#endif //SPATIALGRID_TPP

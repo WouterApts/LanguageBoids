@@ -5,8 +5,8 @@
 #ifndef THESIS_BOID_H
 #define THESIS_BOID_H
 
+#include <future>
 #include <memory>
-#include <stdexcept>
 
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
@@ -14,6 +14,8 @@
 #include "Config.h"
 #include "Obstacles.h"
 #include "World.h"
+#include "LanguageManager.h"
+#include "Terrain.h"
 
 class Boid {
 private:
@@ -48,33 +50,44 @@ public:
 
 };
 
+
 class CompBoid : public Boid {
 public:
-    void UpdateLanguage(const std::vector<Boid *> &boids, sf::Time delta_time);
 
-    void UpdateAcceleration(const std::vector<Boid *> &nearby_boids, World &world);
+    int language_key;
 
-    int language_id;
+    CompBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+             int language_key,
+             float perception_radius = PERCEPTION_RADIUS, float avoidance_radius = AVOIDANCE_RADIUS, float collision_radius = BOID_COLLISON_RADIUS);
 
+    void UpdateAcceleration(const std::vector<CompBoid*> &nearby_boids, World &world);
+    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<CompBoid*> &nearby_boids) const;
+    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<CompBoid*>& nearby_boids) const;
+    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<CompBoid*>& nearby_boids) const;
 
+    void SetLanguageKey(int key);
+
+    void UpdateColor(LanguageManager &languageManager);
+    void UpdateLanguage(const std::vector<CompBoid*> &nearby_boids, LanguageManager &language_manager,
+                        sf::Time delta_time);
 };
+
 
 class EvoBoid : public Boid {
 public:
-
     EvoBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
             Eigen::VectorXi language, float language_influence,
             float perception_radius = PERCEPTION_RADIUS, float avoidance_radius = AVOIDANCE_RADIUS, float collision_radius = BOID_COLLISON_RADIUS);
 
     Eigen::VectorXi language_vector;
-    float language_influence{};
+    float language_influence;
 
     void UpdateAcceleration(const std::vector<EvoBoid*>& nearby_boids, World& world);
     Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<EvoBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const;
     Eigen::Vector2f CalcSeparationAcceleration(const std::vector<EvoBoid*>& nearby_boids) const;
     Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<EvoBoid*>& nearby_boids, const Eigen::VectorXf& language_similarities) const;
 
-    void UpdateLanguage(const std::vector<EvoBoid*> &boids, sf::Time delta_time);
+    void UpdateLanguage(const std::vector<EvoBoid*>& nearby_boids, sf::Time delta_time);
     Eigen::VectorXf CalcLanguageSimilarities(const std::vector<EvoBoid *> &boids) const;
 };
 
