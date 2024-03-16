@@ -13,14 +13,17 @@ std::map<int, sf::Color> LanguageManager::InitLanguageColors() {
             {0, sf::Color::Red},
             {1, sf::Color::Green},
             {2, sf::Color::Blue},
-            {3, sf::Color::Yellow}
+            {3, sf::Color::Yellow},
+            {4, sf::Color::Cyan},
+            {5, sf::Color::Magenta}
     };
 }
 
 std::map<int, sf::Color> LanguageManager::language_colors = LanguageManager::InitLanguageColors();
 
 LanguageManager::LanguageManager(const std::vector<float>& language_statuses) {
-    for (int i = 0; i < language_statuses.size(); ++i) {
+    n_languages = static_cast<int>(language_statuses.size());
+    for (int i = 0; i < n_languages; ++i) {
         AddLanguage(i, std::make_shared<Language>(language_colors[i], language_statuses[i]));
     }
 };
@@ -40,4 +43,9 @@ std::shared_ptr<Language> LanguageManager::GetLanguage(int key) {
         throw std::runtime_error("Language with key '" + std::to_string(key) + "' not found.");
     }
 }
+
+int LanguageManager::GetNumberOfLanguages() const {
+    return n_languages;
+}
+
 

@@ -10,17 +10,18 @@
 #include "Config.h"
 #include "Boid.h"
 #include "Obstacles.h"
+#include "RescourceManager.h"
 
 Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
-           float perception_radius, float avoidance_radius, float collision_radius)
-    : pos(std::move(pos)), vel(std::move(vel)), acc(std::move(acc)), perception_radius(perception_radius),
-      avoidance_radius(avoidance_radius), collision_radius(collision_radius) {
+           float perception_radius, float interaction_radius, float avoidance_radius, float collision_radius)
+    : pos(std::move(pos)), vel(std::move(vel)), acc(std::move(acc)),
+      perception_radius(perception_radius), interaction_radius(interaction_radius), separation_radius(avoidance_radius), collision_radius(collision_radius) {
 
     max_speed = MAX_SPEED;
+    min_speed = MIN_SPEED;
     spatial_key = -1;
 
-    p_texture = std::make_shared<sf::Texture>();
-    p_texture->loadFromFile("images/boid.png");
+    const auto& p_texture = RescourceManager::GetTexture("boid");
     sprite.setTexture(*p_texture);
     sprite.setOrigin(p_texture->getSize().x/2.0f, p_texture->getSize().y/2.0f);
     sprite.setPosition(this->pos.x(), this->pos.y());
@@ -71,6 +72,16 @@ void Boid::UpdateVelocity(const std::vector<std::shared_ptr<Obstacle>> &obstacle
     }
 }
 
+void Boid::SetMinMaxSpeed(float min, float max) {
+    this->max_speed = max;
+    this->min_speed = min;
+}
+
+void Boid::SetDefaultMinMaxSpeed() {
+    this->max_speed = MAX_SPEED;
+    this->min_speed = MIN_SPEED;
+}
+
 void Boid::UpdatePosition(const sf::Time &delta_time) {
     SetPosition(pos + vel * delta_time.asSeconds());
 }
@@ -86,11 +97,11 @@ void Boid::SetPosition(Eigen::Vector2f position) {
 }
 
 void Boid::SetVelocity(Eigen::Vector2f velocity) {
-    if (velocity.squaredNorm() > MAX_SPEED_SQUARED) {
-        velocity = velocity.normalized() * MAX_SPEED;
+    if (velocity.norm() > max_speed) {
+        velocity = velocity.normalized() * max_speed;
     }
-    else if (velocity.squaredNorm() < MIN_SPEED_SQUARED) {
-        velocity = velocity.normalized() * MIN_SPEED;
+    else if (velocity.norm() < min_speed) {
+        velocity = velocity.normalized() * min_speed;
     }
     vel = std::move(velocity);
 }

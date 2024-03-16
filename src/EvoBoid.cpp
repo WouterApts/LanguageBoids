@@ -6,9 +6,9 @@
 #include "boid.h"
 
 EvoBoid::EvoBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
-                 Eigen::VectorXi language, float language_influence,
-                 float perception_radius, float avoidance_radius, float collision_radius)
-    : Boid(std::move(pos), std::move(vel), std::move(acc), perception_radius, avoidance_radius, collision_radius),
+                 Eigen::VectorXi language, float language_influence, float perception_radius,
+                 float interaction_radius, float avoidance_radius, float collision_radius)
+    : Boid(std::move(pos), std::move(vel), std::move(acc), perception_radius, interaction_radius, avoidance_radius, collision_radius),
       language_vector(std::move(language)), language_influence(language_influence) {}
 
 void EvoBoid::UpdateAcceleration(const std::vector<EvoBoid*>& nearby_boids, World& world) {
@@ -70,7 +70,7 @@ Eigen::Vector2f EvoBoid::CalcSeparationAcceleration(const std::vector<EvoBoid*>&
     for (auto & nearby_boid : nearby_boids) {
         Eigen::Vector2f pos_difference = nearby_boid->pos - this->pos;
         float squared_distance = pos_difference.squaredNorm();
-        float squared_avoidance_radius = avoidance_radius * avoidance_radius;
+        float squared_avoidance_radius = separation_radius * separation_radius;
         if (squared_distance <= squared_avoidance_radius) {
             float strength = (squared_avoidance_radius - squared_distance) / squared_avoidance_radius;
             acceleration = acceleration - pos_difference.normalized() * max_speed * SEPARATION_FACTOR * (strength);
@@ -83,7 +83,7 @@ Eigen::Vector2f EvoBoid::CalcSeparationAcceleration(const std::vector<EvoBoid*>&
 Eigen::Vector2f EvoBoid::CalcAvoidanceAcceleration(const std::vector<EvoBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
-    const float squared_perception_radius = perception_radius * perception_radius;
+    const float squared_perception_radius = interaction_radius * interaction_radius;
 
     for (size_t i = 0; i < nearby_boids.size(); ++i) {
         if (language_similarities(i) < 0) {

@@ -23,6 +23,7 @@ private:
     static std::map<int, sf::Color> InitLanguageColors();
     static std::map<int, sf::Color> language_colors;
     std::unordered_map<int, std::shared_ptr<Language>> language_map;
+    int n_languages;
 
 public:
 
@@ -30,8 +31,9 @@ public:
 
     // Method to add a language to the language manager
     void AddLanguage(int key, std::shared_ptr<Language> language);
-
-    // Method to get a language from the language manager
     std::shared_ptr<Language> GetLanguage(int key);
+
+    int GetNumberOfLanguages() const;
+
 };
 #endif //LANGUAGEMANAGER_H

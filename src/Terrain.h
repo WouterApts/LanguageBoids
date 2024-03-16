@@ -13,7 +13,7 @@ class Boid;
 
 class Terrain {
 public:
-    Terrain(const std::vector<Eigen::Vector2f>& vertices, float friction_modifier, float struggle_modifier);
+    Terrain(const std::vector<Eigen::Vector2f>& vertices, float friction_modifier, float struggle_modifier, float min_speed, float max_speed);
     ~Terrain() = default;
 
     bool IsPointInside(const Eigen::Vector2f& point) const;
@@ -25,6 +25,8 @@ public:
     sf::ConvexShape polygon;
     float friction_modifier;
     float struggle_modifier;
+    float min_speed;
+    float max_speed;
 };
 
 

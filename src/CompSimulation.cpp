@@ -11,22 +11,25 @@
 
 CompSimulation::CompSimulation(std::shared_ptr<Context>& context, World& world, const std::vector<float>& language_statuses, float camera_width, float camera_height)
     : Simulation(context, world, camera_width, camera_height),
-      spatial_boid_grid(SpatialGrid<CompBoid>(world.size().cast<int>(), static_cast<int>(PERCEPTION_RADIUS/2))),
-      language_manager(LanguageManager(language_statuses)) {
+      spatial_boid_grid(SpatialGrid<CompBoid>(world.size().cast<int>(), static_cast<int>(INTERACTION_RADIUS))),
+      language_manager(LanguageManager(language_statuses)),
+      analyser(CompAnalyser(world, 100, boids, language_manager)){
 
 }
 
 void CompSimulation::Init() {
 
+    CreateWorldBorderLines();
+
     //Create boid clusters
     auto pos = Eigen::Vector2f(1000, 500);
-    AddBoidCluster(pos, 200, 1000, 1);
+    AddBoidCluster(pos, 200, 700, 1);
     pos = Eigen::Vector2f(1000, 1500);
-    AddBoidCluster(pos, 200, 1000, 2);
+    AddBoidCluster(pos, 200, 700, 2);
     pos = Eigen::Vector2f(3000, 500);
-    AddBoidCluster(pos, 200, 1000, 3);
+    AddBoidCluster(pos, 200, 700, 3);
     pos = Eigen::Vector2f(3000, 1500);
-    AddBoidCluster(pos, 200, 1000, 0);
+    AddBoidCluster(pos, 200, 700, 0);
     for (auto& boid : boids) {
         boid->UpdateColor(language_manager);
     }
@@ -40,46 +43,56 @@ void CompSimulation::Init() {
     // auto c1 = Eigen::Vector2f(1000, 1000);
     // obstacles.push_back(std::make_shared<CircleObstacle>(c1, 150, sf::Color::White));
     auto c2 = Eigen::Vector2f(2000, 1000);
-    obstacles.push_back(std::make_shared<CircleObstacle>(c2, 500, sf::Color::White));
+    obstacles.push_back(std::make_shared<CircleObstacle>(c2, 250, sf::Color::White));
 
     // Create some terrain
     std::vector<Eigen::Vector2f> vertices;
-    auto t1 = Eigen::Vector2f(200,200); auto t2 = Eigen::Vector2f(800,200);
-    auto t3 = Eigen::Vector2f(800,800); auto t4 = Eigen::Vector2f(200,800);
+    auto t1 = Eigen::Vector2f(4000,0); auto t2 = Eigen::Vector2f(4500,0);
+    auto t3 = Eigen::Vector2f(4500,3000); auto t4 = Eigen::Vector2f(4000,3000);
     vertices.push_back(t1); vertices.push_back(t2); vertices.push_back(t3); vertices.push_back(t4);
-    auto terrain = new Terrain(vertices, 1, 1);
+    auto terrain = new Terrain(vertices, 1, 1, MIN_SPEED-25, MAX_SPEED-25);
     world.terrains.push_back(terrain);
 };
 
 
 void CompSimulation::Update(sf::Time delta_time) {
 
-    // Check if enough time has passed between language updates
+    // Check if enough time has passed between analysis logs
     passedTime += delta_time;
-    bool update_languages = passedTime > sf::seconds(3.f);
-    if (update_languages) {
-        passedTime = passedTime - sf::seconds(3.f);
+    auto analyse_frequency = sf::seconds(1.f);
+    bool analyse = passedTime > analyse_frequency;
+    if (analyse) {
+        passedTime = passedTime - analyse_frequency;
     }
 
     for (const auto& boid: boids) {
 
         //Get boids in perception radius:
-        std::vector<CompBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid));
+        std::vector<CompBoid*> interacting_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
+        std::vector<CompBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(PERCEPTION_RADIUS, boid));
 
         //Update boids acceleration
-        boid->UpdateAcceleration(perceived_boids, world);
+        boid->UpdateAcceleration(interacting_boids, world);
 
         //Update boid behaviour based on terrain effects
-        // for (auto& terrain : world.terrains) {
-        //     if (terrain->IsPointInside(boid->pos)) {
-        //         terrain->ApplyEffects(boid.get());
-        //     }
-        // }
+        bool in_terrain = false;
+        for (auto& terrain : world.terrains) {
+            if (terrain->IsPointInside(boid->pos)) {
+                terrain->ApplyEffects(boid.get());
+                in_terrain = true;
+            }
+        }
+        if (!in_terrain) boid->SetDefaultMinMaxSpeed();
 
         //Update boids language
-        if (update_languages) {
-            boid->UpdateLanguage(perceived_boids, language_manager, delta_time);
-        }
+        boid->UpdateLanguageSatisfaction(perceived_boids, interacting_boids, language_manager, delta_time);
+    }
+
+    // Analyse simulation data
+    if (analyse) {
+        analyser.LogLanguagesPerCell();
+        analyser.LogBoidsPerLanguage();
+        std::cout << "logging complete" << std::endl;
     }
 
     for (const auto& boid : boids) {
@@ -123,9 +136,14 @@ void CompSimulation::ProcessInput() {
         }
     }
 
-    if (isKeyPressedOnce(sf::Keyboard::G)) {
+    if (IsKeyPressedOnce(sf::Keyboard::G)) {
         std::cout << "Visual Spatial Grid:" << !spatial_boid_grid.is_visible << std::endl;
         spatial_boid_grid.is_visible = !spatial_boid_grid.is_visible;
+    }
+
+    if (IsKeyPressedOnce(sf::Keyboard::F5)) {
+        analyser.SaveBoidPerLanguageToCSV("bpl_output.csv");
+        analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
     }
 
     camera.Drag(mouse_pos);
@@ -135,13 +153,13 @@ void CompSimulation::Draw() {
     context->window->clear(sf::Color::Black);
     context->window->setView(camera.view);
 
-    // Draw Spatial Grid
-    spatial_boid_grid.DrawGrid(context->window.get());
-
     // Draw Terrain
     for (const auto& terrain : world.terrains) {
         terrain->Draw(context->window.get());
     }
+
+    // Draw Spatial Grid
+    spatial_boid_grid.DrawGrid(context->window.get());
 
     // Draw Boids
     for (const auto& boid : boids) {
@@ -155,12 +173,6 @@ void CompSimulation::Draw() {
 
     // Draw Boid Selection Circle
     DrawBoidSelectionCircle();
-
-    auto border_rect = sf::RectangleShape(sf::Vector2f(world.width, world.height));
-    border_rect.setFillColor(sf::Color::Transparent);
-    border_rect.setOutlineColor(sf::Color::White);
-    border_rect.setOutlineThickness(10);
-    context->window->draw(border_rect);
     context->window->display();
 }
 
@@ -181,8 +193,8 @@ void CompSimulation::AddBoidCluster(Eigen::Vector2f position, float radius, int 
     Eigen::Vector2f zero_vector = Eigen::Vector2f::Zero();
 
     for (int i = 0; i < amount; ++i) {
-        float angle = getRandomFloatBetween(0, 2*std::numbers::pi);
-        float length = getRandomFloatBetween(0, radius);
+        float angle = GetRandomFloatBetween(0, 2*std::numbers::pi);
+        float length = GetRandomFloatBetween(0, radius);
         float x = position.x() + std::cos(angle) * length;
         float y = position.y() + std::sin(angle) * length;
 

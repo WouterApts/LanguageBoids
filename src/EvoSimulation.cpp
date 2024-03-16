@@ -13,7 +13,7 @@
 
 EvoSimulation::EvoSimulation(std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
     : Simulation(context, world, camera_width, camera_height),
-      spatial_boid_grid(SpatialGrid<EvoBoid>(world.size().cast<int>(), static_cast<int>(PERCEPTION_RADIUS/2)))
+      spatial_boid_grid(SpatialGrid<EvoBoid>(world.size().cast<int>(), static_cast<int>(INTERACTION_RADIUS/2)))
 {}
 
 
@@ -49,7 +49,7 @@ void EvoSimulation::Update(sf::Time delta_time) {
     for (const auto& boid: boids) {
 
         //Get boids in perception radius:
-        std::vector<EvoBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid));
+        std::vector<EvoBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
 
         //Update boids acceleration
         boid->UpdateAcceleration(perceived_boids, world);
@@ -99,7 +99,7 @@ void EvoSimulation::ProcessInput() {
         }
     }
 
-    if (isKeyPressedOnce(sf::Keyboard::G)) {
+    if (IsKeyPressedOnce(sf::Keyboard::G)) {
         std::cout << "Visual Spatial Grid:" << !spatial_boid_grid.is_visible << std::endl;
         spatial_boid_grid.is_visible = !spatial_boid_grid.is_visible;
     }

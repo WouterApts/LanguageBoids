@@ -12,6 +12,11 @@ Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float ca
       world(world),
       camera(Camera(sf::Vector2f(world.width / 2, world.height / 2), camera_width, camera_height)),
       selected_boid(nullptr) {
+
+    boid_selection_texture = std::make_shared<sf::Texture>();
+    boid_selection_texture->loadFromFile("images/boid_selection.png");
+    boid_selection_border.setTexture(*boid_selection_texture);
+    boid_selection_border.setOrigin(boid_selection_texture->getSize().x/2.0f, boid_selection_texture->getSize().y/2.0f);
 }
 
 template <typename BoidType>
@@ -41,15 +46,28 @@ void Simulation::ProcessCameraZoom(const sf::Event &event) {
     }
 }
 
-void Simulation::DrawBoidSelectionCircle() const {
+void Simulation::DrawBoidSelectionCircle() {
     if (selected_boid != nullptr) {
-        float r = 20;
-        auto selection_circle = sf::CircleShape(20);
-        selection_circle.setPosition(selected_boid->pos.x(), selected_boid->pos.y());
-        selection_circle.setOrigin(r, r);
-        selection_circle.setFillColor(sf::Color::Transparent);
-        selection_circle.setOutlineThickness(5);
-        context->window->draw(selection_circle);
+
+        auto DrawSelectionCircle = [this](float radius, sf::Color color) {
+            sf::CircleShape circle(radius);
+            circle.setPosition(selected_boid->pos.x(), selected_boid->pos.y());
+            circle.setOrigin(radius, radius);
+            circle.setFillColor(sf::Color::Transparent);
+            circle.setOutlineThickness(4);
+            circle.setOutlineColor(color);
+            context->window->draw(circle);
+        };
+
+        // Draw selection Circle
+        DrawSelectionCircle(selected_boid->interaction_radius, sf::Color(180,180,180));
+        DrawSelectionCircle(selected_boid->perception_radius, sf::Color(120,120,120));
+
+        // Draw triangular selection border
+        boid_selection_border.setPosition(selected_boid->pos.x(), selected_boid->pos.y());
+        auto angle = static_cast<float>(std::atan2(selected_boid->vel.y(), selected_boid->vel.x()) * 180 / std::numbers::pi);
+        boid_selection_border.setRotation(angle);
+        context->window->draw(boid_selection_border);
     }
 }
 
@@ -62,6 +80,20 @@ void Simulation::DrawBorderOutline() const {
     context->window->display();
 }
 
+void Simulation::CreateWorldBorderLines() {
+    auto p1 = Eigen::Vector2f(0,0);
+    auto p2 = Eigen::Vector2f(world.width,0);
+    auto p3 = Eigen::Vector2f(world.width,world.height);
+    auto p4 = Eigen::Vector2f(0,world.height);
+    auto line = std::make_shared<LineObstacle>(p1, p2, 10, sf::Color::White);
+    obstacles.push_back(line);
+    line = std::make_shared<LineObstacle>(p2, p3, 10, sf::Color::White);
+    obstacles.push_back(line);
+    line = std::make_shared<LineObstacle>(p3, p4, 10, sf::Color::White);
+    obstacles.push_back(line);
+    line = std::make_shared<LineObstacle>(p4, p1, 10, sf::Color::White);
+    obstacles.push_back(line);
+}
 
 // This explicit instantiation informs the compiler to generate the code for the template function for the below specified template arguments, making it available for linking.
 template void Simulation::ProcessBoidSelection<CompBoid>(const Context*, sf::Vector2i&, SpatialGrid<CompBoid>&);

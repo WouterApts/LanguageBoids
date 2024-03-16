@@ -4,10 +4,13 @@
 
 #ifndef HELPER_H
 #define HELPER_H
+#include <SFML/System/Time.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-bool isKeyPressedOnce(sf::Keyboard::Key keyCode);
+bool IsKeyPressedOnce(sf::Keyboard::Key keyCode);
 
-float getRandomFloatBetween(float min, float max);
+float GetRandomFloatBetween(float min, float max);
+
+void PrintFPS(sf::Time delta_time);
 
 #endif //HELPER_H

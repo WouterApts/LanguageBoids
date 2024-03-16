@@ -11,6 +11,7 @@
 #include "State.h"
 #include "Application.h"
 #include "Camera.h"
+#include "analysis/CompAnalyser.h"
 #include "LanguageManager.h"
 #include "Obstacles.h"
 #include "SpatialGrid.tpp"
@@ -24,6 +25,8 @@ public:
     Camera camera;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
     Boid* selected_boid;
+    sf::Sprite boid_selection_border;
+    std::shared_ptr<sf::Texture>  boid_selection_texture;
 
     Simulation(std::shared_ptr<Context> &context, World &world, float camera_width, float camera_height);
 
@@ -33,9 +36,10 @@ public:
     void ProcessCameraZoom(const sf::Event &event);
 
     // Draw methods
-    void DrawBoidSelectionCircle() const;
+    void DrawBoidSelectionCircle();
     void DrawBorderOutline() const;
 
+    void CreateWorldBorderLines();
 };
 
 class EvoSimulation : public Simulation {
@@ -64,6 +68,7 @@ public:
     SpatialGrid<CompBoid> spatial_boid_grid;
     std::vector<std::shared_ptr<CompBoid>> boids;
     LanguageManager language_manager;
+    CompAnalyser analyser;
     sf::Time passedTime;
 
     CompSimulation(std::shared_ptr<Context> &context, World &world, const std::vector<float> &language_statuses,

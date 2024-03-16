@@ -3,10 +3,11 @@
 //
 
 #include "Utility.h"
+#include <iostream>
 #include <random>
 
 /* Input Processing */
-bool isKeyPressedOnce(sf::Keyboard::Key keyCode)
+bool IsKeyPressedOnce(sf::Keyboard::Key keyCode)
 {
     static bool keyPressed[sf::Keyboard::KeyCount] = {false};
 
@@ -23,10 +24,25 @@ bool isKeyPressedOnce(sf::Keyboard::Key keyCode)
 }
 
 
-/*  Random geberators */
-float getRandomFloatBetween(float min, float max) {
+/*  Random generators */
+float GetRandomFloatBetween(float min, float max) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dis(min, max);
     return dis(gen);
 }
+
+
+void PrintFPS(sf::Time delta_time) {
+    static auto fps_timer = sf::Time::Zero;
+    static float frame_counter = 0.f;
+
+    fps_timer += delta_time;
+    frame_counter++;
+    if (fps_timer > sf::seconds(1.f)) {
+        std::cout << frame_counter << std::endl;
+        frame_counter = 0;
+        fps_timer -= sf::seconds(1.f);
+    }
+}
+

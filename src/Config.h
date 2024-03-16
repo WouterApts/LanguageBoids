@@ -10,16 +10,17 @@
 #include <SFML/Graphics/Color.hpp>
 
 constexpr float COHERENCE_FACTOR = 1.f;
-constexpr float ALIGNMENT_FACTOR = 0.2f;
-constexpr float SEPARATION_FACTOR = 1.f;
-constexpr float AVOIDANCE_FACTOR = 0.1f;
+constexpr float ALIGNMENT_FACTOR = 0.3f;
+constexpr float SEPARATION_FACTOR = 3.f;
+constexpr float AVOIDANCE_FACTOR = 0.3f;
 
 constexpr float MAX_SPEED = 125;
 constexpr float MAX_SPEED_SQUARED = MAX_SPEED * MAX_SPEED;
 constexpr float MIN_SPEED = 75;
 constexpr float MIN_SPEED_SQUARED = MIN_SPEED * MIN_SPEED;
-constexpr float PERCEPTION_RADIUS = 250;
-constexpr float AVOIDANCE_RADIUS = 100;
+constexpr float PERCEPTION_RADIUS = 500;
+constexpr float INTERACTION_RADIUS = 250;
+constexpr float SEPARATION_RADIUS = 100;
 
 //Collision
 constexpr float BOID_COLLISON_RADIUS = 10;
@@ -31,7 +32,8 @@ inline float LANGUAGE_MAX_DIFF = static_cast<float>(Eigen::VectorXi::Ones(LANGUA
 constexpr float LANGUAGE_MUTATION_RATE = 0.01f;
 
 //Competition Boids
-constexpr int LANGUAGE_AMOUNT = 2;
+constexpr float a_COEFFICIENT =  1.3f;
+constexpr float INFLUENCE_RATE = 10.f;
 
 
 #endif //THESIS_CONFIG_H

@@ -29,6 +29,18 @@ set(SOURCE_FILES
         LanguageManager.cpp
         Terrain.cpp
         Terrain.h
+        Analysis/CompAnalyser.cpp
+        Analysis/CompAnalyser.h
+        editor/Editor.cpp
+        editor/Editor.h
+        editor/EditorTool.cpp
+        editor/EditorTool.h
+        editor/SpawnZone.cpp
+        editor/SpawnZone.h
+        ui/UserInterface.cpp
+        ui/UserInterface.h
+        RescourceManager.cpp
+        RescourceManager.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
