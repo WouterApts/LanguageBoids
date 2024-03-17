@@ -37,6 +37,6 @@ void Camera::Move(sf::Vector2f direction) {
 }
 
 void Camera::Zoom(float zoom_modifier) {
-    zoom += zoom_modifier;
+    zoom = std::max(0.2f, zoom + zoom_modifier);
     view.setSize(default_width * zoom, default_height * zoom);
 }

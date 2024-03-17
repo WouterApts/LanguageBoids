@@ -6,13 +6,16 @@
 #define WORLD_H
 
 #include <Eigen/Dense>
-
+#include <memory>
+#include "Obstacles.h"
 #include "Terrain.h"
 
 struct World {
     float width;
     float height;
-    std::vector<Terrain*> terrains;
+    std::vector<std::shared_ptr<Obstacle>> obstacles;
+    std::vector<std::shared_ptr<Terrain>> terrains;
+
     Eigen::Vector2f size() const {
         return {width, height};
     }

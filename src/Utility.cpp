@@ -5,6 +5,8 @@
 #include "Utility.h"
 #include <iostream>
 #include <random>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/System/Vector2.hpp>
 
 /* Input Processing */
 bool IsKeyPressedOnce(sf::Keyboard::Key keyCode)
@@ -45,4 +47,5 @@ void PrintFPS(sf::Time delta_time) {
         fps_timer -= sf::seconds(1.f);
     }
 }
+
 

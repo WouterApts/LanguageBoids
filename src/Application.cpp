@@ -9,6 +9,7 @@
 #include "World.h"
 #include "Simulation.cpp"
 #include "Utility.h"
+#include "editor/Editor.h"
 
 Application::Application() : context(std::make_shared<Context>()){
     //Create application window
@@ -22,8 +23,14 @@ void Application::Run() {
     // Create Simulation and push it to the State Stack, which will Initialize and Start it.
     World world{6000,3000};
     std::vector<float> language_statuses = {0.24, 0.26, 0.20, 0.30};
-    std::unique_ptr<State> simulation = std::make_unique<CompSimulation>(context, world, language_statuses, 1600, 900);
-    context->state_manager->AddState(std::move(simulation));
+
+    //Simulation Test
+    //std::unique_ptr<State> simulation = std::make_unique<CompSimulation>(context, world, language_statuses, 1600, 900);
+    //context->state_manager->AddState(std::move(simulation));
+
+    //Editor test
+    std::unique_ptr<State> editor = std::make_unique<Editor>(context, world, 1600, 900);
+    context->state_manager->AddState(std::move(editor));
 
     while (context->window->isOpen()) {
         sf::Time delta_time = clock.restart();
@@ -42,4 +49,12 @@ Application::~Application() = default;
 void Application::InitializeRescources() {
     RescourceManager::LoadTexture("boid", "images/boid.png");
     RescourceManager::LoadTexture("boid_selection", "images/boid_selection.png");
+    RescourceManager::LoadTexture("line_tool_button", "images/LineButton.png");
+    RescourceManager::LoadTexture("circle_tool_button", "images/CircleButton.png");
+    RescourceManager::LoadTexture("erase_tool_button", "images/EraseButton.png");
+    RescourceManager::LoadTexture("boid_circle_button", "images/BoidCircleButton.png");
+    RescourceManager::LoadTexture("boid_rectangle_button", "images/BoidRectangleButton.png");
+    RescourceManager::LoadTexture("save_button", "images/SaveButton.png");
+    RescourceManager::LoadTexture("terrain_button", "images/TerrainButton.png");
+    RescourceManager::LoadTexture("settings_button", "images/SettingsButton.png");
 }

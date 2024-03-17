@@ -11,12 +11,12 @@
 #include "Boid.h"
 
 
-LineObstacle::LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float thickness, sf::Color color)
+LineObstacle::LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float width, sf::Color color)
     : startPoint(std::move(start)), endPoint(std::move(end)), length((start-end).norm()),
-      thickness(thickness), color(color) {
+      thickness(width), color(color) {
 
     auto direction = (startPoint - endPoint);
-    Eigen::Vector2f offset = Eigen::Vector2f(-direction.y(), direction.x()).normalized() * (thickness/2.0f);
+    Eigen::Vector2f offset = Eigen::Vector2f(-direction.y(), direction.x()).normalized() * (width/2.0f);
 
     Eigen::Vector2f p1 = startPoint + offset;
     Eigen::Vector2f p2 = startPoint - offset;

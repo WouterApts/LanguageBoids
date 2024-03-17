@@ -25,7 +25,7 @@ struct Context {
 class Application {
 private:
     std::shared_ptr<Context> context;
-    const float FRAME_RATE = 24.f;
+    const float FRAME_RATE = 30.f;
     const sf::Time TIME_PER_FRAME = sf::seconds(1.f/FRAME_RATE);
     sf::Clock clock;
 

@@ -23,7 +23,6 @@ public:
     std::shared_ptr<Context> context;
     World world;
     Camera camera;
-    std::vector<std::shared_ptr<Obstacle>> obstacles;
     Boid* selected_boid;
     sf::Sprite boid_selection_border;
     std::shared_ptr<sf::Texture>  boid_selection_texture;
@@ -71,7 +70,7 @@ public:
     CompAnalyser analyser;
     sf::Time passedTime;
 
-    CompSimulation(std::shared_ptr<Context> &context, World &world, const std::vector<float> &language_statuses,
+    CompSimulation(std::shared_ptr<Context>& context, World& world, const std::vector<float> &language_statuses,
                    float camera_width, float camera_height);
 
     void Init() override;

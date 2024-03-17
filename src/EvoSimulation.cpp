@@ -35,12 +35,12 @@ void EvoSimulation::Init() {
     auto p1 = Eigen::Vector2f(1000,1000);
     auto p2 = Eigen::Vector2f(3000,1000);
     auto line = std::make_shared<LineObstacle>(p1, p2, 10, sf::Color::Yellow);
-    obstacles.push_back(line);
+    world.obstacles.push_back(line);
 
     auto c1 = Eigen::Vector2f(1000, 1000);
-    obstacles.push_back(std::make_shared<CircleObstacle>(c1, 150, sf::Color::White));
+    world.obstacles.push_back(std::make_shared<CircleObstacle>(c1, 150, sf::Color::White));
     auto c2 = Eigen::Vector2f(3000, 1500);
-    obstacles.push_back(std::make_shared<CircleObstacle>(c2, 500, sf::Color::White));
+    world.obstacles.push_back(std::make_shared<CircleObstacle>(c2, 500, sf::Color::White));
 };
 
 
@@ -60,7 +60,7 @@ void EvoSimulation::Update(sf::Time delta_time) {
 
     for (const auto& boid : boids) {
         //Update boids velocity (Also checking Collisions)
-        boid->UpdateVelocity(obstacles, delta_time);
+        boid->UpdateVelocity(world.obstacles, delta_time);
 
         //Update boids position
         boid->UpdatePosition(delta_time);
@@ -120,7 +120,7 @@ void EvoSimulation::Draw() {
     }
 
     // Draw Obstacles
-    for (const auto& obstacle : obstacles) {
+    for (const auto& obstacle : world.obstacles) {
         obstacle->Draw(context->window.get());
     }
 

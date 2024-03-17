@@ -106,7 +106,7 @@ void CompBoid::SetLanguageSatisfaction(float value) {
     this->language_satisfaction = std::min(1.f, value);
 }
 
-void CompBoid::UpdateAcceleration(const std::vector<CompBoid *> &nearby_boids, World &world) {
+void CompBoid::UpdateAcceleration(const std::vector<CompBoid *>& nearby_boids, World& world) {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (!nearby_boids.empty()) {

@@ -38,19 +38,19 @@ void CompSimulation::Init() {
     auto p1 = Eigen::Vector2f(1000,1000);
     auto p2 = Eigen::Vector2f(3000,1000);
     auto line = std::make_shared<LineObstacle>(p1, p2, 10, sf::Color::White);
-    obstacles.push_back(line);
+    world.obstacles.push_back(line);
 
     // auto c1 = Eigen::Vector2f(1000, 1000);
     // obstacles.push_back(std::make_shared<CircleObstacle>(c1, 150, sf::Color::White));
     auto c2 = Eigen::Vector2f(2000, 1000);
-    obstacles.push_back(std::make_shared<CircleObstacle>(c2, 250, sf::Color::White));
+    world.obstacles.push_back(std::make_shared<CircleObstacle>(c2, 250, sf::Color::White));
 
     // Create some terrain
     std::vector<Eigen::Vector2f> vertices;
     auto t1 = Eigen::Vector2f(4000,0); auto t2 = Eigen::Vector2f(4500,0);
     auto t3 = Eigen::Vector2f(4500,3000); auto t4 = Eigen::Vector2f(4000,3000);
     vertices.push_back(t1); vertices.push_back(t2); vertices.push_back(t3); vertices.push_back(t4);
-    auto terrain = new Terrain(vertices, 1, 1, MIN_SPEED-25, MAX_SPEED-25);
+    auto terrain = std::make_shared<Terrain>(vertices, 1, 1, MIN_SPEED-25, MAX_SPEED-25);
     world.terrains.push_back(terrain);
 };
 
@@ -69,7 +69,7 @@ void CompSimulation::Update(sf::Time delta_time) {
 
         //Get boids in perception radius:
         std::vector<CompBoid*> interacting_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
-        std::vector<CompBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(PERCEPTION_RADIUS, boid));
+        std::vector<CompBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid));
 
         //Update boids acceleration
         boid->UpdateAcceleration(interacting_boids, world);
@@ -97,7 +97,7 @@ void CompSimulation::Update(sf::Time delta_time) {
 
     for (const auto& boid : boids) {
         //Update boids velocity (Also checking Collisions)
-        boid->UpdateVelocity(obstacles, delta_time);
+        boid->UpdateVelocity(world.obstacles, delta_time);
 
         //Update boids position
         boid->UpdatePosition(delta_time);
@@ -119,15 +119,19 @@ void CompSimulation::ProcessInput() {
         }
 
         if (event.type == sf::Event::MouseButtonPressed) {
-            //Boid Selection
-            ProcessBoidSelection(context.get(), mouse_pos, spatial_boid_grid);
-            //Camera Drag
-            camera.StartDragging(mouse_pos);
+            if (event.mouseButton.button == sf::Mouse::Middle) {
+                //Boid Selection
+                ProcessBoidSelection(context.get(), mouse_pos, spatial_boid_grid);
+                //Camera Drag
+                camera.StartDragging(mouse_pos);
+            }
         }
 
         if (event.type == sf::Event::MouseButtonReleased) {
-            //Camera Drag
-            camera.StopDragging();
+            if (event.mouseButton.button == sf::Mouse::Middle) {
+                //Camera Drag
+                camera.StopDragging();
+            }
         }
 
         if (event.type == sf::Event::MouseWheelScrolled) {
@@ -167,7 +171,7 @@ void CompSimulation::Draw() {
     }
 
     // Draw Obstacles
-    for (const auto& obstacle : obstacles) {
+    for (const auto& obstacle : world.obstacles) {
         obstacle->Draw(context->window.get());
     }
 

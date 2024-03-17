@@ -20,7 +20,8 @@ void StateManager::PopState() {
 };
 
 void StateManager::ProcessStateChange() {
-    if (m_remove && !m_stateStack.empty()) {
+    if (m_remove && !m_stateStack.empty())
+    {
         m_stateStack.pop();
 
         if (!m_stateStack.empty()) {
@@ -30,8 +31,8 @@ void StateManager::ProcessStateChange() {
         m_remove = false;
     }
 
-    if (m_add) {
-
+    if (m_add)
+    {
         if (m_replace && !m_stateStack.empty()) {
             m_stateStack.pop();
             m_replace = false;

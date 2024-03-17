@@ -5,7 +5,7 @@
 
 #include <SFML/Window/Event.hpp>
 #include "Simulation.h"
-
+#include "RescourceManager.h"
 
 Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
     : context(context),
@@ -13,10 +13,9 @@ Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float ca
       camera(Camera(sf::Vector2f(world.width / 2, world.height / 2), camera_width, camera_height)),
       selected_boid(nullptr) {
 
-    boid_selection_texture = std::make_shared<sf::Texture>();
-    boid_selection_texture->loadFromFile("images/boid_selection.png");
-    boid_selection_border.setTexture(*boid_selection_texture);
-    boid_selection_border.setOrigin(boid_selection_texture->getSize().x/2.0f, boid_selection_texture->getSize().y/2.0f);
+    const auto& p_texture = RescourceManager::GetTexture("boid_selection");
+    boid_selection_border.setTexture(*p_texture);
+    boid_selection_border.setOrigin(p_texture->getSize().x/2.0f, p_texture->getSize().y/2.0f);
 }
 
 template <typename BoidType>
@@ -40,9 +39,9 @@ void Simulation::ProcessBoidSelection(const Context* context, sf::Vector2i& mous
 void Simulation::ProcessCameraZoom(const sf::Event &event) {
     //Zoom in and out
     if (event.mouseWheelScroll.delta > 0) {
-        camera.Zoom(-0.1); // Zoom in
+        camera.Zoom(-0.2); // Zoom in
     } else if (event.mouseWheelScroll.delta < 0) {
-        camera.Zoom(0.1); // Zoom out
+        camera.Zoom(0.2); // Zoom out
     }
 }
 
@@ -86,13 +85,13 @@ void Simulation::CreateWorldBorderLines() {
     auto p3 = Eigen::Vector2f(world.width,world.height);
     auto p4 = Eigen::Vector2f(0,world.height);
     auto line = std::make_shared<LineObstacle>(p1, p2, 10, sf::Color::White);
-    obstacles.push_back(line);
+    world.obstacles.push_back(line);
     line = std::make_shared<LineObstacle>(p2, p3, 10, sf::Color::White);
-    obstacles.push_back(line);
+    world.obstacles.push_back(line);
     line = std::make_shared<LineObstacle>(p3, p4, 10, sf::Color::White);
-    obstacles.push_back(line);
+    world.obstacles.push_back(line);
     line = std::make_shared<LineObstacle>(p4, p1, 10, sf::Color::White);
-    obstacles.push_back(line);
+    world.obstacles.push_back(line);
 }
 
 // This explicit instantiation informs the compiler to generate the code for the template function for the below specified template arguments, making it available for linking.

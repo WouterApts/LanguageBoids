@@ -23,7 +23,7 @@ public:
 
 class LineObstacle : public Obstacle {
 public:
-    LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float thickness, sf::Color color);
+    LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float width, sf::Color color);
 
     Eigen::Vector2f CalcCollisionNormal(const Boid* boid) override;
     void Draw(sf::RenderWindow* window) override;

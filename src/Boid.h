@@ -70,7 +70,7 @@ public:
              float separation_radius = SEPARATION_RADIUS,
              float collision_radius = BOID_COLLISON_RADIUS);
 
-    void UpdateAcceleration(const std::vector<CompBoid*> &nearby_boids, World &world);
+    void UpdateAcceleration(const std::vector<CompBoid *> &nearby_boids, World &world);
     Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<CompBoid*> &nearby_boids) const;
     Eigen::Vector2f CalcSeparationAcceleration(const std::vector<CompBoid*>& nearby_boids) const;
     Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<CompBoid*>& nearby_boids) const;
