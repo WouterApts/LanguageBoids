@@ -21,6 +21,21 @@ void Panel::Draw(sf::RenderWindow* window) {
 }
 
 void Panel::OnClick(sf::Vector2f mouse_pos) {
+
+    if (focused_field) {
+        focused_field->SetFocus(false);
+        focused_field.reset(); // Reset the shared_ptr to nullptr
+    }
+
+    for (const auto& element : elements) {
+        if (element->IsPointInsideRect(mouse_pos)) {
+            if (auto input_field = std::dynamic_pointer_cast<InputField>(element)) {
+                input_field->SetFocus(true);
+                focused_field = input_field;
+            }
+        }
+    }
+
     for (auto& element : elements) {
         if (element->IsPointInsideRect(mouse_pos)) {
             element->OnClick(mouse_pos);
@@ -33,6 +48,12 @@ void Panel::OnHover(sf::Vector2f mouse_pos) {
         if (element->IsPointInsideRect(mouse_pos)) {
             element->OnHover(mouse_pos);
         }
+    }
+}
+
+void Panel::OnTextEntered(sf::Uint32 unicode) {
+    if (focused_field) {
+        focused_field->OnTextEntered(unicode);
     }
 }
 

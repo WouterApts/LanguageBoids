@@ -12,7 +12,7 @@ Terrain::Terrain(const std::vector<Eigen::Vector2f>& vertices, float friction_mo
     for (int i = 0; i < vertices.size(); ++i) {
         polygon.setPoint(i, sf::Vector2f(vertices[i].x(), vertices[i].y()));
     }
-    auto terrain_gray = sf::Color(30,30,30);
+    auto terrain_gray = sf::Color(30,30,30, 150);
     polygon.setFillColor(terrain_gray);
 }
 

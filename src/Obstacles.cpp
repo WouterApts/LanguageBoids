@@ -7,7 +7,6 @@
 #include "Obstacles.h"
 
 #include <iostream>
-
 #include "Boid.h"
 
 
@@ -32,9 +31,9 @@ void LineObstacle::Draw(sf::RenderWindow* window) {
     window->draw(vertices.data(),vertices.size(),sf::Quads);
 }
 
-Eigen::Vector2f LineObstacle::CalcCollisionNormal(const Boid* boid) {
-    Eigen::Vector2f CA = boid->pos - startPoint;
-    Eigen::Vector2f CB = boid->pos - endPoint;
+std::optional<Eigen::Vector2f> LineObstacle::CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius) {
+    Eigen::Vector2f CA = pos - startPoint;
+    Eigen::Vector2f CB = pos - endPoint;
     Eigen::Vector2f AB = endPoint - startPoint;
 
     float CA_len = CA.norm();
@@ -74,12 +73,12 @@ Eigen::Vector2f LineObstacle::CalcCollisionNormal(const Boid* boid) {
     }
 
     // Check if the boid collides with the line obstacle
-    if (min_distance_to_line <= boid->collision_radius && max_distance_to_line >= boid->collision_radius) {
+    if (min_distance_to_line <= collision_radius && max_distance_to_line >= collision_radius) {
         return collision_normal.normalized();
     }
 
     // If there is no collision, return a zero vector
-    return Eigen::Vector2f::Zero();
+    return std::nullopt;
 }
 
 CircleObstacle::CircleObstacle(Eigen::Vector2f& center, float radius, sf::Color color)
@@ -93,12 +92,12 @@ void CircleObstacle::Draw(sf::RenderWindow* window) {
     window->draw(circle_shape);
 }
 
-Eigen::Vector2f CircleObstacle::CalcCollisionNormal(const Boid* boid) {
-    Eigen::Vector2f distance_vector = boid->pos - center;
-    if (distance_vector.norm() <= radius + boid->collision_radius) {
+std::optional<Eigen::Vector2f> CircleObstacle::CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius) {
+    Eigen::Vector2f distance_vector = pos - center;
+    if (distance_vector.norm() <= radius + collision_radius) {
         return distance_vector.normalized();
     }
-    return Eigen::Vector2f::Zero();
+    return std::nullopt;
 }
 
 

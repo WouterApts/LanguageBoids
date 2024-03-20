@@ -10,7 +10,7 @@
 #include "Config.h"
 #include "Boid.h"
 #include "Obstacles.h"
-#include "RescourceManager.h"
+#include "ResourceManager.h"
 
 Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
            float perception_radius, float interaction_radius, float avoidance_radius, float collision_radius)
@@ -21,7 +21,7 @@ Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
     min_speed = MIN_SPEED;
     spatial_key = -1;
 
-    const auto& p_texture = RescourceManager::GetTexture("boid");
+    const auto& p_texture = ResourceManager::GetTexture("boid");
     sprite.setTexture(*p_texture);
     sprite.setOrigin(p_texture->getSize().x/2.0f, p_texture->getSize().y/2.0f);
     sprite.setPosition(this->pos.x(), this->pos.y());
@@ -54,7 +54,10 @@ void Boid::UpdateVelocity(const std::vector<std::shared_ptr<Obstacle>> &obstacle
     // Handle collisions
     Eigen::Vector2f collision_normal = Eigen::Vector2f::Zero();
     for(auto& obstacle : obstacles) {
-        collision_normal += obstacle->CalcCollisionNormal(this);
+        auto normal = obstacle->CalcCollisionNormal(this->pos, this->collision_radius);
+        if (normal) {
+            collision_normal += *obstacle->CalcCollisionNormal(this->pos, this->collision_radius);
+        }
     }
     if (!collision_normal.isApprox(Eigen::Vector2f::Zero())) {
         float velocity_along_normal = vel.dot(collision_normal);

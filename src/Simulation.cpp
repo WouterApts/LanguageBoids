@@ -5,7 +5,7 @@
 
 #include <SFML/Window/Event.hpp>
 #include "Simulation.h"
-#include "RescourceManager.h"
+#include "ResourceManager.h"
 
 Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
     : context(context),
@@ -13,7 +13,7 @@ Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float ca
       camera(Camera(sf::Vector2f(world.width / 2, world.height / 2), camera_width, camera_height)),
       selected_boid(nullptr) {
 
-    const auto& p_texture = RescourceManager::GetTexture("boid_selection");
+    const auto& p_texture = ResourceManager::GetTexture("boid_selection");
     boid_selection_border.setTexture(*p_texture);
     boid_selection_border.setOrigin(p_texture->getSize().x/2.0f, p_texture->getSize().y/2.0f);
 }

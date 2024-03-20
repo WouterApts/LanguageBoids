@@ -5,6 +5,7 @@
 #ifndef OBSTACLES_H
 #define OBSTACLES_H
 
+#include <optional>
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
 
@@ -16,7 +17,7 @@ public:
     Obstacle() = default;
     virtual ~Obstacle() = default;
 
-    virtual Eigen::Vector2f CalcCollisionNormal(const Boid* boid);
+    virtual std::optional<Eigen::Vector2f> CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius);
     virtual void Draw(sf::RenderWindow* window);
 
 };
@@ -25,7 +26,7 @@ class LineObstacle : public Obstacle {
 public:
     LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float width, sf::Color color);
 
-    Eigen::Vector2f CalcCollisionNormal(const Boid* boid) override;
+    std::optional<Eigen::Vector2f> CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius) override;
     void Draw(sf::RenderWindow* window) override;
 
     std::vector<sf::Vertex> vertices;
@@ -42,7 +43,7 @@ class CircleObstacle : public Obstacle {
 public:
     CircleObstacle(Eigen::Vector2f& center, float radius, sf::Color color);
 
-    Eigen::Vector2f CalcCollisionNormal(const Boid* boid) override;
+    std::optional<Eigen::Vector2f> CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius) override;
     void Draw(sf::RenderWindow* window) override;
 
     sf::CircleShape circle_shape;

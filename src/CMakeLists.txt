@@ -37,14 +37,27 @@ set(SOURCE_FILES
         editor/SpawnZone.h
         ui/Interface.cpp
         ui/Interface.h
-        RescourceManager.cpp
-        RescourceManager.h
+        ResourceManager.cpp
+        ResourceManager.h
         editor/Tools.cpp
         editor/Tools.h
         ui/Button.cpp
         ui/Button.h
         ui/Panel.cpp
         ui/Panel.h
+        ui/InputField.cpp
+        ui/InputField.h
+        editor/ToolSelector.cpp
+        editor/ToolSelector.h
+        ui/ToolSelectorInterface.cpp
+        ui/ToolSelectorInterface.h
+        ui/TerrainToolInterface.cpp
+        ui/TerrainToolInterface.h
+        TimedEvent.h
+        ui/InterfaceManager.cpp
+        ui/InterfaceManager.h
+        ui/TextField.cpp
+        ui/TextField.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

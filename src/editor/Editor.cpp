@@ -5,21 +5,23 @@
 #include "Editor.h"
 #include <iostream>
 #include <memory>
-#include <memory>
+
+#include "ToolSelector.h"
 #include "ui/Button.h"
 #include "ui/Panel.h"
+#include "ui/ToolSelectorInterface.h"
 
 Editor::Editor(const std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
 : context(context), camera(Camera(sf::Vector2f(world.width / 2, world.height / 2), camera_width, camera_height)), world(world) {
 }
 
 void Editor::Init() {
-    // Initialize Interfaces
-    Initialize_Tools_interface();
+    // Initialize ToolSelector
+    tool_selector = std::make_shared<ToolSelector>();
+    interfaces.emplace_back(std::make_shared<ToolSelectorInterface>(interfaces, tool_selector, sf::Vector2f(20, 20)));
 }
 
 void Editor::ProcessInput() {
-
 
     sf::Event event{};
     context->window->setView(camera.view);
@@ -35,21 +37,22 @@ void Editor::ProcessInput() {
                 // Check if interfaces are clicked.
                 bool interface_clicked = false;
                 for (auto& interface : interfaces) {
-                    //Change view to default to acces UI coordinates. TODO: handle everything UI related in a InterfaceManager
-                    auto mouse_interface_pos = context->window->mapPixelToCoords(mouse_pos, context->window->getDefaultView());
-                    std::cout << mouse_interface_pos.x << std::endl;
-                    if (interface->IsPointInsideRect(mouse_interface_pos)) {
-                        interface->OnClick(mouse_interface_pos);
-                        interface_clicked = true;
+                    if (interface->active) {
+                        //Change view to default to acces UI coordinates. TODO: handle everything UI related in a InterfaceManager
+                        auto mouse_interface_pos = context->window->mapPixelToCoords(mouse_pos, context->window->getDefaultView());
+                        if (interface->IsPointInsideRect(mouse_interface_pos)) {
+                            interface->OnClick(mouse_interface_pos);
+                            interface_clicked = true;
+                        }
                     }
                 }
                 // If no interfaces are clicked, use tool.
 
-                if (!interface_clicked && p_selected_tool) p_selected_tool->OnLeftClick(tool_pos, &world);
+                if (!interface_clicked && tool_selector->GetSelectedTool()) tool_selector->GetSelectedTool()->OnLeftClick(tool_pos, &world);
             }
 
             if (event.mouseButton.button == sf::Mouse::Right) {
-                if (p_selected_tool) p_selected_tool->OnRightClick(tool_pos, &world);
+                if (tool_selector->GetSelectedTool()) tool_selector->GetSelectedTool()->OnRightClick(tool_pos, &world);
             }
 
             if (event.mouseButton.button == sf::Mouse::Middle) {
@@ -73,6 +76,11 @@ void Editor::ProcessInput() {
             }
         }
 
+        if (event.type == sf::Event::TextEntered) {
+            for (auto& interface : interfaces) {
+                interface->OnTextEntered(event.text.unicode);
+            }
+        }
     }
 
     camera.Drag(mouse_pos);
@@ -101,52 +109,20 @@ void Editor::Draw() {
     for (auto& obstacle : world.obstacles) {
         obstacle->Draw(context->window.get());
     }
-    if (p_selected_tool) p_selected_tool->Draw(tool_pos, context->window.get());
+    for (auto& terrain : world.terrains) {
+        terrain->Draw(context->window.get());
+    }
+    if (tool_selector->GetSelectedTool()) tool_selector->GetSelectedTool()->Draw(tool_pos, context->window.get());
 
 
     context->window->setView(context->window->getDefaultView());
     for (auto& interface : interfaces) {
-        interface->Draw(context->window.get());
+        if (interface->active) {
+            interface->Draw(context->window.get());
+        }
     }
 
     context->window->display();
-}
-
-void Editor::SelectTool(Tools tool) {
-    switch (tool) {
-        case Tools::LineObstacleTool:
-            p_selected_tool = std::make_unique<LineObstacleTool>();
-            std::cout << "Selected the Line Obstacle Tool!" << std::endl;
-            break;
-        case Tools::CircleObstacleTool:
-            p_selected_tool = std::make_unique<CircleObstacleTool>();
-            std::cout << "Selected the Circle Obstacle Tool!" << std::endl;
-            break;
-        // Add other cases for different tools
-        default:
-            break;
-    }
-}
-
-
-void Editor::Initialize_Tools_interface() {
-    std::shared_ptr<Panel> tools_panel = std::make_shared<Panel>(sf::Vector2f(20,20), 310, 70, sf::Color(80,80,80));
-    std::shared_ptr<Interface> btn_0 = std::make_shared<ImageButton>([this]() { SelectTool(Tools::LineObstacleTool); },
-                                                                     "erase_tool_button", sf::Vector2f(0,0), 50, 50);
-    std::shared_ptr<Interface> btn_1 = std::make_shared<ImageButton>([this]() { SelectTool(Tools::LineObstacleTool); },
-                                                                     "line_tool_button", sf::Vector2f(0,0), 50, 50);
-    std::shared_ptr<Interface> btn_2 = std::make_shared<ImageButton>([this]() { SelectTool(Tools::CircleObstacleTool); },
-                                                                     "circle_tool_button", sf::Vector2f(0,0), 50, 50);
-    std::shared_ptr<Interface> btn_3 = std::make_shared<ImageButton>([this]() { SelectTool(Tools::CircleObstacleTool); },
-                                                                     "boid_circle_button", sf::Vector2f(0,0), 50, 50);
-    std::shared_ptr<Interface> btn_4 = std::make_shared<ImageButton>([this]() { SelectTool(Tools::CircleObstacleTool); },
-                                                                     "boid_rectangle_button", sf::Vector2f(0,0), 50, 50);
-    tools_panel->AddElementWithRelativePos(btn_0, sf::Vector2f(10,10));
-    tools_panel->AddElementWithRelativePos(btn_1, sf::Vector2f(70,10));
-    tools_panel->AddElementWithRelativePos(btn_2, sf::Vector2f(130,10));
-    tools_panel->AddElementWithRelativePos(btn_3, sf::Vector2f(190,10));
-    tools_panel->AddElementWithRelativePos(btn_4, sf::Vector2f(250,10));
-    interfaces.push_back(tools_panel);
 }
 
 sf::Vector2f Editor::MapPixelToClosestGridCoords(sf::Vector2i pixel_coord) const {

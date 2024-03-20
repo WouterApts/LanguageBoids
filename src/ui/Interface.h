@@ -4,6 +4,7 @@
 
 #ifndef USERINTERFACE_H
 #define USERINTERFACE_H
+#include <memory>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -27,6 +28,7 @@ public:
     virtual void Draw(sf::RenderWindow* window) {};
     virtual void OnClick(sf::Vector2f mouse_pos) {};
     virtual void OnHover(sf::Vector2f mouse_pos) {};
+    virtual void OnTextEntered(sf::Uint32 unicode) {};
 };
 
 #endif //USERINTERFACE_H

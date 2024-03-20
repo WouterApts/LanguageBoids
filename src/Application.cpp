@@ -5,7 +5,7 @@
 #include <iostream>
 #include "Application.h"
 
-#include "RescourceManager.h"
+#include "ResourceManager.h"
 #include "World.h"
 #include "Simulation.cpp"
 #include "Utility.h"
@@ -35,7 +35,7 @@ void Application::Run() {
     while (context->window->isOpen()) {
         sf::Time delta_time = clock.restart();
         if (delta_time > TIME_PER_FRAME) delta_time = TIME_PER_FRAME;
-        PrintFPS(delta_time);
+        //PrintFPS(delta_time);
 
         context->state_manager->ProcessStateChange();
         context->state_manager->GetCurrentState()->ProcessInput();;
@@ -47,14 +47,18 @@ void Application::Run() {
 Application::~Application() = default;
 
 void Application::InitializeRescources() {
-    RescourceManager::LoadTexture("boid", "images/boid.png");
-    RescourceManager::LoadTexture("boid_selection", "images/boid_selection.png");
-    RescourceManager::LoadTexture("line_tool_button", "images/LineButton.png");
-    RescourceManager::LoadTexture("circle_tool_button", "images/CircleButton.png");
-    RescourceManager::LoadTexture("erase_tool_button", "images/EraseButton.png");
-    RescourceManager::LoadTexture("boid_circle_button", "images/BoidCircleButton.png");
-    RescourceManager::LoadTexture("boid_rectangle_button", "images/BoidRectangleButton.png");
-    RescourceManager::LoadTexture("save_button", "images/SaveButton.png");
-    RescourceManager::LoadTexture("terrain_button", "images/TerrainButton.png");
-    RescourceManager::LoadTexture("settings_button", "images/SettingsButton.png");
+    // Images
+    ResourceManager::LoadTexture("boid", "images/boid.png");
+    ResourceManager::LoadTexture("boid_selection", "images/boid_selection.png");
+    ResourceManager::LoadTexture("line_tool_button", "images/LineButton.png");
+    ResourceManager::LoadTexture("circle_tool_button", "images/CircleButton.png");
+    ResourceManager::LoadTexture("erase_tool_button", "images/EraseButton.png");
+    ResourceManager::LoadTexture("boid_circle_button", "images/BoidCircleButton.png");
+    ResourceManager::LoadTexture("boid_rectangle_button", "images/BoidRectangleButton.png");
+    ResourceManager::LoadTexture("save_button", "images/SaveButton.png");
+    ResourceManager::LoadTexture("terrain_button", "images/TerrainButton.png");
+    ResourceManager::LoadTexture("settings_button", "images/SettingsButton.png");
+
+    // Fonts
+    ResourceManager::LoadFont("arial", "fonts/arial.ttf");
 }

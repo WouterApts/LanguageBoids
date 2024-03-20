@@ -15,9 +15,7 @@ constexpr float SEPARATION_FACTOR = 3.f;
 constexpr float AVOIDANCE_FACTOR = 0.3f;
 
 constexpr float MAX_SPEED = 125;
-constexpr float MAX_SPEED_SQUARED = MAX_SPEED * MAX_SPEED;
 constexpr float MIN_SPEED = 75;
-constexpr float MIN_SPEED_SQUARED = MIN_SPEED * MIN_SPEED;
 constexpr float PERCEPTION_RADIUS = 500;
 constexpr float INTERACTION_RADIUS = 250;
 constexpr float SEPARATION_RADIUS = 100;

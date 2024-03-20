@@ -7,6 +7,7 @@
 #include <memory>
 #include <SFML/Graphics/RectangleShape.hpp>
 
+#include "InputField.h"
 #include "Interface.h"
 
 
@@ -16,12 +17,14 @@ public:
 
     sf::Color background_color;
     std::vector<std::shared_ptr<Interface>> elements;
+    std::shared_ptr<InputField> focused_field;
 
     void Draw(sf::RenderWindow* window) override;
     void OnClick(sf::Vector2f mouse_pos) override;
     void OnHover(sf::Vector2f mouse_pos) override;
+    void OnTextEntered(sf::Uint32 unicode) override;
 
-    void AddElementWithRelativePos(std::shared_ptr<Interface> &element, sf::Vector2f relative_pos);
+    void AddElementWithRelativePos(std::shared_ptr<Interface>& element, sf::Vector2f relative_pos);
     void SetPosition(sf::Vector2f pos) override;
 };
 
