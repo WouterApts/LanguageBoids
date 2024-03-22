@@ -63,7 +63,7 @@ void Boid::UpdateVelocity(const std::vector<std::shared_ptr<Obstacle>> &obstacle
         float velocity_along_normal = vel.dot(collision_normal);
 
         // If the boid is moving away from the collision, do nothing
-        if (velocity_along_normal > 0) {
+        if (velocity_along_normal >= 0) {
             SetVelocity(vel + acc * delta_time.asSeconds());
         } else {
             float impulse_magnitude = -(1 + RESTITUTION_COEFFICIENT) * velocity_along_normal;

@@ -33,8 +33,6 @@ set(SOURCE_FILES
         Analysis/CompAnalyser.h
         editor/Editor.cpp
         editor/Editor.h
-        editor/SpawnZone.cpp
-        editor/SpawnZone.h
         ui/Interface.cpp
         ui/Interface.h
         ResourceManager.cpp
@@ -58,6 +56,14 @@ set(SOURCE_FILES
         ui/InterfaceManager.h
         ui/TextField.cpp
         ui/TextField.h
+        ui/BoidToolInterface.cpp
+        ui/BoidToolInterface.h
+        BoidSpawners.cpp
+        BoidSpawners.h
+        editor/Serialization.cpp
+        editor/Serialization.h
+        ui/SettingsInterface.cpp
+        ui/SettingsInterface.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

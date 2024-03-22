@@ -10,7 +10,7 @@
 
 class TerrainToolInterface : public Panel {
 public:
-    TerrainToolInterface(sf::Vector2f pos, const std::shared_ptr<TerrainTool>& terrain_tool);
+    TerrainToolInterface(sf::Vector2f pos, const std::shared_ptr<TerrainTool>& p_terrain_tool);
 };
 
 

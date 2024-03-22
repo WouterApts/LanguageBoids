@@ -4,6 +4,7 @@
 
 #ifndef TOOLSELECTORINTERFACE_H
 #define TOOLSELECTORINTERFACE_H
+#include "BoidToolInterface.h"
 #include "Panel.h"
 #include "editor/ToolSelector.h"
 #include "ui/TerrainToolInterface.h"
@@ -19,6 +20,7 @@ public:
 
     std::vector<std::shared_ptr<Interface>>& interfaces;
     std::shared_ptr<TerrainToolInterface> terrain_tool_interface;
+    std::shared_ptr<BoidToolInterface> boid_circle_tool_interface;
     std::shared_ptr<ToolSelector> tool_selector;
     std::shared_ptr<Interface> active_tool_interface;
     int button_size[2] = {50, 50};

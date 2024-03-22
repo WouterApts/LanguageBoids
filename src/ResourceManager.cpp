@@ -28,7 +28,7 @@ sf::Texture* ResourceManager::GetTexture(const std::string& id) {
     return nullptr;
 }
 
-sf::Font *ResourceManager::GetFont(const std::string &id) {
+sf::Font* ResourceManager::GetFont(const std::string& id) {
     auto it = fonts.find(id);
     if (it != fonts.end()) {
         return it->second.get();

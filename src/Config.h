@@ -11,7 +11,7 @@
 
 constexpr float COHERENCE_FACTOR = 1.f;
 constexpr float ALIGNMENT_FACTOR = 0.3f;
-constexpr float SEPARATION_FACTOR = 3.f;
+constexpr float SEPARATION_FACTOR = 5.f;
 constexpr float AVOIDANCE_FACTOR = 0.3f;
 
 constexpr float MAX_SPEED = 125;
@@ -31,7 +31,7 @@ constexpr float LANGUAGE_MUTATION_RATE = 0.01f;
 
 //Competition Boids
 constexpr float a_COEFFICIENT =  1.3f;
-constexpr float INFLUENCE_RATE = 10.f;
+constexpr float INFLUENCE_RATE = 1.f;
 
 
 #endif //THESIS_CONFIG_H

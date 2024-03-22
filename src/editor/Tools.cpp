@@ -7,7 +7,9 @@
 #include <iostream>
 #include <memory>
 
+#include "BoidSpawners.h"
 #include "Editor.h"
+#include "LanguageManager.h"
 
 Tool::Tool() = default;
 
@@ -24,7 +26,7 @@ void LineObstacleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
     } else {
         building = false;
         auto end_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
-        if (!(end_pos - start_pos).isApprox(Eigen::Vector2f::Zero())) {
+        if (!((end_pos - start_pos).norm() < 10.f)) {
             auto line = std::make_shared<LineObstacle>(start_pos, end_pos, width, sf::Color::White);
             world->obstacles.push_back(line);
         }
@@ -60,7 +62,7 @@ void CircleObstacleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
         building = false;
         auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         float radius = (center_pos - world_pos).norm();
-        if (radius >= 1) {
+        if (radius >= 10.f) {
             auto circle = std::make_shared<CircleObstacle>(center_pos, radius, sf::Color::White);
             world->obstacles.push_back(circle);
         }
@@ -100,6 +102,15 @@ void EraserTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
         if ((*it)->IsPointInside(Eigen::Vector2f(tool_pos.x, tool_pos.y))) {
             // If collision detected, erase the obstacle
             it = world->terrains.erase(it); // Remove obstacle from the vector and advance iterator
+        } else {
+            // If no collision, move to the next obstacle
+            ++it;
+        }
+    }
+    for (auto it = world->competition_boid_spawners.begin(); it != world->competition_boid_spawners.end(); ) {
+        if ((*it)->IsInside(Eigen::Vector2f(tool_pos.x, tool_pos.y), this->brush_size)) {
+            // If collision detected, erase the obstacle
+            it = world->competition_boid_spawners.erase(it); // Remove obstacle from the vector and advance iterator
         } else {
             // If no collision, move to the next obstacle
             ++it;
@@ -170,6 +181,44 @@ void TerrainTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
             polygon.setOutlineThickness(line_thickness);
             window->draw(polygon);
         }
+    }
+}
+
+BoidTool::BoidTool() = default;
+
+void BoidTool::Reset() {
+    building = false;
+}
+
+void BoidTool::OnRightClick(sf::Vector2f tool_pos, World *world) {
+    building = false;
+}
+
+BoidCircleTool::BoidCircleTool() = default;
+
+void BoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+    if (!building) {
+        building = true;
+        center_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
+    } else {
+        building = false;
+        auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
+        float radius = (center_pos - world_pos).norm();
+        if (radius >= 1) {
+            auto spawner = std::make_shared<CompBoidCircularSpawner>(boid_count, language_key, center_pos, radius);
+            world->competition_boid_spawners.push_back(spawner);
+        }
+    }
+}
+
+void BoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+    auto color = LanguageManager::GetLanguageColor(language_key);
+    color.a = 100;
+    if (building) {
+        auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
+        float radius = (center_pos - world_pos).norm();
+        auto circle = CircleObstacle(center_pos, radius, color);
+        circle.Draw(window);
     }
 }
 

@@ -5,9 +5,11 @@
 #include <iostream>
 #include <memory>
 
+#include "BoidSpawners.h"
 #include "LanguageManager.h"
 #include "Simulation.h"
 #include "Utility.h"
+#include "editor/Serialization.h"
 
 CompSimulation::CompSimulation(std::shared_ptr<Context>& context, World& world, const std::vector<float>& language_statuses, float camera_width, float camera_height)
     : Simulation(context, world, camera_width, camera_height),
@@ -18,52 +20,28 @@ CompSimulation::CompSimulation(std::shared_ptr<Context>& context, World& world, 
 }
 
 void CompSimulation::Init() {
+    //Setup analysis logging
+    analyser.SetBPLTimeInterval(sf::seconds(1.f));
+    analyser.SetLPCTimeInterval(sf::seconds(5.f));
 
+    //Setup world borders
     CreateWorldBorderLines();
 
-    //Create boid clusters
-    auto pos = Eigen::Vector2f(1000, 500);
-    AddBoidCluster(pos, 200, 700, 1);
-    pos = Eigen::Vector2f(1000, 1500);
-    AddBoidCluster(pos, 200, 700, 2);
-    pos = Eigen::Vector2f(3000, 500);
-    AddBoidCluster(pos, 200, 700, 3);
-    pos = Eigen::Vector2f(3000, 1500);
-    AddBoidCluster(pos, 200, 700, 0);
+    //Spawn Boids
+    for (auto& spawner : world.competition_boid_spawners) {
+        spawner->AddBoids(world, boids);
+    }
+
     for (auto& boid : boids) {
         boid->UpdateColor(language_manager);
     }
-
-    //Create Some Obstacles
-    auto p1 = Eigen::Vector2f(1000,1000);
-    auto p2 = Eigen::Vector2f(3000,1000);
-    auto line = std::make_shared<LineObstacle>(p1, p2, 10, sf::Color::White);
-    world.obstacles.push_back(line);
-
-    // auto c1 = Eigen::Vector2f(1000, 1000);
-    // obstacles.push_back(std::make_shared<CircleObstacle>(c1, 150, sf::Color::White));
-    auto c2 = Eigen::Vector2f(2000, 1000);
-    world.obstacles.push_back(std::make_shared<CircleObstacle>(c2, 250, sf::Color::White));
-
-    // Create some terrain
-    std::vector<Eigen::Vector2f> vertices;
-    auto t1 = Eigen::Vector2f(4000,0); auto t2 = Eigen::Vector2f(4500,0);
-    auto t3 = Eigen::Vector2f(4500,3000); auto t4 = Eigen::Vector2f(4000,3000);
-    vertices.push_back(t1); vertices.push_back(t2); vertices.push_back(t3); vertices.push_back(t4);
-    auto terrain = std::make_shared<Terrain>(vertices, 1, 1, MIN_SPEED-25, MAX_SPEED-25);
-    world.terrains.push_back(terrain);
 };
 
 
 void CompSimulation::Update(sf::Time delta_time) {
 
-    // Check if enough time has passed between analysis logs
-    passedTime += delta_time;
-    auto analyse_frequency = sf::seconds(1.f);
-    bool analyse = passedTime > analyse_frequency;
-    if (analyse) {
-        passedTime = passedTime - analyse_frequency;
-    }
+    // Log metrics based on interval settings
+    analyser.LogAllMetrics(delta_time);
 
     for (const auto& boid: boids) {
 
@@ -86,13 +64,6 @@ void CompSimulation::Update(sf::Time delta_time) {
 
         //Update boids language
         boid->UpdateLanguageSatisfaction(perceived_boids, interacting_boids, language_manager, delta_time);
-    }
-
-    // Analyse simulation data
-    if (analyse) {
-        analyser.LogLanguagesPerCell();
-        analyser.LogBoidsPerLanguage();
-        std::cout << "logging complete" << std::endl;
     }
 
     for (const auto& boid : boids) {
@@ -119,9 +90,11 @@ void CompSimulation::ProcessInput() {
         }
 
         if (event.type == sf::Event::MouseButtonPressed) {
-            if (event.mouseButton.button == sf::Mouse::Middle) {
+            if (event.mouseButton.button == sf::Mouse::Left) {
                 //Boid Selection
                 ProcessBoidSelection(context.get(), mouse_pos, spatial_boid_grid);
+            }
+            if (event.mouseButton.button == sf::Mouse::Middle) {
                 //Camera Drag
                 camera.StartDragging(mouse_pos);
             }
@@ -208,5 +181,13 @@ void CompSimulation::AddBoidCluster(Eigen::Vector2f position, float radius, int 
 
         auto spawn_pos = Eigen::Vector2f(x, y);
         AddBoid(std::make_shared<CompBoid>(spawn_pos, zero_vector, zero_vector, language_key));
+    }
+}
+
+void CompSimulation::LoadWorldFromFile(const std::string &file_name) {
+    if (auto loaded_world = serialization::LoadWorldFromFile(file_name)) {
+        world = loaded_world.value();
+    } else {
+        std::cerr << "Unable to load world from file." << std::endl;
     }
 }

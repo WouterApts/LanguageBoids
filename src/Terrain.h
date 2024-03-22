@@ -4,6 +4,7 @@
 
 #ifndef TERRAIN_H
 #define TERRAIN_H
+#include <memory>
 #include <vector>
 #include <Eigen/Dense>
 #include <SFML/Graphics/ConvexShape.hpp>
@@ -20,6 +21,10 @@ public:
 
     void ApplyEffects(Boid *boid) const;
     void Draw(sf::RenderWindow* window) const;
+
+    std::string ToString() const;
+
+    static std::shared_ptr<Terrain> FromString(const std::string &str) ;
 
     std::vector<Eigen::Vector2f> vertices;
     sf::ConvexShape polygon;

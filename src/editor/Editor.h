@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "Tools.h"
-#include "SpawnZone.h"
 #include "State.h"
 #include "ui/Interface.h"
 #include "Application.h"
@@ -21,11 +20,12 @@ public:
     Camera camera;
     World world;
 
-    int grid_spacing = 100;
+    std::vector<int> grid_spacings = {0, 50, 100, 200, 500};
+    int selected_grid_spacing = 0;
+    int grid_spacing = grid_spacings[selected_grid_spacing];
     sf::Vector2f tool_pos{};
 
     std::vector<std::shared_ptr<Interface>> interfaces;
-    std::vector<std::shared_ptr<SpawnZone>> spawn_zones;
     std::shared_ptr<ToolSelector> tool_selector;
 
 
@@ -34,6 +34,7 @@ public:
     sf::Vector2f MapPixelToClosestGridCoords(sf::Vector2i pixel_coord) const;
     void DrawCursorHighlightOnGrid() const;
     void DrawGrid(sf::RenderWindow *window) const;
+    void NextGridSize();
 
     void Init() override;
     void ProcessInput() override;

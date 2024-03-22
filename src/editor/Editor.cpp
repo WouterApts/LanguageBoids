@@ -6,7 +6,10 @@
 #include <iostream>
 #include <memory>
 
+#include "BoidSpawners.h"
+#include "Serialization.h"
 #include "ToolSelector.h"
+#include "Utility.h"
 #include "ui/Button.h"
 #include "ui/Panel.h"
 #include "ui/ToolSelectorInterface.h"
@@ -81,6 +84,14 @@ void Editor::ProcessInput() {
                 interface->OnTextEntered(event.text.unicode);
             }
         }
+
+        if (IsKeyPressedOnce(sf::Keyboard::G)) {
+            NextGridSize();
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::F5)) {
+            serialization::SaveWorldToFile(world);
+        }
     }
 
     camera.Drag(mouse_pos);
@@ -106,14 +117,17 @@ void Editor::Draw() {
         DrawGrid(context->window.get());
     }
 
-    for (auto& obstacle : world.obstacles) {
-        obstacle->Draw(context->window.get());
-    }
     for (auto& terrain : world.terrains) {
         terrain->Draw(context->window.get());
     }
-    if (tool_selector->GetSelectedTool()) tool_selector->GetSelectedTool()->Draw(tool_pos, context->window.get());
+    for (auto& spawner : world.competition_boid_spawners) {
+        spawner->Draw(context->window.get());
+    }
+    for (auto& obstacle : world.obstacles) {
+        obstacle->Draw(context->window.get());
+    }
 
+    if (tool_selector->GetSelectedTool()) tool_selector->GetSelectedTool()->Draw(tool_pos, context->window.get());
 
     context->window->setView(context->window->getDefaultView());
     for (auto& interface : interfaces) {
@@ -165,4 +179,9 @@ void Editor::DrawGrid(sf::RenderWindow* window) const {
         horizontalLine.setPosition(0, y);
         window->draw(horizontalLine);
     }
+}
+
+void Editor::NextGridSize() {
+    selected_grid_spacing = (selected_grid_spacing + 1) % static_cast<int>(grid_spacings.size());
+    grid_spacing = grid_spacings[selected_grid_spacing];
 }

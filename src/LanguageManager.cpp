@@ -15,11 +15,15 @@ std::map<int, sf::Color> LanguageManager::InitLanguageColors() {
             {2, sf::Color::Blue},
             {3, sf::Color::Yellow},
             {4, sf::Color::Cyan},
-            {5, sf::Color::Magenta}
+            {5, sf::Color::Magenta},
+            {6, sf::Color(252, 152, 3)}, //Orange
+            {7, sf::Color(249, 174, 252)}, //Light Pink
+            {8, sf::Color(190, 255, 130)}, //Pastel Green
+            {9, sf::Color(255, 255, 255)}, //White
     };
 }
 
-std::map<int, sf::Color> LanguageManager::language_colors = LanguageManager::InitLanguageColors();
+std::map<int, sf::Color> LanguageManager::language_colors = InitLanguageColors();
 
 LanguageManager::LanguageManager(const std::vector<float>& language_statuses) {
     n_languages = static_cast<int>(language_statuses.size());
@@ -28,6 +32,13 @@ LanguageManager::LanguageManager(const std::vector<float>& language_statuses) {
     }
 };
 
+sf::Color LanguageManager::GetLanguageColor(int key) {
+    if (auto color_iter = language_colors.find(key); color_iter != language_colors.end()) {
+        return language_colors[key];
+    } else {
+        return {0,0,0};
+    }
+}
 
 // Method to add a language to the language manager
 void LanguageManager::AddLanguage(int key, std::shared_ptr<Language> language) {

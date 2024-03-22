@@ -60,6 +60,7 @@ public:
     void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
 };
 
+
 class TerrainTool : public Tool {
 public:
     TerrainTool();
@@ -74,6 +75,32 @@ public:
     void Reset() override;
     void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
     void OnRightClick(sf::Vector2f tool_pos, World *world) override;
+    void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
+
+};
+
+
+class BoidTool : public Tool {
+public:
+    BoidTool();
+
+    bool building = false;
+    int boid_count = 100;
+    int language_key = 0;
+
+    void Reset() override;
+    void OnRightClick(sf::Vector2f tool_pos, World *world) override;
+
+};
+
+
+class BoidCircleTool : public BoidTool {
+public:
+    BoidCircleTool();
+
+    Eigen::Vector2f center_pos;
+
+    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
 };

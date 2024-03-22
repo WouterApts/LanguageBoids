@@ -10,13 +10,17 @@
 #include "Obstacles.h"
 #include "Terrain.h"
 
+
+class CompBoidSpawner;
+
 struct World {
     float width;
     float height;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
     std::vector<std::shared_ptr<Terrain>> terrains;
+    std::vector<std::shared_ptr<CompBoidSpawner>> competition_boid_spawners;
 
-    Eigen::Vector2f size() const {
+    [[nodiscard]] Eigen::Vector2f size() const {
         return {width, height};
     }
 };

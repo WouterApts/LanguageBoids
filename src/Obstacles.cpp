@@ -9,7 +9,9 @@
 #include <iostream>
 #include "Boid.h"
 
-
+//***************************************//
+//             Line Obstacle             //
+//***************************************//
 LineObstacle::LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float width, sf::Color color)
     : startPoint(std::move(start)), endPoint(std::move(end)), length((start-end).norm()),
       thickness(width), color(color) {
@@ -25,10 +27,6 @@ LineObstacle::LineObstacle(Eigen::Vector2f& start, Eigen::Vector2f& end, float w
     vertices.emplace_back(sf::Vector2f(p2.x(), p2.y()), color);
     vertices.emplace_back(sf::Vector2f(p3.x(), p3.y()), color);
     vertices.emplace_back(sf::Vector2f(p4.x(), p4.y()), color);
-}
-
-void LineObstacle::Draw(sf::RenderWindow* window) {
-    window->draw(vertices.data(),vertices.size(),sf::Quads);
 }
 
 std::optional<Eigen::Vector2f> LineObstacle::CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius) {
@@ -60,7 +58,7 @@ std::optional<Eigen::Vector2f> LineObstacle::CalcCollisionNormal(Eigen::Vector2f
         if (CA.dot(collision_normal) < 0) {
             collision_normal *= -1;
         }
-    // Else, the projection is outside the line segment, calculate the distance to the nearest endpoint
+        // Else, the projection is outside the line segment, calculate the distance to the nearest endpoint
     } else {
 
         if (CA_len < CB_len) {
@@ -81,15 +79,46 @@ std::optional<Eigen::Vector2f> LineObstacle::CalcCollisionNormal(Eigen::Vector2f
     return std::nullopt;
 }
 
+void LineObstacle::Draw(sf::RenderWindow* window) {
+    window->draw(vertices.data(),vertices.size(),sf::Quads);
+}
+
+std::string LineObstacle::ToString() const {
+    std::stringstream ss;
+    ss << "LineObstacle: "
+       << "StartPoint: " << startPoint.x() << " , " << startPoint.y() << " "
+       << "EndPoint: " << endPoint.x() << " , " << endPoint.y() << " "
+       << "Thickness: " << thickness << " "
+       << "Color: " << static_cast<int>(color.r) << " , " << static_cast<int>(color.g) << " , " << static_cast<int>(color.b);
+    return ss.str();
+}
+
+std::shared_ptr<LineObstacle> LineObstacle::fromString(const std::string& str) {
+    std::istringstream iss(str);
+    std::string type;
+    std::string delimiter;
+    Eigen::Vector2f start, end;
+    float thickness;
+    int r, g, b;
+    if (!(iss >> type >> delimiter >> start.x() >> delimiter >> start.y() >> delimiter
+              >> end.x() >> delimiter >> end.y() >> delimiter
+              >> thickness >> delimiter >> r >> delimiter >> g >> delimiter >> b)) {
+                std::cerr << "Error: Invalid LineObstacle string format: " << str << std::endl;
+                return nullptr;
+              }
+    sf::Color color(r, g, b);
+    return std::make_shared<LineObstacle>(start, end, thickness, color);
+}
+
+
+//***************************************//
+//             Circle Obstacle             //
+//***************************************//
 CircleObstacle::CircleObstacle(Eigen::Vector2f& center, float radius, sf::Color color)
     : center(center), radius(radius), color(color) {
     circle_shape.setRadius(this->radius);
     circle_shape.setPosition(this->center.x()-this->radius, this->center.y()-this->radius);
     circle_shape.setFillColor(color);
-}
-
-void CircleObstacle::Draw(sf::RenderWindow* window) {
-    window->draw(circle_shape);
 }
 
 std::optional<Eigen::Vector2f> CircleObstacle::CalcCollisionNormal(Eigen::Vector2f pos, float collision_radius) {
@@ -99,5 +128,36 @@ std::optional<Eigen::Vector2f> CircleObstacle::CalcCollisionNormal(Eigen::Vector
     }
     return std::nullopt;
 }
+
+void CircleObstacle::Draw(sf::RenderWindow* window) {
+    window->draw(circle_shape);
+}
+
+std::string CircleObstacle::ToString() const {
+    std::stringstream ss;
+    ss << "CircleObstacle: "
+       << "Center: " << center.x() << " , " << center.y() << " "
+       << "Radius: " << radius << " "
+       << "Color: " << static_cast<int>(color.r) << " , " << static_cast<int>(color.g) << " , " << static_cast<int>(color.b);
+    return ss.str();
+}
+
+std::shared_ptr<CircleObstacle> CircleObstacle::FromString(const std::string& str) {
+    std::istringstream iss(str);
+    std::string type;
+    std::string delimiter;
+    Eigen::Vector2f center;
+    float radius;
+    int r, g, b;
+
+    if (!(iss >> type >> delimiter >> center.x() >> delimiter >> center.y() >> delimiter
+              >> radius >> delimiter >> r >> delimiter >> g >> delimiter >> b)) {
+        std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
+        return nullptr;
+              }
+    sf::Color color(r, g, b);
+    return std::make_shared<CircleObstacle>(center, radius, color);
+}
+
 
 
