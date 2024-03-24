@@ -212,15 +212,70 @@ void BoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
 }
 
 void BoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
-    auto color = LanguageManager::GetLanguageColor(language_key);
-    color.a = 100;
     if (building) {
+        auto color = LanguageManager::GetLanguageColor(language_key);
+        color.a = 100;
+
         auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         float radius = (center_pos - world_pos).norm();
         auto circle = CircleObstacle(center_pos, radius, color);
         circle.Draw(window);
     }
 }
+
+BoidRectangleTool::BoidRectangleTool() = default;
+
+void BoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+    if (!building) {
+        building = true;
+        start_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
+    } else {
+        building = false;
+        auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
+        float width = world_pos.x() - start_pos.x();
+        float height = world_pos.y() - start_pos.y() ;
+        auto pos = start_pos;
+        if (width < 0) {
+            pos.x() = pos.x() + width;
+            width = -width;
+        }
+        if (height < 0) {
+            pos.y() = pos.y() + height;
+            height = -height;
+        }
+        if (width >= 1 && height >= 1) {
+            auto spawner = std::make_shared<CompBoidRectangularSpawner>(boid_count, language_key, pos, width, height);
+            world->competition_boid_spawners.push_back(spawner);
+        }
+    }
+}
+
+void BoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+    if (building) {
+        auto color = LanguageManager::GetLanguageColor(language_key);
+        color.a = 100;
+
+        auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
+        float width = world_pos.x() - start_pos.x();
+        float height = world_pos.y() - start_pos.y() ;
+        auto pos = start_pos;
+        if (width < 0) {
+            pos.x() = pos.x() + width;
+            width = -width;
+        }
+        if (height < 0) {
+            pos.y() = pos.y() + height;
+            height = -height;
+        }
+
+        sf::RectangleShape rect;
+        rect.setSize(sf::Vector2f(width, height));
+        rect.setPosition(sf::Vector2f(pos.x(), pos.y()));
+        rect.setFillColor(color);
+        window->draw(rect);
+    }
+}
+
 
 
 

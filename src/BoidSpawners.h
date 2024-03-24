@@ -42,7 +42,6 @@ class CompBoidSpawner {
 public:
     int boids_spawned;
     int language_key;
-    sf::CircleShape circle;
     sf::Text text;
 
     CompBoidSpawner(int boids_spawned, int language_key);
@@ -56,6 +55,8 @@ public:
 
 class CompBoidCircularSpawner : public CompBoidSpawner, public CircularSpawner {
 public:
+    sf::CircleShape circle;
+
     CompBoidCircularSpawner(int boids_spawned, int language_key, Eigen::Vector2f center_pos, float radius);
     void AddBoids(const World &world, std::vector<std::shared_ptr<CompBoid>> &boids) override;
     void Draw(sf::RenderWindow* window) const override;
@@ -68,6 +69,8 @@ public:
 
 class CompBoidRectangularSpawner : public CompBoidSpawner, public RectangularSpawner {
 public:
+    sf::RectangleShape rect;
+
     CompBoidRectangularSpawner(int boids_spawned, int language_key, Eigen::Vector2f pos, float width, float height);
     void AddBoids(const World &world, std::vector<std::shared_ptr<CompBoid>> &boids) override;
     void Draw(sf::RenderWindow* window) const override;

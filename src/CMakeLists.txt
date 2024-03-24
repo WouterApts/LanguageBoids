@@ -64,6 +64,8 @@ set(SOURCE_FILES
         editor/Serialization.h
         ui/SettingsInterface.cpp
         ui/SettingsInterface.h
+        MainMenu.cpp
+        MainMenu.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

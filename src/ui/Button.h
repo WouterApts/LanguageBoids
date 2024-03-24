@@ -31,17 +31,16 @@ public:
 
 class TextButton : public Button {
 public:
-    TextButton(std::function<void()> callback, std::string text, sf::Color text_color, int text_size, sf::Color background_color,
-               sf::Vector2f pos, float width, float height);
-
     int text_size;
     std::string text_string;
     sf::Color text_color;
     sf::Text text;
     sf::Color background_color;
 
-    TextButton(std::function<void()> callback, const std::string& text_string, sf::Color text_color, int text_size,
+    TextButton(std::function<void()> callback, const std::string &text_string, sf::Color text_color, int text_size,
                sf::Color background_color, sf::Vector2f pos, float width, float height);
+
+    void SetPosition(sf::Vector2f pos);
 
     void Draw(sf::RenderWindow* window) override;
 };

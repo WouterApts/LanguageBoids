@@ -21,7 +21,7 @@ public:
     World world;
 
     std::vector<int> grid_spacings = {0, 50, 100, 200, 500};
-    int selected_grid_spacing = 0;
+    int selected_grid_spacing = 2;
     int grid_spacing = grid_spacings[selected_grid_spacing];
     sf::Vector2f tool_pos{};
 

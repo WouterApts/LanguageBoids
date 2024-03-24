@@ -28,6 +28,8 @@ public:
     void Drag(sf::Vector2i mouse_pos);
     void Move(sf::Vector2f direction);
     void Zoom(float zoom_modifier);
+
+    void SetZoom(float zoom_value);
 };
 
 

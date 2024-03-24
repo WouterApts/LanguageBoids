@@ -104,4 +104,15 @@ public:
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
 };
+
+class BoidRectangleTool : public BoidTool {
+public:
+    BoidRectangleTool();
+
+    Eigen::Vector2f start_pos;
+
+    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
+
+};
 #endif //TOOL_H

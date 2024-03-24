@@ -5,6 +5,7 @@
 #include <iostream>
 #include "Application.h"
 
+#include "MainMenu.h"
 #include "ResourceManager.h"
 #include "World.h"
 #include "Simulation.cpp"
@@ -25,13 +26,17 @@ void Application::Run() {
     std::vector<float> language_statuses = {0.24, 0.26, 0.20, 0.30};
 
     //Simulation Test
-    std::unique_ptr<CompSimulation> simulation = std::make_unique<CompSimulation>(context, world, language_statuses, 1600, 900);
-    simulation->LoadWorldFromFile("test_world.dat");
-    context->state_manager->AddState(std::move(simulation));
+    //std::unique_ptr<CompSimulation> simulation = std::make_unique<CompSimulation>(context, world, language_statuses, 1600, 900);
+    //simulation->LoadWorldFromFile("test_world.dat");
+    //context->state_manager->AddState(std::move(simulation));
 
     //Editor test
     //std::unique_ptr<State> editor = std::make_unique<Editor>(context, world, 1600, 900);
     //context->state_manager->AddState(std::move(editor));
+
+    //Main menu
+    std::unique_ptr<MainMenu> main_menu = std::make_unique<MainMenu>(context);
+    context->state_manager->AddState(std::move(main_menu));
 
     while (context->window->isOpen()) {
         sf::Time delta_time = clock.restart();
@@ -58,7 +63,7 @@ void Application::InitializeRescources() {
     ResourceManager::LoadTexture("boid_rectangle_button", "images/BoidRectangleButton.png");
     ResourceManager::LoadTexture("save_button", "images/SaveButton.png");
     ResourceManager::LoadTexture("terrain_button", "images/TerrainButton.png");
-    ResourceManager::LoadTexture("settings_button", "images/SettingsButton.png");
+    ResourceManager::LoadTexture("config_button", "images/SettingsButton.png");
     ResourceManager::LoadTexture("grid_button", "images/GridButton.png");
 
     // Fonts

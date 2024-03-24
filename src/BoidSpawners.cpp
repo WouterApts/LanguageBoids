@@ -45,7 +45,7 @@ CompBoidCircularSpawner::CompBoidCircularSpawner(int boids_spawned, int language
     sf::Font& font = *ResourceManager::GetFont("arial");
     text.setString(std::to_string(boids_spawned));
     text.setFillColor(color);
-    text.setCharacterSize(static_cast<int>(std::max(radius/4, 50.f)));
+    text.setCharacterSize(static_cast<int>(std::max(std::min(radius/2, 500.f), 100.f)));
     text.setFont(font);
     sf::FloatRect textBounds = text.getLocalBounds();
     float textPosX = this->center_pos.x() - textBounds.width / 2.0f;
@@ -111,14 +111,36 @@ std::shared_ptr<CompBoidCircularSpawner> CompBoidCircularSpawner::FromString(con
 
 
 CompBoidRectangularSpawner::CompBoidRectangularSpawner(int boids_spawned, int language_key, Eigen::Vector2f pos, float width, float height)
-    : CompBoidSpawner(boids_spawned, language_key), RectangularSpawner(pos, width, height) {}
+    : CompBoidSpawner(boids_spawned, language_key), RectangularSpawner(pos, width, height) {
+
+    sf::Color color = LanguageManager::GetLanguageColor(language_key);
+    sf::Font& font = *ResourceManager::GetFont("arial");
+    text.setString(std::to_string(boids_spawned));
+    text.setFillColor(color);
+    text.setCharacterSize(static_cast<int>(std::max(std::min(width/4, 500.f), 100.f)));
+    text.setFont(font);
+
+    rect.setSize(sf::Vector2f(width, height));
+    rect.setPosition(sf::Vector2f(pos.x(), pos.y()));
+
+    color.a = 100;
+    rect.setFillColor(color);
+
+    sf::FloatRect textBounds = text.getLocalBounds();
+    float textPosX = this->pos.x() + this->rect.getSize().x/2 - textBounds.width / 2.0f;
+    float textPosY = this->pos.y() + this->rect.getSize().y/2 - textBounds.height;
+    // Set the position of the text
+    std::cout << textPosX << " " << textPosY;
+    text.setPosition(textPosX, textPosY);
+}
 
 void CompBoidRectangularSpawner::AddBoids(const World &world, std::vector<std::shared_ptr<CompBoid>> &boids) {
     CompBoidSpawner::AddBoids(world, boids);
 }
 
 void CompBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
-    CompBoidSpawner::Draw(window);
+    window->draw(rect);
+    window->draw(text);
 }
 
 bool CompBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
@@ -126,5 +148,12 @@ bool CompBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
 }
 
 std::string CompBoidRectangularSpawner::ToString() {
-    return CompBoidSpawner::ToString();
+    std::stringstream ss;
+    ss << "CompBoidCircularSpawner: "
+       << "Position: " << pos.x() << " , " << pos.y() << " "
+       << "Width: " << width << " "
+       << "height: " << height << " "
+       << "Boids: " << boids_spawned << " "
+       << "Language: " << language_key;
+    return ss.str();
 }

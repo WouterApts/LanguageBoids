@@ -41,6 +41,12 @@ ToolSelectorInterface::ToolSelectorInterface(std::vector<std::shared_ptr<Interfa
     boid_circle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_circle_tool);
     interfaces.push_back(boid_circle_tool_interface);
 
+
+
+    auto p_boid_rectangle_tool = std::dynamic_pointer_cast<BoidRectangleTool>(tool_selector->tools[BoidRectangleT]);
+    boid_rectangle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_rectangle_tool);
+    interfaces.push_back(boid_rectangle_tool_interface);
+
     // Activate the tool selector interface
     this->active = true;
 }
@@ -108,6 +114,10 @@ void ToolSelectorInterface::SelectTool(Tools tool) {
         case BoidCircleT:
             tool_selector->SelectTool(BoidCircleT);
             active_tool_interface = boid_circle_tool_interface;
+            break;
+        case BoidRectangleT:
+            tool_selector->SelectTool(BoidRectangleT);
+            active_tool_interface = boid_rectangle_tool_interface;
             break;
         default: ;
     }

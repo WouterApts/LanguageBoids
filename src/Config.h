@@ -31,7 +31,7 @@ constexpr float LANGUAGE_MUTATION_RATE = 0.01f;
 
 //Competition Boids
 constexpr float a_COEFFICIENT =  1.3f;
-constexpr float INFLUENCE_RATE = 1.f;
+constexpr float INFLUENCE_RATE = 10.f;
 
 
 #endif //THESIS_CONFIG_H

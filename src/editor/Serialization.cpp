@@ -16,7 +16,7 @@
 
 
 void serialization::SaveWorldToFile(const World& world) {
-    auto file_name = GetFileNameThroughFileDialog();
+    auto file_name = GetFileNameThroughSaveDialog();
     if (file_name.empty()) {
         std::cerr << "Error: Empty file name! " << std::endl;
         return;
@@ -119,7 +119,7 @@ std::optional<World> serialization::LoadWorldFromFile(const std::string& filenam
     return world;
 }
 
-std::string serialization::GetFileNameThroughFileDialog() {
+std::string serialization::GetFileNameThroughSaveDialog() {
 #ifdef _WIN32
     char filename[MAX_PATH];
     OPENFILENAME ofn;
@@ -130,7 +130,12 @@ std::string serialization::GetFileNameThroughFileDialog() {
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT;
     if (GetSaveFileName(&ofn) == TRUE) {
-        return filename;
+        std::string filepath(filename);
+        // Ensure the file path has ".dat" extension
+        if (filepath.substr(filepath.length() - 4) != ".dat") {
+            filepath += ".dat";
+        }
+        return filepath;
     } else {
         return "";
     }
@@ -149,6 +154,10 @@ std::string serialization::GetFileNameThroughFileDialog() {
         std::string filepath(filename);
         g_free(filename);
         gtk_widget_destroy(dialog);
+        // Ensure the file path has ".dat" extension
+        if (filepath.substr(filepath.length() - 4) != ".dat") {
+            filepath += ".dat";
+        }
         return filepath;
     } else {
         gtk_widget_destroy(dialog);
@@ -157,6 +166,59 @@ std::string serialization::GetFileNameThroughFileDialog() {
 #elif __APPLE__
     NSSavePanel *panel = [NSSavePanel savePanel];
     [panel setAllowedFileTypes:@[@"dat"]];
+    [panel setNameFieldStringValue:@"filename.dat"]; // Set default filename
+    if ([panel runModal] == NSModalResponseOK) {
+        std::string filepath([[panel URL] path]);
+        // Ensure the file path has ".dat" extension
+        if (filepath.substr(filepath.length() - 4) != ".dat") {
+            filepath += ".dat";
+        }
+        return filepath;
+    } else {
+        return "";
+    }
+#endif
+}
+
+std::string serialization::GetFileNameThroughLoadDialog() {
+#ifdef _WIN32
+    char filename[MAX_PATH];
+    OPENFILENAME ofn;
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFilter = "Data Files (*.dat)\0*.dat\0All Files (*.*)\0*.*\0";
+    ofn.lpstrFile = filename;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
+    if (GetOpenFileName(&ofn) == TRUE) {
+        return filename;
+    } else {
+        return "";
+    }
+#elif __linux__
+    GtkWidget *dialog;
+    dialog = gtk_file_chooser_dialog_new("Open File",
+                                         NULL,
+                                         GTK_FILE_CHOOSER_ACTION_OPEN,
+                                         "Cancel", GTK_RESPONSE_CANCEL,
+                                         "Open", GTK_RESPONSE_ACCEPT,
+                                         NULL);
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+        char *filename;
+        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        std::string filepath(filename);
+        g_free(filename);
+        gtk_widget_destroy(dialog);
+        return filepath;
+    } else {
+        gtk_widget_destroy(dialog);
+        return "";
+    }
+#elif __APPLE__
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    [panel setAllowedFileTypes:@[@"dat"]];
+    [panel setCanChooseFiles:YES];
+    [panel setCanChooseDirectories:NO];
     if ([panel runModal] == NSModalResponseOK) {
         return std::string([[panel URL] path]);
     } else {

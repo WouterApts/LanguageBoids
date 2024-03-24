@@ -37,15 +37,33 @@ void ImageButton::Draw(sf::RenderWindow *window) {
     window->draw(sprite);
 }
 
+
 TextButton::TextButton(std::function<void()> callback, const std::string& text_string, sf::Color text_color, int text_size,
                        sf::Color background_color, sf::Vector2f pos, float width, float height)
     : Button(std::move(callback), pos, width, height), text_size(text_size), text_string(text_string), text_color(text_color) {
+
+    // Set the rectangle border
+    rect.setFillColor(background_color);
+    rect.setOutlineColor(text_color);
+    rect.setOutlineThickness(5.f);
+
     // Set the text properties
+    text.setFont(*ResourceManager::GetFont("arial"));
     text.setString(text_string);
     text.setFillColor(text_color);
     text.setCharacterSize(text_size); // Set the character size
 
     // Calculate the position for the text to be centered in the rectangle
+    sf::FloatRect textBounds = text.getLocalBounds();
+    float textPosX = pos.x + (this->width - textBounds.width) / 2.0f;
+    float textPosY = pos.y + (this->height - textBounds.height) / 2.0f - textBounds.top;
+    text.setPosition(textPosX, textPosY);
+}
+
+void TextButton::SetPosition(sf::Vector2f pos) {
+    // Calculate the position for the text to be centered in the rectangle
+    this->pos = pos;
+    rect.setPosition(this->pos);
     sf::FloatRect textBounds = text.getLocalBounds();
     float textPosX = pos.x + (this->width - textBounds.width) / 2.0f;
     float textPosY = pos.y + (this->height - textBounds.height) / 2.0f - textBounds.top;

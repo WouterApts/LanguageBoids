@@ -12,6 +12,7 @@
 #include "Utility.h"
 #include "ui/Button.h"
 #include "ui/Panel.h"
+#include "ui/SettingsInterface.h"
 #include "ui/ToolSelectorInterface.h"
 
 Editor::Editor(const std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
@@ -19,9 +20,17 @@ Editor::Editor(const std::shared_ptr<Context>& context, World& world, float came
 }
 
 void Editor::Init() {
-    // Initialize ToolSelector
+
+    // Fit Camera view to world
+    camera.SetZoom(static_cast<float>(static_cast<int>(world.width*1.1 / camera.default_width * 10)) / 10.f);
+
+    // Initialize ToolSelector and Tool Interfaces
     tool_selector = std::make_shared<ToolSelector>();
     interfaces.emplace_back(std::make_shared<ToolSelectorInterface>(interfaces, tool_selector, sf::Vector2f(20, 20)));
+
+    // Initialize Settings Interfacer
+    auto settings_interface_pos = sf::Vector2f(context->window->getSize().x - 220, 20);
+    interfaces.emplace_back(std::make_shared<SettingsInterface>(interfaces, world, settings_interface_pos));
 }
 
 void Editor::ProcessInput() {
@@ -91,6 +100,11 @@ void Editor::ProcessInput() {
 
         if (IsKeyPressedOnce(sf::Keyboard::F5)) {
             serialization::SaveWorldToFile(world);
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
+            auto& current_state = context->state_manager->GetCurrentState();
+            context->state_manager->PopState();
         }
     }
 

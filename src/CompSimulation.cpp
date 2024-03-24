@@ -20,14 +20,17 @@ CompSimulation::CompSimulation(std::shared_ptr<Context>& context, World& world, 
 }
 
 void CompSimulation::Init() {
-    //Setup analysis logging
+    // Setup analysis logging
     analyser.SetBPLTimeInterval(sf::seconds(1.f));
     analyser.SetLPCTimeInterval(sf::seconds(5.f));
 
-    //Setup world borders
+    // Setup world borders
     CreateWorldBorderLines();
 
-    //Spawn Boids
+    // Fit Camera view to world
+    camera.SetZoom(static_cast<float>(static_cast<int>(world.width*1.1 / camera.default_width * 10)) / 10.f);
+
+    // Spawn Boids
     for (auto& spawner : world.competition_boid_spawners) {
         spawner->AddBoids(world, boids);
     }

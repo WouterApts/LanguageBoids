@@ -40,3 +40,8 @@ void Camera::Zoom(float zoom_modifier) {
     zoom = std::max(0.2f, zoom + zoom_modifier);
     view.setSize(default_width * zoom, default_height * zoom);
 }
+
+void Camera::SetZoom(float zoom_value) {
+    zoom = std::max(0.2f, zoom_value);
+    view.setSize(default_width * zoom, default_height * zoom);
+}

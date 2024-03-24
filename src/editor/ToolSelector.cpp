@@ -11,6 +11,7 @@ ToolSelector::ToolSelector() : selected_tool(EraserT) {
     tools[CircleObstacleT] = std::make_shared<CircleObstacleTool>();
     tools[TerrainT] = std::make_shared<TerrainTool>();
     tools[BoidCircleT] = std::make_shared<BoidCircleTool>();
+    tools[BoidRectangleT] = std::make_shared<BoidRectangleTool>();
 }
 
 void ToolSelector::SelectTool(Tools tool) {

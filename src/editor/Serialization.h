@@ -10,7 +10,8 @@
 namespace serialization {
     void SaveWorldToFile(const World &world);
     std::optional<World> LoadWorldFromFile(const std::string& filename);
-    std::string GetFileNameThroughFileDialog();
+    std::string GetFileNameThroughSaveDialog();
+    std::string GetFileNameThroughLoadDialog();
 };
 
 

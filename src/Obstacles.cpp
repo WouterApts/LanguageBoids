@@ -60,12 +60,11 @@ std::optional<Eigen::Vector2f> LineObstacle::CalcCollisionNormal(Eigen::Vector2f
         }
         // Else, the projection is outside the line segment, calculate the distance to the nearest endpoint
     } else {
-
         if (CA_len < CB_len) {
-            collision_normal = -CA.normalized();
+            collision_normal = CA.normalized();
             min_distance_to_line = CA_len;
         } else {
-            collision_normal = -CB.normalized();
+            collision_normal = CB.normalized();
             min_distance_to_line = CB_len;
         }
     }
@@ -112,7 +111,7 @@ std::shared_ptr<LineObstacle> LineObstacle::fromString(const std::string& str) {
 
 
 //***************************************//
-//             Circle Obstacle             //
+//             Circle Obstacle           //
 //***************************************//
 CircleObstacle::CircleObstacle(Eigen::Vector2f& center, float radius, sf::Color color)
     : center(center), radius(radius), color(color) {
