@@ -4,9 +4,25 @@
 
 #ifndef INTERFACEMANAGER_H
 #define INTERFACEMANAGER_H
+#include <memory>
+#include <vector>
+#include <SFML/Graphics/RenderWindow.hpp>
+
+#include "InterfaceComponent.h"
 
 class InterfaceManager {
+public:
+    std::vector<std::shared_ptr<InterfaceComponent>> components;
+    bool interface_clicked;
 
+    void AddComponent(const std::shared_ptr<InterfaceComponent>& component);
+    void RemoveComponent(const std::shared_ptr<InterfaceComponent>& component);
+    void DrawComponents(sf::RenderWindow* window);
+    void OnLeftClick(sf::Vector2f mouse_pos);
+    void OnRightClick(sf::Vector2f mouse_pos);
+    void OnMouseEnter(sf::Vector2f mouse_pos);
+    void OnMouseLeave(sf::Vector2f mouse_pos);
+    void OnKeyBoardEnter(sf::Uint32 unicode);
 };
 
 

@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "editor/Serialization.h"
 
 int main() {
 

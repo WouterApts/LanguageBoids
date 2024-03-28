@@ -5,6 +5,7 @@
 #ifndef TOOL_H
 #define TOOL_H
 #include "Config.h"
+#include "SimulationData.h"
 #include "World.h"
 
 class Editor;
@@ -14,8 +15,7 @@ public:
     Tool();
     virtual ~Tool() = default;
 
-    virtual void OnLeftClick(sf::Vector2f tool_pos, World *world) {}
-
+    virtual void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {}
     virtual void Reset() {};
     virtual void OnRightClick(sf::Vector2f tool_pos, World *world) {};
     virtual void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {};
@@ -31,7 +31,7 @@ public:
     Eigen::Vector2f start_pos;
 
     void Reset() override;
-    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
     void OnRightClick(sf::Vector2f tool_pos, World *world) override;
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 };
@@ -45,7 +45,7 @@ public:
     Eigen::Vector2f center_pos;
 
     void Reset() override;
-    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
     void OnRightClick(sf::Vector2f tool_pos, World *world) override;
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 };
@@ -57,7 +57,7 @@ public:
 
     float brush_size = 10;
 
-    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
 };
 
 
@@ -73,7 +73,7 @@ public:
     int max_speed = MAX_SPEED;
 
     void Reset() override;
-    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
     void OnRightClick(sf::Vector2f tool_pos, World *world) override;
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
@@ -94,24 +94,24 @@ public:
 };
 
 
-class BoidCircleTool : public BoidTool {
+class KeyBoidCircleTool : public BoidTool {
 public:
-    BoidCircleTool();
+    KeyBoidCircleTool();
 
     Eigen::Vector2f center_pos;
 
-    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
 };
 
-class BoidRectangleTool : public BoidTool {
+class KeyBoidRectangleTool : public BoidTool {
 public:
-    BoidRectangleTool();
+    KeyBoidRectangleTool();
 
     Eigen::Vector2f start_pos;
 
-    void OnLeftClick(sf::Vector2f tool_pos, World *world) override;
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
 };

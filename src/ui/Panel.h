@@ -8,24 +8,29 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 
 #include "InputField.h"
-#include "Interface.h"
+#include "InterfaceComponent.h"
 
 
-class Panel : public Interface {
+class Panel : public RectangleComponent {
 public:
-    Panel(sf::Vector2f pos, float width, float height, sf::Color background_color);
-
-    sf::Color background_color;
-    std::vector<std::shared_ptr<Interface>> elements;
+    std::vector<std::shared_ptr<InterfaceComponent>> components;
+    std::vector<sf::Vector2f> relative_position;
     std::shared_ptr<InputField> focused_field;
 
-    void Draw(sf::RenderWindow* window) override;
-    void OnClick(sf::Vector2f mouse_pos) override;
-    void OnHover(sf::Vector2f mouse_pos) override;
-    void OnTextEntered(sf::Uint32 unicode) override;
+    Panel(sf::Vector2f pos, sf::Vector2f size,
+        sf::Color background_color = sf::Color(100,100,100),
+        sf::Color outline_color = sf::Color::Transparent,
+        float outline_thickness = 0.f);
 
-    void AddElementWithRelativePos(std::shared_ptr<Interface>& element, sf::Vector2f relative_pos);
-    void SetPosition(sf::Vector2f pos) override;
+    void Draw(sf::RenderWindow* window) override;
+    void OnLeftClick(sf::Vector2f mouse_pos) override;
+    void OnMouseEnter(sf::Vector2f mouse_pos) override;
+    void OnMouseLeave(sf::Vector2f mouse_pos) override;
+    void OnKeyBoardEnter(sf::Uint32 unicode) override;
+
+    void AddComponentWithRelativePos(const std::shared_ptr<InterfaceComponent> &component, sf::Vector2f relative_pos);
+
+    void SetPosition(const sf::Vector2f &pos) override;
 };
 
 

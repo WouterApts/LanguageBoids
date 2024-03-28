@@ -8,65 +8,72 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Window/Mouse.hpp>
 
-Panel::Panel(sf::Vector2f pos, float width, float height, sf::Color background_color)
-    : Interface(pos, width, height), background_color(background_color) {
-    rect.setFillColor(this->background_color);
+Panel::Panel(sf::Vector2f pos, sf::Vector2f size,
+             sf::Color background_color,
+             sf::Color outline_color,
+             float outline_thickness)
+    : RectangleComponent(pos, size, background_color, outline_color, outline_thickness) {
 }
 
 void Panel::Draw(sf::RenderWindow* window) {
     window->draw(rect);
-    for (auto& element : elements) {
-        element->Draw(window);
+    for (auto& component : components) {
+        component->Draw(window);
     }
 }
 
-void Panel::OnClick(sf::Vector2f mouse_pos) {
+void Panel::OnLeftClick(sf::Vector2f mouse_pos) {
 
     if (focused_field) {
         focused_field->SetFocus(false);
         focused_field.reset(); // Reset the shared_ptr to nullptr
     }
 
-    for (const auto& element : elements) {
-        if (element->IsPointInsideRect(mouse_pos)) {
-            if (auto input_field = std::dynamic_pointer_cast<InputField>(element)) {
+    for (const auto& component : components) {
+        if (component->IsPointInside(mouse_pos)) {
+            if (auto input_field = std::dynamic_pointer_cast<InputField>(component)) {
                 input_field->SetFocus(true);
                 focused_field = input_field;
             }
-        }
-    }
-
-    for (auto& element : elements) {
-        if (element->IsPointInsideRect(mouse_pos)) {
-            element->OnClick(mouse_pos);
+            component->OnLeftClick(mouse_pos);
         }
     }
 }
 
-void Panel::OnHover(sf::Vector2f mouse_pos) {
-    for (auto& element : elements) {
-        if (element->IsPointInsideRect(mouse_pos)) {
-            element->OnHover(mouse_pos);
+void Panel::OnMouseEnter(sf::Vector2f mouse_pos) {
+    for (auto& element : components) {
+        if (element->IsPointInside(mouse_pos) && !element->mouse_inside) {
+            element->OnMouseEnter(mouse_pos);
+            element->mouse_inside = true;
         }
     }
 }
 
-void Panel::OnTextEntered(sf::Uint32 unicode) {
+void Panel::OnMouseLeave(sf::Vector2f mouse_pos) {
+    for (auto& element : components) {
+        if (!element->IsPointInside(mouse_pos) && element->mouse_inside) {
+            element->OnMouseLeave(mouse_pos);
+            element->mouse_inside = false;
+        }
+    }
+}
+
+void Panel::OnKeyBoardEnter(sf::Uint32 unicode) {
     if (focused_field) {
-        focused_field->OnTextEntered(unicode);
+        focused_field->OnKeyBoardEnter(unicode);
     }
 }
 
-void Panel::AddElementWithRelativePos(std::shared_ptr<Interface>& element, sf::Vector2f relative_pos) {
-    element->SetPosition(this->pos + relative_pos);
-    elements.push_back(element);
+void Panel::AddComponentWithRelativePos(const std::shared_ptr<InterfaceComponent>& component, sf::Vector2f relative_pos) {
+    relative_position.push_back(relative_pos);
+    components.push_back(component);
+    component->SetPosition(this->getPosition() - this->getOrigin() + relative_pos);
 }
 
-void Panel::SetPosition(sf::Vector2f pos) {
-    sf::Vector2f shift = pos - this->pos;
-    this->pos = pos;
-    rect.setPosition(this->pos);
-    for (auto& element : elements) {
-        element->SetPosition(element->pos + shift);
+void Panel::SetPosition(const sf::Vector2f &pos) {
+    RectangleComponent::SetPosition(pos);
+    for (int i = 0; i < components.size(); ++i) {
+        components[i]->SetPosition(this->getPosition() - this->getOrigin() + relative_position[i]);
     }
 }
+

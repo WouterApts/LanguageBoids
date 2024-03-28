@@ -6,7 +6,7 @@
 #include <iostream>
 #include <fstream>
 
-CompAnalyser::CompAnalyser(const World &world, int cell_size, std::vector<std::shared_ptr<CompBoid>>& boids, LanguageManager& language_manager)
+CompAnalyser::CompAnalyser(const World &world, int cell_size, std::vector<std::shared_ptr<KeyBoid>>& boids, LanguageManager& language_manager)
 : ref_boids(boids), ref_language_manager(language_manager), cell_size(cell_size),
   n_cells_in_width(std::ceil(world.width / static_cast<float>(cell_size))),
   n_cells_in_height(std::ceil(world.height / static_cast<float>(cell_size))){

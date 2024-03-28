@@ -13,9 +13,11 @@
 
 #include "Serialization.h"
 #include "BoidSpawners.h"
+#include "SimulationData.h"
 
 
-void serialization::SaveWorldToFile(const World& world) {
+void serialization::SaveSimulationDataToFile(const SimulationData& data) {
+    // Have user input save file location.
     auto file_name = GetFileNameThroughSaveDialog();
     if (file_name.empty()) {
         std::cerr << "Error: Empty file name! " << std::endl;
@@ -27,34 +29,71 @@ void serialization::SaveWorldToFile(const World& world) {
         return;
     }
 
-    // Write the width and height
-    file << "Size: " << world.width << " , " << world.height << "\n";
+    // Write the simulation type and simulation specific config:
+    file << "Simulation-Type: ";
+    switch (data.type) {
+        case KeySimulation:
+            file << "LanguageKey \n"
+                 << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
+                 << "INFLUENCE_RATE: " << data.config->INFLUENCE_RATE << '\n';
+            break;
+        case VectorSimulation:
+            file << "LanguageVector \n"
+                 << "LANGUAGE_SIZE: " << data.config->LANGUAGE_SIZE << '\n'
+                 << "MUTATION_RATE: " << data.config->MUTATION_RATE << '\n';
+            break;
+        case DominanceSimulation:
+            file << "DominanceStudy \n"
+                 << "RUNS_PER_DISTRIBUTION: " << data.config->RUNS_PER_DISTRIBUTION << '\n'
+                 << "DISTRIBUTIONS: " << data.config->DISTRIBUTIONS << '\n'
+                 << "TOTAL_BOIDS: " << data.config->TOTAL_BOIDS << '\n';
+            break;
+    }
+
+    // Write the rest of the Simulation Config:
+    file << "COHERENCE_FACTOR: " << data.config->COHERENCE_FACTOR << '\n'
+         << "ALIGNMENT_FACTOR: " << data.config->ALIGNMENT_FACTOR << '\n'
+         << "SEPARATION_FACTOR: " << data.config->SEPARATION_FACTOR << '\n'
+         << "AVOIDANCE_FACTOR: " << data.config->AVOIDANCE_FACTOR << '\n'
+         << "MAX_SPEED: " << data.config->MAX_SPEED << '\n'
+         << "MIN_SPEED: " << data.config->MIN_SPEED << '\n'
+         << "PERCEPTION_RADIUS: " << data.config->PERCEPTION_RADIUS << '\n'
+         << "INTERACTION_RADIUS: " << data.config->INTERACTION_RADIUS << '\n'
+         << "SEPARATION_RADIUS: " << data.config->SEPARATION_RADIUS << '\n'
+         << "BOID_COLLISION_RADIUS: " << data.config->BOID_COLLISION_RADIUS << '\n'
+         << "RESTITUTION_COEFFICIENT: " << data.config->RESTITUTION_COEFFICIENT << '\n'
+         << "LANGUAGE_LOG_INTERVAL: " << data.config->LANGUAGE_LOG_INTERVAL << '\n'
+         << "POSITION_LOG_INTERVAL: " << data.config->POSITION_LOG_INTERVAL << '\n';
+
+    // Write the world width and height
+    file << "Size: " << data.world.width << " , " << data.world.height << "\n";
 
     // Write obstacle information
-    for (const auto& obstacle : world.obstacles) {
+    for (const auto& obstacle : data.world.obstacles) {
         file << obstacle->ToString() << "\n";
     }
 
     // Write terrain information
-    for (const auto& terrain : world.terrains) {
+    for (const auto& terrain : data.world.terrains) {
         file << terrain->ToString() << "\n";
     }
 
-    // Write competition boid spawner information
-    for (const auto& spawner : world.competition_boid_spawners) {
+    // Write boid spawner information
+    for (const auto& spawner : data.boid_spawners) {
         file << spawner->ToString() << "\n";
     }
 
     file.close();
-    std::cout << "World saved succesfully to: " << file_name << std::endl;
+    std::cout << "Simulation Data saved succesfully to: " << file_name << std::endl;
 }
 
-std::optional<World> serialization::LoadWorldFromFile(const std::string& filename) {
+//TODO: FIX THIS
+std::optional<World> serialization::LoadSimulationDataFromFile(const std::string& filename) {
 
     float width, height;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
     std::vector<std::shared_ptr<Terrain>> terrains;
-    std::vector<std::shared_ptr<CompBoidSpawner>> competition_spawners;
+    std::vector<std::shared_ptr<KeyBoidSpawner>> competition_spawners;
 
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -64,7 +103,7 @@ std::optional<World> serialization::LoadWorldFromFile(const std::string& filenam
 
     std::string line;
 
-    // Read width
+    // Parse Size
     if (std::getline(file, line)) {
         std::stringstream ss(line);
         std::string prefix;
@@ -79,6 +118,7 @@ std::optional<World> serialization::LoadWorldFromFile(const std::string& filenam
         return std::nullopt;
     }
 
+    // Parse Obstacles, Terrain and Spawners
     while (std::getline(file, line)) {
         // Check the tag at the beginning of the line to determine the type of object
         if (line.compare(0, 12, "LineObstacle") == 0) {
@@ -97,7 +137,12 @@ std::optional<World> serialization::LoadWorldFromFile(const std::string& filenam
                 terrains.push_back(terrain);
             }
         } else if (line.compare(0, 23, "CompBoidCircularSpawner") == 0) {
-            auto spawner = CompBoidCircularSpawner::FromString(line);
+            auto spawner = KeyBoidCircularSpawner::FromString(line);
+            if (spawner != nullptr) {
+                competition_spawners.push_back(spawner);
+            }
+        } else if (line.compare(0, 26, "CompBoidRectangularSpawner") == 0) {
+            auto spawner = KeyBoidRectangularSpawner::FromString(line);
             if (spawner != nullptr) {
                 competition_spawners.push_back(spawner);
             }
@@ -109,14 +154,9 @@ std::optional<World> serialization::LoadWorldFromFile(const std::string& filenam
     }
 
     file.close();
-    World world;
-    world.obstacles = obstacles;
-    world.terrains = terrains;
-    world.competition_boid_spawners = competition_spawners;
-    world.height = height;
-    world.width = width;
 
-    return world;
+    // Construct simulation_data from parsed data;
+    return std::nullopt;
 }
 
 std::string serialization::GetFileNameThroughSaveDialog() {
@@ -182,19 +222,22 @@ std::string serialization::GetFileNameThroughSaveDialog() {
 
 std::string serialization::GetFileNameThroughLoadDialog() {
 #ifdef _WIN32
-    char filename[MAX_PATH];
-    OPENFILENAME ofn;
+    OPENFILENAMEA ofn;
+    CHAR fileName[MAX_PATH];
     ZeroMemory(&ofn, sizeof(ofn));
+
     ofn.lStructSize = sizeof(ofn);
-    ofn.lpstrFilter = "Data Files (*.dat)\0*.dat\0All Files (*.*)\0*.*\0";
-    ofn.lpstrFile = filename;
+    ofn.hwndOwner = nullptr;
+    ofn.lpstrFile = fileName;
+    ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = MAX_PATH;
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER;
-    if (GetOpenFileName(&ofn) == TRUE) {
-        return filename;
-    } else {
-        return "";
-    }
+    ofn.lpstrFilter = "DAT Files (*.dat)\0*.dat\0All Files\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
+
+    GetOpenFileNameA(&ofn);
+    return fileName;
+
 #elif __linux__
     GtkWidget *dialog;
     dialog = gtk_file_chooser_dialog_new("Open File",
@@ -214,6 +257,7 @@ std::string serialization::GetFileNameThroughLoadDialog() {
         gtk_widget_destroy(dialog);
         return "";
     }
+
 #elif __APPLE__
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setAllowedFileTypes:@[@"dat"]];

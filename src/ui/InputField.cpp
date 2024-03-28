@@ -9,8 +9,8 @@
 
 #include "ResourceManager.h"
 
-InputField::InputField(sf::Vector2f pos, float width, float height, int character_limit, std::string default_value)
-    : Interface(pos, width, height), character_limit(character_limit), default_value(std::move(default_value)) {
+InputField::InputField(sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
+    : RectangleComponent(pos, size, sf::Color::White), character_limit(character_limit), default_value(std::move(default_value)) {
 
     font = *ResourceManager::GetFont("arial");
     m_text.setFont(font);
@@ -23,32 +23,32 @@ void InputField::Draw(sf::RenderWindow* window) {
     // Draw the text
     m_text.setCharacterSize(20);
     m_text.setFillColor(sf::Color::Black);
-    m_text.setPosition(pos.x + 5.f, pos.y + height / 4.f);
+    m_text.setPosition(this->getPosition().x + 5.f, this->getPosition().y + this->rect.getSize().y / 4.f);
     window->draw(m_text);
 
     // Draw the cursor if focused
     if (m_focused) {
         // Calculate cursor position based on text width
         float textWidth = m_text.getLocalBounds().width;
-        float cursorX = pos.x + 5.f + textWidth;
+        float cursorX = this->getPosition().x + 5.f + textWidth;
 
         // Draw the cursor
-        m_cursor.setSize(sf::Vector2f(1.f, height - 4.f));
+        m_cursor.setSize(sf::Vector2f(1.f, this->rect.getSize().y - 4.f));
         m_cursor.setFillColor(sf::Color::Black);
-        m_cursor.setPosition(cursorX, pos.y + 2.f);
+        m_cursor.setPosition(cursorX, this->getPosition().y + 2.f);
         window->draw(m_cursor);
     }
 }
 
-void InputField::OnClick(sf::Vector2f mouse_pos) {
-    Interface::OnClick(mouse_pos);
+void InputField::OnLeftClick(sf::Vector2f mouse_pos) {
+    RectangleComponent::OnLeftClick(mouse_pos);
 }
 
-void InputField::OnHover(sf::Vector2f mouse_pos) {
-    Interface::OnHover(mouse_pos);
+void InputField::OnMouseEnter(sf::Vector2f mouse_pos) {
+    RectangleComponent::OnMouseEnter(mouse_pos);
 }
 
-void InputField::OnTextEntered(sf::Uint32 unicode) {
+void InputField::OnKeyBoardEnter(sf::Uint32 unicode) {
     if (m_focused) {
         std::string currentText = m_text.getString();
 
@@ -73,11 +73,11 @@ void InputField::SetFocus(bool focus) {
 
 
 // Integers //
-IntInputField::IntInputField(std::function<void(int)> callback, sf::Vector2f pos, float width, float height, int character_limit, std::string default_value)
-    : InputField(pos, width, height, character_limit, std::move(default_value)), callback(std::move(callback)) {
+IntInputField::IntInputField(std::function<void(int)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
+    : InputField(pos, size, character_limit, std::move(default_value)), callback(std::move(callback)) {
 }
 
-void IntInputField::OnTextEntered(sf::Uint32 unicode) {
+void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
     if (m_focused) {
         std::string currentText = m_text.getString();
         // Check if character limit is reached
@@ -106,11 +106,11 @@ void IntInputField::OnTextEntered(sf::Uint32 unicode) {
 }
 
 
-FloatInputField::FloatInputField(std::function<void(float)> callback, sf::Vector2f pos, float width, float height, int character_limit, std::string default_value)
-    : InputField(pos, width, height, character_limit, std::move(default_value)), callback(std::move(callback)) {
+FloatInputField::FloatInputField(std::function<void(float)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
+    : InputField(pos, size, character_limit, std::move(default_value)), callback(std::move(callback)) {
 }
 
-void FloatInputField::OnTextEntered(sf::Uint32 unicode) {
+void FloatInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
     if (m_focused) {
         std::string currentText = m_text.getString();
         // Check if character limit is reached

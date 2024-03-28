@@ -4,11 +4,12 @@
 
 
 #include <SFML/Window/Event.hpp>
-#include "Simulation.h"
+#include "Simulator.h"
 #include "ResourceManager.h"
 
-Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
+Simulator::Simulator(std::shared_ptr<Context>& context, std::shared_ptr<SimulationConfig>& config, World& world, float camera_width, float camera_height)
     : context(context),
+      config(config),
       world(world),
       camera(Camera(sf::Vector2f(world.width / 2, world.height / 2), camera_width, camera_height)),
       selected_boid(nullptr) {
@@ -19,7 +20,7 @@ Simulation::Simulation(std::shared_ptr<Context>& context, World& world, float ca
 }
 
 template <typename BoidType>
-void Simulation::ProcessBoidSelection(const Context* context, sf::Vector2i& mouse_pos, SpatialGrid<BoidType>& spatial_boid_grid) {
+void Simulator::ProcessBoidSelection(const Context* context, sf::Vector2i& mouse_pos, SpatialGrid<BoidType>& spatial_boid_grid) {
     //Get World coordinates
     auto sf_world_pos = context->window->mapPixelToCoords(mouse_pos, camera.view);
     auto world_pos = Eigen::Vector2f(sf_world_pos.x, sf_world_pos.y);
@@ -36,7 +37,7 @@ void Simulation::ProcessBoidSelection(const Context* context, sf::Vector2i& mous
     }
 }
 
-void Simulation::ProcessCameraZoom(const sf::Event &event) {
+void Simulator::ProcessCameraZoom(const sf::Event &event) {
     //Zoom in and out
     if (event.mouseWheelScroll.delta > 0) {
         camera.Zoom(-0.2); // Zoom in
@@ -45,7 +46,7 @@ void Simulation::ProcessCameraZoom(const sf::Event &event) {
     }
 }
 
-void Simulation::DrawBoidSelectionCircle() {
+void Simulator::DrawBoidSelectionCircle() {
     if (selected_boid != nullptr) {
 
         auto DrawSelectionCircle = [this](float radius, sf::Color color) {
@@ -70,7 +71,7 @@ void Simulation::DrawBoidSelectionCircle() {
     }
 }
 
-void Simulation::DrawBorderOutline() const {
+void Simulator::DrawBorderOutline() const {
     auto border_rect = sf::RectangleShape(sf::Vector2f(world.width, world.height));
     border_rect.setFillColor(sf::Color::Transparent);
     border_rect.setOutlineColor(sf::Color::White);
@@ -79,7 +80,7 @@ void Simulation::DrawBorderOutline() const {
     context->window->display();
 }
 
-void Simulation::CreateWorldBorderLines() {
+void Simulator::CreateWorldBorderLines() {
     auto p1 = Eigen::Vector2f(0,0);
     auto p2 = Eigen::Vector2f(world.width,0);
     auto p3 = Eigen::Vector2f(world.width,world.height);
@@ -95,6 +96,6 @@ void Simulation::CreateWorldBorderLines() {
 }
 
 // This explicit instantiation informs the compiler to generate the code for the template function for the below specified template arguments, making it available for linking.
-template void Simulation::ProcessBoidSelection<CompBoid>(const Context*, sf::Vector2i&, SpatialGrid<CompBoid>&);
-template void Simulation::ProcessBoidSelection<EvoBoid>(const Context*, sf::Vector2i&, SpatialGrid<EvoBoid>&);
+template void Simulator::ProcessBoidSelection<KeyBoid>(const Context*, sf::Vector2i&, SpatialGrid<KeyBoid>&);
+template void Simulator::ProcessBoidSelection<VectorBoid>(const Context*, sf::Vector2i&, SpatialGrid<VectorBoid>&);
 

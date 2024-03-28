@@ -8,13 +8,19 @@
 #include "Boid.h"
 #include "Utility.h"
 
-CompBoid::CompBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, int language_key,
-                   float perception_radius, float interaction_radius, float avoidance_radius, float collision_radius)
-    : Boid(std::move(pos), std::move(vel), std::move(acc), perception_radius, interaction_radius, avoidance_radius, collision_radius),
+KeyBoid::KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+                 int language_key, float perception_radius, float interaction_radius, float separation_radius, float collision_radius)
+    : Boid(std::move(pos), std::move(vel), std::move(acc), config, perception_radius, interaction_radius, separation_radius, collision_radius),
       language_key(language_key), language_satisfaction(1.f) {
 }
 
-void CompBoid::UpdateLanguage(const std::vector<CompBoid*>& nearby_boids, LanguageManager& language_manager, sf::Time delta_time) {
+KeyBoid::KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+                 int language_key)
+    : Boid(std::move(pos), std::move(vel), std::move(acc), config),
+      language_key(language_key), language_satisfaction(1.f) {
+}
+
+void KeyBoid::UpdateLanguage(const std::vector<KeyBoid*>& nearby_boids, LanguageManager& language_manager, sf::Time delta_time) {
     // Calculate prevalence per language in the boid's neighborhood.
     std::unordered_map<int, float> language_prevalence;
     language_prevalence[this->language_key] += 1;
@@ -48,8 +54,8 @@ void CompBoid::UpdateLanguage(const std::vector<CompBoid*>& nearby_boids, Langua
     }
 }
 
-void CompBoid::UpdateLanguageSatisfaction(const std::vector<CompBoid *> &perceived_boids,
-                                          const std::vector<CompBoid *> &interacting_boids,
+void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+                                          const std::vector<KeyBoid *> &interacting_boids,
                                           LanguageManager& language_manager,
                                           sf::Time delta_time) {
 
@@ -70,7 +76,7 @@ void CompBoid::UpdateLanguageSatisfaction(const std::vector<CompBoid *> &perceiv
     float total_influence_val = 0.f;
     for (auto& language : language_proportion) {
         int key = language.first;
-        float influence = std::pow(language.second / static_cast<float>(interacting_boids.size()), a_COEFFICIENT) *
+        float influence = std::pow(language.second / static_cast<float>(interacting_boids.size()), config->a_COEFFICIENT) *
                           (language_status[key] / static_cast<float>(perceived_boids.size()));
         total_influence_val += influence;
         language_influence[key] = influence;
@@ -79,10 +85,10 @@ void CompBoid::UpdateLanguageSatisfaction(const std::vector<CompBoid *> &perceiv
     // Based on the language influence, sample r to check whether influence of current language increases or decreases.
     if (float r = GetRandomFloatBetween(0, total_influence_val); r <= language_influence[this->language_key]) {
         // Increase current language satisfaction
-        SetLanguageSatisfaction(this->language_satisfaction + INFLUENCE_RATE * delta_time.asSeconds());
+        SetLanguageSatisfaction(this->language_satisfaction + config->INFLUENCE_RATE * delta_time.asSeconds());
     } else {
         // Decrease current language satisfaction
-        SetLanguageSatisfaction(this->language_satisfaction - INFLUENCE_RATE * delta_time.asSeconds());
+        SetLanguageSatisfaction(this->language_satisfaction - config->INFLUENCE_RATE * delta_time.asSeconds());
     }
 
     // change language if current influence goes below zero
@@ -102,11 +108,11 @@ void CompBoid::UpdateLanguageSatisfaction(const std::vector<CompBoid *> &perceiv
     }
 }
 
-void CompBoid::SetLanguageSatisfaction(float value) {
+void KeyBoid::SetLanguageSatisfaction(float value) {
     this->language_satisfaction = std::min(1.f, value);
 }
 
-void CompBoid::UpdateAcceleration(const std::vector<CompBoid *>& nearby_boids, World& world) {
+void KeyBoid::UpdateAcceleration(const std::vector<KeyBoid *>& nearby_boids, World& world) {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (!nearby_boids.empty()) {
@@ -125,7 +131,7 @@ void CompBoid::UpdateAcceleration(const std::vector<CompBoid *>& nearby_boids, W
 }
 
 
-Eigen::Vector2f CompBoid::CalcCoherenceAlignmentAcceleration(const std::vector<CompBoid*> &nearby_boids) const {
+Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<KeyBoid*> &nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     float similar_boids = 0;
@@ -147,18 +153,18 @@ Eigen::Vector2f CompBoid::CalcCoherenceAlignmentAcceleration(const std::vector<C
 
         // COHERENCE
         Eigen::Vector2f pos_difference = avg_pos - this->pos;
-        acceleration = pos_difference.normalized() * COHERENCE_FACTOR * max_speed;
+        acceleration = pos_difference.normalized() * config->COHERENCE_FACTOR * max_speed;
 
         // ALIGNMENT
         Eigen::Vector2f vel_difference = (avg_vel - this->vel);
-        acceleration += vel_difference.normalized() * ALIGNMENT_FACTOR * max_speed;
+        acceleration += vel_difference.normalized() * config->ALIGNMENT_FACTOR * max_speed;
     }
 
     return acceleration;
 }
 
 
-Eigen::Vector2f CompBoid::CalcSeparationAcceleration(const std::vector<CompBoid*>& nearby_boids) const {
+Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>& nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
 
@@ -168,7 +174,7 @@ Eigen::Vector2f CompBoid::CalcSeparationAcceleration(const std::vector<CompBoid*
         float squared_avoidance_radius = separation_radius * separation_radius;
         if (squared_distance <= squared_avoidance_radius) {
             float strength = (squared_avoidance_radius - squared_distance) / squared_avoidance_radius;
-            acceleration = acceleration - pos_difference.normalized() * max_speed * SEPARATION_FACTOR * (strength);
+            acceleration = acceleration - pos_difference.normalized() * max_speed * config->SEPARATION_FACTOR * (strength);
         }
     }
 
@@ -176,7 +182,7 @@ Eigen::Vector2f CompBoid::CalcSeparationAcceleration(const std::vector<CompBoid*
 }
 
 
-Eigen::Vector2f CompBoid::CalcAvoidanceAcceleration(const std::vector<CompBoid*>& nearby_boids) const {
+Eigen::Vector2f KeyBoid::CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     const float squared_perception_radius = interaction_radius * interaction_radius;
@@ -186,17 +192,17 @@ Eigen::Vector2f CompBoid::CalcAvoidanceAcceleration(const std::vector<CompBoid*>
             Eigen::Vector2f pos_difference = boid->pos - this->pos;
             float squared_distance = pos_difference.squaredNorm();
             float strength = (squared_perception_radius - squared_distance) / squared_perception_radius;
-            acceleration -= pos_difference.normalized() * max_speed * AVOIDANCE_FACTOR * (strength);
+            acceleration -= pos_difference.normalized() * max_speed * config->AVOIDANCE_FACTOR * (strength);
         }
     }
     return acceleration;
 }
 
-void CompBoid::SetLanguageKey(int key) {
+void KeyBoid::SetLanguageKey(int key) {
     this->language_key = key;
 }
 
-void CompBoid::UpdateColor(LanguageManager& languageManager) {
+void KeyBoid::UpdateColor(LanguageManager& languageManager) {
     try {
         std::shared_ptr<Language> language = languageManager.GetLanguage(language_key);
         this->sprite.setColor(language->color);

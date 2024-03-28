@@ -5,13 +5,13 @@
 #include <random>
 #include "boid.h"
 
-EvoBoid::EvoBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+VectorBoid::VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
                  Eigen::VectorXi language, float language_influence, float perception_radius,
                  float interaction_radius, float avoidance_radius, float collision_radius)
-    : Boid(std::move(pos), std::move(vel), std::move(acc), perception_radius, interaction_radius, avoidance_radius, collision_radius),
+    : Boid(std::move(pos), std::move(vel), std::move(acc), config, perception_radius, interaction_radius, avoidance_radius, collision_radius),
       language_vector(std::move(language)), language_influence(language_influence) {}
 
-void EvoBoid::UpdateAcceleration(const std::vector<EvoBoid*>& nearby_boids, World& world) {
+void VectorBoid::UpdateAcceleration(const std::vector<VectorBoid*>& nearby_boids, World& world) {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (!nearby_boids.empty()) {
@@ -30,7 +30,7 @@ void EvoBoid::UpdateAcceleration(const std::vector<EvoBoid*>& nearby_boids, Worl
     SetAcceleration(acceleration);
 }
 
-Eigen::Vector2f EvoBoid::CalcCoherenceAlignmentAcceleration(const std::vector<EvoBoid*> &nearby_boids,
+Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector<VectorBoid*> &nearby_boids,
                                                          const Eigen::VectorXf &language_similarities) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
@@ -63,7 +63,7 @@ Eigen::Vector2f EvoBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ev
     return acceleration;
 }
 
-Eigen::Vector2f EvoBoid::CalcSeparationAcceleration(const std::vector<EvoBoid*>& nearby_boids) const {
+Eigen::Vector2f VectorBoid::CalcSeparationAcceleration(const std::vector<VectorBoid*>& nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
 
@@ -80,7 +80,7 @@ Eigen::Vector2f EvoBoid::CalcSeparationAcceleration(const std::vector<EvoBoid*>&
     return acceleration;
 }
 
-Eigen::Vector2f EvoBoid::CalcAvoidanceAcceleration(const std::vector<EvoBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const {
+Eigen::Vector2f VectorBoid::CalcAvoidanceAcceleration(const std::vector<VectorBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     const float squared_perception_radius = interaction_radius * interaction_radius;
@@ -96,7 +96,7 @@ Eigen::Vector2f EvoBoid::CalcAvoidanceAcceleration(const std::vector<EvoBoid*>& 
     return acceleration;
 }
 
-Eigen::VectorXf EvoBoid::CalcLanguageSimilarities(const std::vector<EvoBoid*> &boids) const {
+Eigen::VectorXf VectorBoid::CalcLanguageSimilarities(const std::vector<VectorBoid*> &boids) const {
     const size_t num_boids = boids.size();
     Eigen::VectorXf similarities(num_boids);
 
@@ -108,7 +108,7 @@ Eigen::VectorXf EvoBoid::CalcLanguageSimilarities(const std::vector<EvoBoid*> &b
     return similarities;
 }
 
-void EvoBoid::UpdateLanguage(const std::vector<EvoBoid*>& boids, sf::Time delta_time) {
+void VectorBoid::UpdateLanguage(const std::vector<VectorBoid*>& boids, sf::Time delta_time) {
 
     if (boids.empty()) {
         return;

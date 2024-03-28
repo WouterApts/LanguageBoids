@@ -21,15 +21,15 @@ constexpr float INTERACTION_RADIUS = 250;
 constexpr float SEPARATION_RADIUS = 100;
 
 //Collision
-constexpr float BOID_COLLISON_RADIUS = 10;
+constexpr float BOID_COLLISION_RADIUS = 10;
 constexpr float RESTITUTION_COEFFICIENT = 1;
 
-//Evolution Boid
+//Vector Boid
 constexpr int LANGUAGE_SIZE = 50;
 inline float LANGUAGE_MAX_DIFF = static_cast<float>(Eigen::VectorXi::Ones(LANGUAGE_SIZE).squaredNorm());
 constexpr float LANGUAGE_MUTATION_RATE = 0.01f;
 
-//Competition Boids
+//Key Boids
 constexpr float a_COEFFICIENT =  1.3f;
 constexpr float INFLUENCE_RATE = 10.f;
 

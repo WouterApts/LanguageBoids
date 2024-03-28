@@ -11,14 +11,13 @@
 #include "Terrain.h"
 
 
-class CompBoidSpawner;
+class KeyBoidSpawner;
 
 struct World {
     float width;
     float height;
     std::vector<std::shared_ptr<Obstacle>> obstacles;
     std::vector<std::shared_ptr<Terrain>> terrains;
-    std::vector<std::shared_ptr<CompBoidSpawner>> competition_boid_spawners;
 
     [[nodiscard]] Eigen::Vector2f size() const {
         return {width, height};

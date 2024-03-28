@@ -12,70 +12,72 @@
 
 class CircularSpawner {
 public:
-
-
     Eigen::Vector2f center_pos;
     float radius;
 
     CircularSpawner(Eigen::Vector2f center_pos, float radius);
     virtual ~CircularSpawner() = default;
-    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world);
+    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world) const;
     virtual bool IsInside(Eigen::Vector2f pos, float radius);
 };
 
 class RectangularSpawner {
 public:
-
-
     Eigen::Vector2f pos;
     float width;
     float height;
 
     RectangularSpawner(Eigen::Vector2f pos, float width, float height);
     virtual ~RectangularSpawner() = default;
-    Eigen::Vector2f CalcRandomPointInSpawnZone();
+    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world) const;
 
     virtual bool IsInside(Eigen::Vector2f pos, float radius);
 };
 
-class CompBoidSpawner {
+class BoidSpawner {
+public:
+    virtual ~BoidSpawner() = default;
+    virtual bool IsInside(Eigen::Vector2f pos, float radius) { return false; }
+    virtual void Draw(sf::RenderWindow *window) const {}
+    virtual std::string ToString() {return "Error";};
+};
+
+class KeyBoidSpawner : public BoidSpawner {
 public:
     int boids_spawned;
     int language_key;
     sf::Text text;
 
-    CompBoidSpawner(int boids_spawned, int language_key);
-    virtual ~CompBoidSpawner() = default;
-    virtual void AddBoids(const World &world, std::vector<std::shared_ptr<CompBoid>> &boids) {};
-    virtual void Draw(sf::RenderWindow *window) const {}
-    virtual bool IsInside(Eigen::Vector2f pos, float radius) {return false;};
-    virtual std::string ToString() {return "Error";};
+    KeyBoidSpawner(int boids_spawned, int language_key);
+    virtual void AddBoids(const World &world, const std::shared_ptr<SimulationConfig> &config, std::vector<std::shared_ptr<KeyBoid>> &boids) {};
 };
 
 
-class CompBoidCircularSpawner : public CompBoidSpawner, public CircularSpawner {
+class KeyBoidCircularSpawner : public KeyBoidSpawner, public CircularSpawner {
 public:
     sf::CircleShape circle;
 
-    CompBoidCircularSpawner(int boids_spawned, int language_key, Eigen::Vector2f center_pos, float radius);
-    void AddBoids(const World &world, std::vector<std::shared_ptr<CompBoid>> &boids) override;
+    KeyBoidCircularSpawner(int boids_spawned, int language_key, Eigen::Vector2f center_pos, float radius);
+    void AddBoids(const World &world, const std::shared_ptr<SimulationConfig> &config, std::vector<std::shared_ptr<KeyBoid>> &boids) override;
     void Draw(sf::RenderWindow* window) const override;
     bool IsInside(Eigen::Vector2f pos, float radius) override;
 
     std::string ToString() override;
-    static std::shared_ptr<CompBoidCircularSpawner> FromString(const std::string &str);
+    static std::shared_ptr<KeyBoidCircularSpawner> FromString(const std::string &str);
 };
 
 
-class CompBoidRectangularSpawner : public CompBoidSpawner, public RectangularSpawner {
+class KeyBoidRectangularSpawner : public KeyBoidSpawner, public RectangularSpawner {
 public:
     sf::RectangleShape rect;
 
-    CompBoidRectangularSpawner(int boids_spawned, int language_key, Eigen::Vector2f pos, float width, float height);
-    void AddBoids(const World &world, std::vector<std::shared_ptr<CompBoid>> &boids) override;
+    KeyBoidRectangularSpawner(int boids_spawned, int language_key, Eigen::Vector2f pos, float width, float height);
+    void AddBoids(const World &world, const std::shared_ptr<SimulationConfig> &config, std::vector<std::shared_ptr<KeyBoid>> &boids) override;
     void Draw(sf::RenderWindow* window) const override;
     bool IsInside(Eigen::Vector2f pos, float radius) override;
+
     std::string ToString() override;
+    static std::shared_ptr<KeyBoidRectangularSpawner> FromString(const std::string &str);
 };
 
 

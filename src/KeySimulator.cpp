@@ -7,19 +7,20 @@
 
 #include "BoidSpawners.h"
 #include "LanguageManager.h"
-#include "Simulation.h"
+#include "Simulator.h"
 #include "Utility.h"
 #include "editor/Serialization.h"
 
-CompSimulation::CompSimulation(std::shared_ptr<Context>& context, World& world, const std::vector<float>& language_statuses, float camera_width, float camera_height)
-    : Simulation(context, world, camera_width, camera_height),
-      spatial_boid_grid(SpatialGrid<CompBoid>(world.size().cast<int>(), static_cast<int>(INTERACTION_RADIUS))),
+KeySimulator::KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, const std::vector<float>& language_statuses, float camera_width, float camera_height)
+    : Simulator(context, simulation_data.config, simulation_data.world, camera_width, camera_height),
+      boid_spawners(simulation_data.boid_spawners),
+      spatial_boid_grid(SpatialGrid<KeyBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS))),
       language_manager(LanguageManager(language_statuses)),
       analyser(CompAnalyser(world, 100, boids, language_manager)){
 
 }
 
-void CompSimulation::Init() {
+void KeySimulator::Init() {
     // Setup analysis logging
     analyser.SetBPLTimeInterval(sf::seconds(1.f));
     analyser.SetLPCTimeInterval(sf::seconds(5.f));
@@ -31,8 +32,8 @@ void CompSimulation::Init() {
     camera.SetZoom(static_cast<float>(static_cast<int>(world.width*1.1 / camera.default_width * 10)) / 10.f);
 
     // Spawn Boids
-    for (auto& spawner : world.competition_boid_spawners) {
-        spawner->AddBoids(world, boids);
+    for (auto& spawner : boid_spawners) {
+        spawner->AddBoids(world, config, boids);
     }
 
     for (auto& boid : boids) {
@@ -41,7 +42,7 @@ void CompSimulation::Init() {
 };
 
 
-void CompSimulation::Update(sf::Time delta_time) {
+void KeySimulator::Update(sf::Time delta_time) {
 
     // Log metrics based on interval settings
     analyser.LogAllMetrics(delta_time);
@@ -49,8 +50,8 @@ void CompSimulation::Update(sf::Time delta_time) {
     for (const auto& boid: boids) {
 
         //Get boids in perception radius:
-        std::vector<CompBoid*> interacting_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
-        std::vector<CompBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid));
+        std::vector<KeyBoid*> interacting_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
+        std::vector<KeyBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid));
 
         //Update boids acceleration
         boid->UpdateAcceleration(interacting_boids, world);
@@ -82,7 +83,7 @@ void CompSimulation::Update(sf::Time delta_time) {
     }
 };
 
-void CompSimulation::ProcessInput() {
+void KeySimulator::ProcessInput() {
 
     sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
     sf::Event event{};
@@ -126,10 +127,14 @@ void CompSimulation::ProcessInput() {
         analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
     }
 
+    if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
+        context->state_manager->PopState();
+    }
+
     camera.Drag(mouse_pos);
 };
 
-void CompSimulation::Draw() {
+void KeySimulator::Draw() {
     context->window->clear(sf::Color::Black);
     context->window->setView(camera.view);
 
@@ -156,39 +161,21 @@ void CompSimulation::Draw() {
     context->window->display();
 }
 
-void CompSimulation::Start() {
+void KeySimulator::Start() {
 
 }
 
-void CompSimulation::Pause() {
+void KeySimulator::Pause() {
 
 }
 
-void CompSimulation::AddBoid(const std::shared_ptr<CompBoid> &boid) {
-    boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (boids)
+void KeySimulator::AddBoid(const std::shared_ptr<KeyBoid> &boid) {
+    boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (the 'boids' vector)
     spatial_boid_grid.AddObj(boid);
 }
 
-void CompSimulation::AddBoidCluster(Eigen::Vector2f position, float radius, int amount, int language_key) {
-    Eigen::Vector2f zero_vector = Eigen::Vector2f::Zero();
-
-    for (int i = 0; i < amount; ++i) {
-        float angle = GetRandomFloatBetween(0, 2*std::numbers::pi);
-        float length = GetRandomFloatBetween(0, radius);
-        float x = position.x() + std::cos(angle) * length;
-        float y = position.y() + std::sin(angle) * length;
-
-        //Keep spawn position within world border
-        x = std::max(std::min(x, world.width), 0.f);
-        y = std::max(std::min(y, world.height), 0.f);
-
-        auto spawn_pos = Eigen::Vector2f(x, y);
-        AddBoid(std::make_shared<CompBoid>(spawn_pos, zero_vector, zero_vector, language_key));
-    }
-}
-
-void CompSimulation::LoadWorldFromFile(const std::string &file_name) {
-    if (auto loaded_world = serialization::LoadWorldFromFile(file_name)) {
+void KeySimulator::LoadWorldFromFile(const std::string &file_name) {
+    if (auto loaded_world = serialization::LoadSimulationDataFromFile(file_name)) {
         world = loaded_world.value();
     } else {
         std::cerr << "Unable to load world from file." << std::endl;

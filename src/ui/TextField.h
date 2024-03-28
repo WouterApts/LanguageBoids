@@ -7,12 +7,10 @@
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Text.hpp>
 
-#include "Interface.h"
+#include "InterfaceComponent.h"
 
-
-class TextField : public Interface {
+class TextField : public InterfaceComponent {
 public:
-
     sf::Font font;
     sf::Text text;
     sf::Color color;

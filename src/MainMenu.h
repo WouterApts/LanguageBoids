@@ -6,7 +6,7 @@
 #define MAINMENU_H
 #include "Application.h"
 #include "State.h"
-#include "ui/Interface.h"
+#include "ui/InterfaceManager.h"
 #include "ui/Panel.h"
 
 
@@ -14,7 +14,7 @@ class MainMenu : public State {
 public:
 
     std::shared_ptr<Context> context;
-    std::vector<std::shared_ptr<Interface>> interfaces;
+    std::shared_ptr<InterfaceManager> interface_manager;
 
     std::shared_ptr<Panel> start_menu_interface;
     std::shared_ptr<Panel> editor_menu_interface;

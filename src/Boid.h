@@ -15,6 +15,7 @@
 #include "Obstacles.h"
 #include "World.h"
 #include "LanguageManager.h"
+#include "SimulationConfig.h"
 #include "Terrain.h"
 
 class Boid {
@@ -24,10 +25,14 @@ private:
 public:
 
     Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
-         float perception_radius = PERCEPTION_RADIUS,
-         float interaction_radius = INTERACTION_RADIUS,
-         float separation_radius = SEPARATION_RADIUS,
-         float collision_radius = BOID_COLLISON_RADIUS);
+         const std::shared_ptr<SimulationConfig>& config,
+         float perception_radius,
+         float interaction_radius,
+         float separation_radius,
+         float collision_radius);
+
+    Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+         const std::shared_ptr<SimulationConfig>& config);
 
     virtual ~Boid() = default;
 
@@ -36,12 +41,15 @@ public:
     Eigen::Vector2f pos;
     Eigen::Vector2f vel;
     Eigen::Vector2f acc;
+
+    std::shared_ptr<SimulationConfig> config;
     float perception_radius;
     float interaction_radius;
     float separation_radius;
     float collision_radius;
     float min_speed;
     float max_speed;
+
     int spatial_key;
 
     void UpdateSprite();
@@ -58,56 +66,60 @@ public:
 };
 
 
-class CompBoid : public Boid {
+class KeyBoid : public Boid {
 public:
     int language_key;
     float language_satisfaction;
 
-    CompBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
-             int language_key,
-             float perception_radius = PERCEPTION_RADIUS,
-             float interaction_radius = INTERACTION_RADIUS,
-             float separation_radius = SEPARATION_RADIUS,
-             float collision_radius = BOID_COLLISON_RADIUS);
+    KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+            const std::shared_ptr<SimulationConfig> &config,
+            int language_key,
+            float perception_radius,
+            float interaction_radius,
+            float separation_radius,
+            float collision_radius);
 
-    void UpdateAcceleration(const std::vector<CompBoid *> &nearby_boids, World &world);
-    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<CompBoid*> &nearby_boids) const;
-    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<CompBoid*>& nearby_boids) const;
-    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<CompBoid*>& nearby_boids) const;
+    KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+            int language_key);
+
+    void UpdateAcceleration(const std::vector<KeyBoid *> &nearby_boids, World &world);
+    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<KeyBoid*> &nearby_boids) const;
+    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<KeyBoid*>& nearby_boids) const;
+    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& nearby_boids) const;
 
     void SetLanguageKey(int key);
 
     void UpdateColor(LanguageManager &languageManager);
-    void UpdateLanguage(const std::vector<CompBoid*> &nearby_boids, LanguageManager &language_manager,
+    void UpdateLanguage(const std::vector<KeyBoid*> &nearby_boids, LanguageManager &language_manager,
                         sf::Time delta_time);
 
-    void UpdateLanguageSatisfaction(const std::vector<CompBoid *> &perceived_boids,
-                                    const std::vector<CompBoid *> &interacting_boids, LanguageManager &language_manager,
+    void UpdateLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+                                    const std::vector<KeyBoid *> &interacting_boids, LanguageManager &language_manager,
                                     sf::Time delta_time);
 
     void SetLanguageSatisfaction(float value);
 };
 
 
-class EvoBoid : public Boid {
+class VectorBoid : public Boid {
 public:
-    EvoBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+    VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
             Eigen::VectorXi language, float language_influence,
             float perception_radius = PERCEPTION_RADIUS,
             float interaction_radius = INTERACTION_RADIUS,
             float separation_radius = SEPARATION_RADIUS,
-            float collision_radius = BOID_COLLISON_RADIUS);
+            float collision_radius = BOID_COLLISION_RADIUS);
 
     Eigen::VectorXi language_vector;
     float language_influence;
 
-    void UpdateAcceleration(const std::vector<EvoBoid*>& nearby_boids, World& world);
-    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<EvoBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const;
-    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<EvoBoid*>& nearby_boids) const;
-    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<EvoBoid*>& nearby_boids, const Eigen::VectorXf& language_similarities) const;
+    void UpdateAcceleration(const std::vector<VectorBoid*>& nearby_boids, World& world);
+    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<VectorBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const;
+    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<VectorBoid*>& nearby_boids) const;
+    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<VectorBoid*>& nearby_boids, const Eigen::VectorXf& language_similarities) const;
 
-    void UpdateLanguage(const std::vector<EvoBoid*>& nearby_boids, sf::Time delta_time);
-    Eigen::VectorXf CalcLanguageSimilarities(const std::vector<EvoBoid *> &boids) const;
+    void UpdateLanguage(const std::vector<VectorBoid*>& nearby_boids, sf::Time delta_time);
+    Eigen::VectorXf CalcLanguageSimilarities(const std::vector<VectorBoid *> &boids) const;
 };
 
 #endif //THESIS_BOID_H

@@ -1,7 +1,7 @@
 set(HEADER_FILES
         Boid.h
         Config.h
-        Simulation.h
+        Simulator.h
         State.h
         StateManager.h
         Camera.h
@@ -18,14 +18,14 @@ set(SOURCE_FILES
         Boid.cpp
         StateManager.cpp
         Application.cpp
-        Simulation.cpp
+        Simulator.cpp
         Camera.cpp
         Obstacles.cpp
         Utility.cpp
-        EvoSimulation.cpp
-        CompSimulation.cpp
-        CompBoid.cpp
-        EvoBoid.cpp
+        #VectorSimulator.cpp
+        KeySimulator.cpp
+        KeyBoid.cpp
+        VectorBoid.cpp
         LanguageManager.cpp
         Terrain.cpp
         Terrain.h
@@ -66,6 +66,12 @@ set(SOURCE_FILES
         ui/SettingsInterface.h
         MainMenu.cpp
         MainMenu.h
+        ui/InterfaceComponent.cpp
+        ui/InterfaceComponent.h
+        ui/EscapeInterface.cpp
+        ui/EscapeInterface.h
+        SimulationData.h
+        SimulationConfig.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

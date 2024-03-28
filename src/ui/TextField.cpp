@@ -5,7 +5,7 @@
 #include "TextField.h"
 
 TextField::TextField(sf::Vector2f pos, int size, const std::string &text, const sf::Font &font, sf::Color color)
-    : Interface(pos, 0, 0), font(font), color(color), size(size) {
+    : InterfaceComponent(pos), font(font), color(color), size(size) {
     this->text.setString(text);
     this->text.setFont(font);
     this->text.setCharacterSize(size);
@@ -13,6 +13,6 @@ TextField::TextField(sf::Vector2f pos, int size, const std::string &text, const 
 }
 
 void TextField::Draw(sf::RenderWindow *window) {
-    text.setPosition(pos);
+    text.setPosition(getPosition());
     window->draw(text);
 }

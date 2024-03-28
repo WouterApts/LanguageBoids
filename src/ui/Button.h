@@ -9,23 +9,33 @@
 #include <SFML/Graphics/Text.hpp>
 
 #include "Interface.h"
+#include "InterfaceComponent.h"
 
-class Button : public Interface {
+class Button : public RectangleComponent {
 public:
-    Button(std::function<void()> callback, sf::Vector2f pos, float width, float height);
-
     std::function<void()> callback;
-    void OnHover(sf::Vector2f mouse_pos) override;
-    void OnClick(sf::Vector2f mouse_pos) override;
+
+    Button(std::function<void()> callback, sf::Vector2f pos, sf::Vector2f size, sf::Color background_color,
+           sf::Color outline_color, float outline_thickness);
+
+    void OnLeftClick(sf::Vector2f mouse_pos) override;
     void Draw(sf::RenderWindow* window) override;
 };
 
 class ImageButton : public Button {
 public:
-    ImageButton(std::function<void()> callback, const std::string &texture_id, sf::Vector2f pos, float width, float height);
-    void SetPosition(sf::Vector2f pos) override;
-
     sf::Sprite sprite;
+
+    ImageButton(std::function<void()> callback, const std::string &texture_id,
+                sf::Vector2f pos,
+                sf::Vector2f size,
+                sf::Color background_color = sf::Color::Transparent,
+                sf::Color outline_color = sf::Color::Transparent,
+                float outline_thickness = 0.f);
+
+    void SetPosition(const sf::Vector2f& pos) override;
+    void SetOrigin(const sf::Vector2f& pos) override;
+
     void Draw(sf::RenderWindow* window) override;
 };
 
@@ -35,12 +45,19 @@ public:
     std::string text_string;
     sf::Color text_color;
     sf::Text text;
-    sf::Color background_color;
 
-    TextButton(std::function<void()> callback, const std::string &text_string, sf::Color text_color, int text_size,
-               sf::Color background_color, sf::Vector2f pos, float width, float height);
+    TextButton(std::function<void()> callback, const std::string &text_string, sf::Vector2f pos, sf::Vector2f size,
+               int text_size,
+               sf::Color text_color = sf::Color::White,
+               sf::Color background_color = sf::Color::Transparent,
+               sf::Color outline_color = sf::Color::White,
+               float outline_thickness = 3.f);
 
-    void SetPosition(sf::Vector2f pos);
+    void OnMouseEnter(sf::Vector2f mouse_pos) override;
+    void OnMouseLeave(sf::Vector2f mouse_pos) override;
+
+    void SetPosition(const sf::Vector2f& pos) override;
+    void SetOrigin(const sf::Vector2f& pos) override;
 
     void Draw(sf::RenderWindow* window) override;
 };

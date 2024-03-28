@@ -8,47 +8,47 @@
 #include "Button.h"
 #include "TerrainToolInterface.h"
 
-ToolSelectorInterface::ToolSelectorInterface(std::vector<std::shared_ptr<Interface>>& interfaces, const std::shared_ptr<ToolSelector>& t_selector, sf::Vector2f pos)
-    : Panel(pos, 370, 70, sf::Color(80,80,80)), tool_selector(t_selector), interfaces(interfaces) {
+ToolSelectorInterface::ToolSelectorInterface(std::shared_ptr<InterfaceManager> interface_manager, const std::shared_ptr<ToolSelector>& t_selector, sf::Vector2f pos)
+    : Panel(pos, sf::Vector2f(370, 70)), tool_selector(t_selector), interface_manager(interface_manager) {
 
     // Add ToolSelectorInterface to interfaces
-    std::vector<std::shared_ptr<Interface>> btns;
-    btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(EraserT); },
-                                                                     "erase_tool_button", sf::Vector2f(0,0), button_size[0], button_size[1]));
+    std::vector<std::shared_ptr<InterfaceComponent>> btns;
+    btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(EraserT); }, "erase_tool_button",
+                                                      sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(LineObstacleT); },
-                                                                    "line_tool_button", sf::Vector2f(0,0), button_size[0], button_size[1]));
+                                                                    "line_tool_button", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(CircleObstacleT); },
-                                                                     "circle_tool_button", sf::Vector2f(0,0), button_size[0], button_size[1]));
+                                                                     "circle_tool_button", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(TerrainT); },
-                                                                     "terrain_button", sf::Vector2f(0,0), button_size[0], button_size[1]));
+                                                                     "terrain_button", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(BoidCircleT); },
-                                                                     "boid_circle_button", sf::Vector2f(0,0), button_size[0], button_size[1]));
+                                                                     "boid_circle_button", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([this]() { this->SelectTool(BoidRectangleT); },
-                                                                 "boid_rectangle_button", sf::Vector2f(0,0), button_size[0], button_size[1]));
+                                                                 "boid_rectangle_button", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1])));
 
     for (int i = 0; i < btns.size(); ++i) {
         int offset = 60;
-        AddElementWithRelativePos(btns[i], sf::Vector2f(10 + offset*i,10));
+        AddComponentWithRelativePos(btns[i], sf::Vector2f(10.f + offset*i,10));
     }
 
     // Add TerrainToolInterface to interfaces
-    auto tool_interface_position = sf::Vector2f(pos.x, pos.y + this->height + 10);
+    auto tool_interface_position = sf::Vector2f(pos.x, pos.y + this->rect.getSize().y + 10);
     auto p_terrain_tool = std::dynamic_pointer_cast<TerrainTool>(tool_selector->tools[TerrainT]);
     terrain_tool_interface = std::make_shared<TerrainToolInterface>(tool_interface_position, p_terrain_tool);
-    interfaces.push_back(terrain_tool_interface);
+    interface_manager->AddComponent(terrain_tool_interface);
 
-    auto p_boid_circle_tool = std::dynamic_pointer_cast<BoidCircleTool>(tool_selector->tools[BoidCircleT]);
+    auto p_boid_circle_tool = std::dynamic_pointer_cast<KeyBoidCircleTool>(tool_selector->tools[BoidCircleT]);
     boid_circle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_circle_tool);
-    interfaces.push_back(boid_circle_tool_interface);
+    interface_manager->AddComponent(boid_circle_tool_interface);
 
 
 
-    auto p_boid_rectangle_tool = std::dynamic_pointer_cast<BoidRectangleTool>(tool_selector->tools[BoidRectangleT]);
+    auto p_boid_rectangle_tool = std::dynamic_pointer_cast<KeyBoidRectangleTool>(tool_selector->tools[BoidRectangleT]);
     boid_rectangle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_rectangle_tool);
-    interfaces.push_back(boid_rectangle_tool_interface);
+    interface_manager->AddComponent(boid_rectangle_tool_interface);
 
     // Activate the tool selector interface
-    this->active = true;
+    this->Activate();
 }
 
 
@@ -60,27 +60,27 @@ void ToolSelectorInterface::Draw(sf::RenderWindow* window) {
 
     switch (tool_selector->selected_tool) {
         case EraserT:
-            selection_highlight.setPosition(elements[0]->pos);
+            selection_highlight.setPosition(components[0]->getPosition());
             window->draw(selection_highlight);
             break;
         case LineObstacleT:
-            selection_highlight.setPosition(elements[1]->pos);
+            selection_highlight.setPosition(components[1]->getPosition());
             window->draw(selection_highlight);
             break;
         case CircleObstacleT:
-            selection_highlight.setPosition(elements[2]->pos);
+            selection_highlight.setPosition(components[2]->getPosition());
             window->draw(selection_highlight);
             break;
         case TerrainT:
-            selection_highlight.setPosition(elements[3]->pos);
+            selection_highlight.setPosition(components[3]->getPosition());
             window->draw(selection_highlight);
             break;
         case BoidCircleT:
-            selection_highlight.setPosition(elements[4]->pos);
+            selection_highlight.setPosition(components[4]->getPosition());
             window->draw(selection_highlight);
             break;
         case BoidRectangleT:
-            selection_highlight.setPosition(elements[5]->pos);
+            selection_highlight.setPosition(components[5]->getPosition());
             window->draw(selection_highlight);
             break;
         default:
@@ -91,7 +91,7 @@ void ToolSelectorInterface::Draw(sf::RenderWindow* window) {
 void ToolSelectorInterface::SelectTool(Tools tool) {
     // Deactivate the current interface
     if (active_tool_interface) {
-        active_tool_interface->active = false;
+        active_tool_interface->Deactivate();
     }
 
     switch (tool) {
@@ -124,6 +124,6 @@ void ToolSelectorInterface::SelectTool(Tools tool) {
 
     // Deactivate the appropriate interface
     if (active_tool_interface) {
-        active_tool_interface->active = true;
+        active_tool_interface->Activate();
     }
 }

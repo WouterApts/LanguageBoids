@@ -13,13 +13,16 @@
 
 Tool::Tool() = default;
 
+//----------------------------------//
+//        LINE OBSTACLE TOOL        //
+//----------------------------------//
 LineObstacleTool::LineObstacleTool() = default;
 
 void LineObstacleTool::Reset() {
     building = false;
 }
 
-void LineObstacleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+void LineObstacleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         start_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -28,7 +31,7 @@ void LineObstacleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
         auto end_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         if (!((end_pos - start_pos).norm() < 10.f)) {
             auto line = std::make_shared<LineObstacle>(start_pos, end_pos, width, sf::Color::White);
-            world->obstacles.push_back(line);
+            simulation_data.world.obstacles.push_back(line);
         }
     }
 }
@@ -47,14 +50,16 @@ void LineObstacleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow* window) {
     }
 }
 
-
+//----------------------------------//
+//       CIRCLE OBSTACLE TOOL       //
+//----------------------------------//
 CircleObstacleTool::CircleObstacleTool() = default;
 
 void CircleObstacleTool::Reset() {
     building = false;
 }
 
-void CircleObstacleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+void CircleObstacleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         center_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -64,7 +69,7 @@ void CircleObstacleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
         float radius = (center_pos - world_pos).norm();
         if (radius >= 10.f) {
             auto circle = std::make_shared<CircleObstacle>(center_pos, radius, sf::Color::White);
-            world->obstacles.push_back(circle);
+            simulation_data.world.obstacles.push_back(circle);
         }
     }
 }
@@ -84,33 +89,35 @@ void CircleObstacleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow* window) {
     }
 }
 
-
+//----------------------------------//
+//            ERASER TOOL           //
+//----------------------------------//
 EraserTool::EraserTool() = default;
 
-void EraserTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+void EraserTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     // Iterate through the obstacles in the world
-    for (auto it = world->obstacles.begin(); it != world->obstacles.end(); ) {
+    for (auto it = simulation_data.world.obstacles.begin(); it != simulation_data.world.obstacles.end(); ) {
         if ((*it)->CalcCollisionNormal(Eigen::Vector2f(tool_pos.x, tool_pos.y), this->brush_size)) {
             // If collision detected, erase the obstacle
-            it = world->obstacles.erase(it); // Remove obstacle from the vector and advance iterator
+            it = simulation_data.world.obstacles.erase(it); // Remove obstacle from the vector and advance iterator
         } else {
             // If no collision, move to the next obstacle
             ++it;
         }
     }
-    for (auto it = world->terrains.begin(); it != world->terrains.end(); ) {
+    for (auto it = simulation_data.world.terrains.begin(); it != simulation_data.world.terrains.end(); ) {
         if ((*it)->IsPointInside(Eigen::Vector2f(tool_pos.x, tool_pos.y))) {
             // If collision detected, erase the obstacle
-            it = world->terrains.erase(it); // Remove obstacle from the vector and advance iterator
+            it = simulation_data.world.terrains.erase(it); // Remove obstacle from the vector and advance iterator
         } else {
             // If no collision, move to the next obstacle
             ++it;
         }
     }
-    for (auto it = world->competition_boid_spawners.begin(); it != world->competition_boid_spawners.end(); ) {
+    for (auto it = simulation_data.boid_spawners.begin(); it != simulation_data.boid_spawners.end(); ) {
         if ((*it)->IsInside(Eigen::Vector2f(tool_pos.x, tool_pos.y), this->brush_size)) {
             // If collision detected, erase the obstacle
-            it = world->competition_boid_spawners.erase(it); // Remove obstacle from the vector and advance iterator
+            it = simulation_data.boid_spawners.erase(it); // Remove obstacle from the vector and advance iterator
         } else {
             // If no collision, move to the next obstacle
             ++it;
@@ -118,7 +125,9 @@ void EraserTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
     }
 }
 
-
+//----------------------------------//
+//           TERRAIN TOOL           //
+//----------------------------------//
 TerrainTool::TerrainTool() = default;
 
 void TerrainTool::Reset() {
@@ -126,13 +135,13 @@ void TerrainTool::Reset() {
     vertices.clear();
 }
 
-void TerrainTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+void TerrainTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         vertices.emplace_back(tool_pos.x, tool_pos.y);
         building = true;
     } else {
         if ((Eigen::Vector2f(tool_pos.x, tool_pos.y) - vertices[0]).norm() < 10) {
-            world->terrains.emplace_back(std::make_shared<Terrain>(vertices, friction_modifier, struggle_modifier, min_speed, max_speed));
+            simulation_data.world.terrains.emplace_back(std::make_shared<Terrain>(vertices, friction_modifier, struggle_modifier, min_speed, max_speed));
             building = false;
             vertices.clear();
         } else {
@@ -184,6 +193,9 @@ void TerrainTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     }
 }
 
+//----------------------------------//
+//        BOID SPAWNER TOOLS        //
+//----------------------------------//
 BoidTool::BoidTool() = default;
 
 void BoidTool::Reset() {
@@ -194,9 +206,9 @@ void BoidTool::OnRightClick(sf::Vector2f tool_pos, World *world) {
     building = false;
 }
 
-BoidCircleTool::BoidCircleTool() = default;
+KeyBoidCircleTool::KeyBoidCircleTool() = default;
 
-void BoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+void KeyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         center_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -205,13 +217,13 @@ void BoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
         auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         float radius = (center_pos - world_pos).norm();
         if (radius >= 1) {
-            auto spawner = std::make_shared<CompBoidCircularSpawner>(boid_count, language_key, center_pos, radius);
-            world->competition_boid_spawners.push_back(spawner);
+            auto spawner = std::make_shared<KeyBoidCircularSpawner>(boid_count, language_key, center_pos, radius);
+            simulation_data.boid_spawners.push_back(spawner);
         }
     }
 }
 
-void BoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void KeyBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         auto color = LanguageManager::GetLanguageColor(language_key);
         color.a = 100;
@@ -223,9 +235,9 @@ void BoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     }
 }
 
-BoidRectangleTool::BoidRectangleTool() = default;
+KeyBoidRectangleTool::KeyBoidRectangleTool() = default;
 
-void BoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
+void KeyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         start_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -244,13 +256,13 @@ void BoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, World *world) {
             height = -height;
         }
         if (width >= 1 && height >= 1) {
-            auto spawner = std::make_shared<CompBoidRectangularSpawner>(boid_count, language_key, pos, width, height);
-            world->competition_boid_spawners.push_back(spawner);
+            auto spawner = std::make_shared<KeyBoidRectangularSpawner>(boid_count, language_key, pos, width, height);
+            simulation_data.boid_spawners.push_back(spawner);
         }
     }
 }
 
-void BoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void KeyBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         auto color = LanguageManager::GetLanguageColor(language_key);
         color.a = 100;

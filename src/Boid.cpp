@@ -12,13 +12,31 @@
 #include "Obstacles.h"
 #include "ResourceManager.h"
 
-Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig>& config,
            float perception_radius, float interaction_radius, float avoidance_radius, float collision_radius)
     : pos(std::move(pos)), vel(std::move(vel)), acc(std::move(acc)),
-      perception_radius(perception_radius), interaction_radius(interaction_radius), separation_radius(avoidance_radius), collision_radius(collision_radius) {
+      perception_radius(perception_radius), interaction_radius(interaction_radius),
+      separation_radius(avoidance_radius), collision_radius(collision_radius) {
 
-    max_speed = MAX_SPEED;
-    min_speed = MIN_SPEED;
+    max_speed = config->MAX_SPEED;
+    min_speed = config->MIN_SPEED;
+    spatial_key = -1;
+
+    const auto& p_texture = ResourceManager::GetTexture("boid");
+    sprite.setTexture(*p_texture);
+    sprite.setOrigin(p_texture->getSize().x/2.0f, p_texture->getSize().y/2.0f);
+    sprite.setPosition(this->pos.x(), this->pos.y());
+    sprite.setColor(sf::Color(255, 0, 0));
+
+}
+
+Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig>& config)
+    : pos(std::move(pos)), vel(std::move(vel)), acc(std::move(acc)), config(config),
+      perception_radius(config->PERCEPTION_RADIUS), interaction_radius(config->INTERACTION_RADIUS),
+      separation_radius(config->SEPARATION_RADIUS), collision_radius(config->BOID_COLLISION_RADIUS) {
+
+    max_speed = config->MAX_SPEED;
+    min_speed = config->MIN_SPEED;
     spatial_key = -1;
 
     const auto& p_texture = ResourceManager::GetTexture("boid");
@@ -34,16 +52,16 @@ Eigen::Vector2f Boid::AvoidBorders(float width, float height) const {
     constexpr int buffer_zone = 300;
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (pos.x() < buffer_zone) {
-        acceleration.x() += MAX_SPEED*2;
+        acceleration.x() += config->MAX_SPEED*2;
     }
     if (pos.x() > width - buffer_zone) {
-        acceleration.x() -= MAX_SPEED*2;
+        acceleration.x() -= config->MAX_SPEED*2;
     }
     if (pos.y() < buffer_zone) {
-        acceleration.y() += MAX_SPEED*2;
+        acceleration.y() += config->MAX_SPEED*2;
     }
     if (pos.y() > height - buffer_zone) {
-        acceleration.y() -= MAX_SPEED*2;
+        acceleration.y() -= config->MAX_SPEED*2;
     }
     return acceleration;
 }
@@ -66,7 +84,7 @@ void Boid::UpdateVelocity(const std::vector<std::shared_ptr<Obstacle>> &obstacle
         if (velocity_along_normal >= 0) {
             SetVelocity(vel + acc * delta_time.asSeconds());
         } else {
-            float impulse_magnitude = -(1 + RESTITUTION_COEFFICIENT) * velocity_along_normal;
+            float impulse_magnitude = -(1 + config->RESTITUTION_COEFFICIENT) * velocity_along_normal;
             Eigen::Vector2f impulse = collision_normal * impulse_magnitude;
             SetVelocity(vel + impulse);
         }
@@ -81,8 +99,8 @@ void Boid::SetMinMaxSpeed(float min, float max) {
 }
 
 void Boid::SetDefaultMinMaxSpeed() {
-    this->max_speed = MAX_SPEED;
-    this->min_speed = MIN_SPEED;
+    this->max_speed = config->MAX_SPEED;
+    this->min_speed = config->MIN_SPEED;
 }
 
 void Boid::UpdatePosition(const sf::Time &delta_time) {

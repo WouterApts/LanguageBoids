@@ -8,17 +8,19 @@
 #include "MainMenu.h"
 #include "ResourceManager.h"
 #include "World.h"
-#include "Simulation.cpp"
+#include "Simulator.cpp"
 #include "Utility.h"
 #include "editor/Editor.h"
+#include "editor/Serialization.h"
 
 Application::Application() : context(std::make_shared<Context>()){
     //Create application window
     context->window->create(sf::VideoMode(1600,900), "Language Boids");
-    context->window->setFramerateLimit(FRAME_RATE);
+    context->window->setFramerateLimit(static_cast<int>(FRAME_RATE));
 }
 
 void Application::Run() {
+
     InitializeRescources();
 
     // Create Simulation and push it to the State Stack, which will Initialize and Start it.
@@ -65,6 +67,7 @@ void Application::InitializeRescources() {
     ResourceManager::LoadTexture("terrain_button", "images/TerrainButton.png");
     ResourceManager::LoadTexture("config_button", "images/SettingsButton.png");
     ResourceManager::LoadTexture("grid_button", "images/GridButton.png");
+    ResourceManager::LoadTexture("escape_button", "images/EscapeButton.png");
 
     // Fonts
     ResourceManager::LoadFont("arial", "fonts/arial.ttf");

@@ -15,7 +15,7 @@ using Matrix3D = std::vector<std::vector<std::vector<int>>>;
 
 class CompAnalyser {
 public:
-    CompAnalyser(const World &world, int cell_size, std::vector<std::shared_ptr<CompBoid>>& boids, LanguageManager& language_manager);
+    CompAnalyser(const World &world, int cell_size, std::vector<std::shared_ptr<KeyBoid>>& boids, LanguageManager& language_manager);
     ~CompAnalyser() = default;
 
     void LogAllMetrics(sf::Time delta_time);
@@ -30,7 +30,7 @@ public:
     std::vector<Matrix3D> languages_per_cell;
 
 private:
-    std::vector<std::shared_ptr<CompBoid>>& ref_boids;
+    std::vector<std::shared_ptr<KeyBoid>>& ref_boids;
     LanguageManager& ref_language_manager;
     int cell_size;
     int n_cells_in_width;

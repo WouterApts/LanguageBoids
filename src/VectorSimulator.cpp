@@ -8,26 +8,26 @@
 #include <SFML/System/Time.hpp>
 #include <SFML/Window/Event.hpp>
 
-#include "Simulation.h"
+#include "Simulator.h"
 #include "Utility.h"
 
-EvoSimulation::EvoSimulation(std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
-    : Simulation(context, world, camera_width, camera_height),
-      spatial_boid_grid(SpatialGrid<EvoBoid>(world.size().cast<int>(), static_cast<int>(INTERACTION_RADIUS/2)))
+VectorSimulator::VectorSimulator(std::shared_ptr<Context>& context, World& world, float camera_width, float camera_height)
+    : Simulator(context, world, camera_width, camera_height),
+      spatial_boid_grid(SpatialGrid<VectorBoid>(world.size().cast<int>(), static_cast<int>(INTERACTION_RADIUS/2)))
 {}
 
 
-void EvoSimulation::AddBoid(const std::shared_ptr<EvoBoid> &boid) {
+void VectorSimulator::AddBoid(const std::shared_ptr<VectorBoid> &boid) {
     boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (boids)
     spatial_boid_grid.AddObj(boid);
 }
 
 
-void EvoSimulation::Init() {
+void VectorSimulator::Init() {
     //Create Random boids
     int boids_amount = 3000;
     for (int i = 0; i < boids_amount; ++i) {
-        auto boid = std::make_shared<EvoBoid>(CreateRandomBoid(world.width, world.height, true));
+        auto boid = std::make_shared<VectorBoid>(CreateRandomBoid(world.width, world.height, true));
         AddBoid(boid);
     }
 
@@ -44,12 +44,12 @@ void EvoSimulation::Init() {
 };
 
 
-void EvoSimulation::Update(sf::Time delta_time) {
+void VectorSimulator::Update(sf::Time delta_time) {
 
     for (const auto& boid: boids) {
 
         //Get boids in perception radius:
-        std::vector<EvoBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
+        std::vector<VectorBoid*> perceived_boids = std::move(spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid));
 
         //Update boids acceleration
         boid->UpdateAcceleration(perceived_boids, world);
@@ -71,7 +71,7 @@ void EvoSimulation::Update(sf::Time delta_time) {
     }
 };
 
-void EvoSimulation::ProcessInput() {
+void VectorSimulator::ProcessInput() {
 
     sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
     sf::Event event{};
@@ -107,7 +107,7 @@ void EvoSimulation::ProcessInput() {
     camera.Drag(mouse_pos);
 };
 
-void EvoSimulation::Draw() {
+void VectorSimulator::Draw() {
     context->window->clear(sf::Color::Black);
     context->window->setView(camera.view);
 
@@ -131,17 +131,17 @@ void EvoSimulation::Draw() {
 }
 
 
-void EvoSimulation::Start() {
+void VectorSimulator::Start() {
 
 };
 
 
-void EvoSimulation::Pause() {
+void VectorSimulator::Pause() {
 
 };
 
 
-EvoBoid EvoSimulation::CreateRandomBoid(float max_x_coord, float max_y_coord, bool random_language) {
+VectorBoid VectorSimulator::CreateRandomBoid(float max_x_coord, float max_y_coord, bool random_language) {
     // Generate random position
     std::random_device rd;
     std::mt19937 gen(rd());
