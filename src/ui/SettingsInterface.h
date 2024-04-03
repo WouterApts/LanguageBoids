@@ -14,10 +14,12 @@ class SettingsInterface : public Panel {
 public:
 
     std::shared_ptr<InterfaceComponent> escape_interface;
+    std::shared_ptr<InterfaceComponent> config_interface;
+
     std::shared_ptr<InterfaceManager> interface_manager;
     float button_size[2] = {50, 50};
 
-    SettingsInterface(const std::shared_ptr<InterfaceManager> &interface_manager, std::shared_ptr<Context> &context,
+    SettingsInterface(std::shared_ptr<InterfaceManager> &interface_manager, std::shared_ptr<Context> &context,
                       SimulationData& simulation_data, const sf::Vector2f &pos);
 };
 

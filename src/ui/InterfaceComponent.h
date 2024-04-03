@@ -11,7 +11,7 @@
 
 class InterfaceComponent : public sf::Transformable {
 public:
-    bool active = false;
+    bool active = true;
     bool mouse_inside = false;
 
     explicit InterfaceComponent(sf::Vector2f pos);

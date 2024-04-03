@@ -18,23 +18,14 @@ Panel::Panel(sf::Vector2f pos, sf::Vector2f size,
 void Panel::Draw(sf::RenderWindow* window) {
     window->draw(rect);
     for (auto& component : components) {
-        component->Draw(window);
+        if (component->active) component->Draw(window);
     }
 }
 
 void Panel::OnLeftClick(sf::Vector2f mouse_pos) {
 
-    if (focused_field) {
-        focused_field->SetFocus(false);
-        focused_field.reset(); // Reset the shared_ptr to nullptr
-    }
-
     for (const auto& component : components) {
-        if (component->IsPointInside(mouse_pos)) {
-            if (auto input_field = std::dynamic_pointer_cast<InputField>(component)) {
-                input_field->SetFocus(true);
-                focused_field = input_field;
-            }
+        if (component->IsPointInside(mouse_pos) && component->active) {
             component->OnLeftClick(mouse_pos);
         }
     }
@@ -59,8 +50,8 @@ void Panel::OnMouseLeave(sf::Vector2f mouse_pos) {
 }
 
 void Panel::OnKeyBoardEnter(sf::Uint32 unicode) {
-    if (focused_field) {
-        focused_field->OnKeyBoardEnter(unicode);
+    for (auto& element : components) {
+        element->OnKeyBoardEnter(unicode);
     }
 }
 

@@ -7,14 +7,14 @@
 #include "ResourceManager.h"
 #include "TextField.h"
 
-BoidToolInterface::BoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool)
-    : Panel(pos, sf::Vector2f(310, 90)) {
+BoidToolInterface::BoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager)
+    : Panel(pos, sf::Vector2f(310, 90), sf::Color(125,125,125)) {
 
     std::vector<std::shared_ptr<InterfaceComponent>> fields;
-    fields.emplace_back(std::make_shared<IntInputField>([p_boid_tool](int value) {p_boid_tool->boid_count = value;},
-                                                          sf::Vector2f(0,0), sf::Vector2f(100, 30), 6, std::to_string(p_boid_tool->boid_count)));
-    fields.emplace_back(std::make_shared<IntInputField>([p_boid_tool](int value) {p_boid_tool->language_key = value;},
-                                                          sf::Vector2f(0,0), sf::Vector2f(100, 30), 1, std::to_string(p_boid_tool->language_key)));
+    fields.emplace_back(std::make_shared<IntInputField>(interface_manager, [p_boid_tool](int value) {p_boid_tool->boid_count = value;},
+                                                          sf::Vector2f(0,0), sf::Vector2f(100, 30), 6, p_boid_tool->boid_count));
+    fields.emplace_back(std::make_shared<IntInputField>(interface_manager, [p_boid_tool](int value) {p_boid_tool->language_key = value;},
+                                                          sf::Vector2f(0,0), sf::Vector2f(100, 30), 1, p_boid_tool->language_key));
 
     int offset = 40;
     for (int i = 0; i < fields.size(); ++i) {

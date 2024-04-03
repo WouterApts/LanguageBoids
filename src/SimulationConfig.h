@@ -6,6 +6,8 @@
 #define CONFIGURATION_H
 
 struct SimulationConfig {
+
+    // Default: Flocking
     float COHERENCE_FACTOR = 1.f;
     float ALIGNMENT_FACTOR = 0.3f;
     float SEPARATION_FACTOR = 5.f;
@@ -18,11 +20,11 @@ struct SimulationConfig {
     float INTERACTION_RADIUS = 250;
     float SEPARATION_RADIUS = 100;
 
-    // Collision Physics
+    // Default: Collision Physics
     float BOID_COLLISION_RADIUS = 10;
     float RESTITUTION_COEFFICIENT = 1;
 
-    // Analysis
+    // Default: Analysis
     int LANGUAGE_LOG_INTERVAL = 1;
     int POSITION_LOG_INTERVAL = 5;
 

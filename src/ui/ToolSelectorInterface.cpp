@@ -34,18 +34,19 @@ ToolSelectorInterface::ToolSelectorInterface(std::shared_ptr<InterfaceManager> i
     // Add TerrainToolInterface to interfaces
     auto tool_interface_position = sf::Vector2f(pos.x, pos.y + this->rect.getSize().y + 10);
     auto p_terrain_tool = std::dynamic_pointer_cast<TerrainTool>(tool_selector->tools[TerrainT]);
-    terrain_tool_interface = std::make_shared<TerrainToolInterface>(tool_interface_position, p_terrain_tool);
+    terrain_tool_interface = std::make_shared<TerrainToolInterface>(tool_interface_position, p_terrain_tool, *this->interface_manager);
     interface_manager->AddComponent(terrain_tool_interface);
+    terrain_tool_interface->Deactivate();
 
     auto p_boid_circle_tool = std::dynamic_pointer_cast<KeyBoidCircleTool>(tool_selector->tools[BoidCircleT]);
-    boid_circle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_circle_tool);
+    boid_circle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_circle_tool, *this->interface_manager);
     interface_manager->AddComponent(boid_circle_tool_interface);
-
-
+    boid_circle_tool_interface->Deactivate();
 
     auto p_boid_rectangle_tool = std::dynamic_pointer_cast<KeyBoidRectangleTool>(tool_selector->tools[BoidRectangleT]);
-    boid_rectangle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_rectangle_tool);
+    boid_rectangle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_rectangle_tool, *this->interface_manager);
     interface_manager->AddComponent(boid_rectangle_tool_interface);
+    boid_rectangle_tool_interface->Deactivate();
 
     // Activate the tool selector interface
     this->Activate();

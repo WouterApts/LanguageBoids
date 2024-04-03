@@ -15,7 +15,7 @@ EscapeInterface::EscapeInterface(sf::Vector2f pos, std::shared_ptr<Context>& con
     std::vector<std::shared_ptr<InterfaceComponent> > btns;
     btns.emplace_back(std::make_shared<TextButton>([&context]() { context->state_manager->PopState();},
                                                 "YES", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1]), 20.f));
-    btns.emplace_back(std::make_shared<TextButton>([&]() { this->active = false; },
+    btns.emplace_back(std::make_shared<TextButton>([&]() { this->Deactivate(); },
                                                 "NO", sf::Vector2f(0,0), sf::Vector2f(button_size[0], button_size[1]), 20.f));
 
     for (int i = 0; i < btns.size(); ++i) {

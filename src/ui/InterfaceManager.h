@@ -10,9 +10,12 @@
 
 #include "InterfaceComponent.h"
 
+class InputField;
+
 class InterfaceManager {
 public:
     std::vector<std::shared_ptr<InterfaceComponent>> components;
+    InputField* focused_input_field;
     bool interface_clicked;
 
     void AddComponent(const std::shared_ptr<InterfaceComponent>& component);

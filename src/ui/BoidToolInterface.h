@@ -10,7 +10,7 @@
 
 class BoidToolInterface : public Panel {
 public:
-    BoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool);
+    BoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager);
 };
 
 

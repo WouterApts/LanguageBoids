@@ -46,8 +46,7 @@ public:
     sf::Color text_color;
     sf::Text text;
 
-    TextButton(std::function<void()> callback, const std::string &text_string, sf::Vector2f pos, sf::Vector2f size,
-               int text_size,
+    TextButton(std::function<void()> callback, const std::string &text_string, sf::Vector2f pos, sf::Vector2f size, int text_size,
                sf::Color text_color = sf::Color::White,
                sf::Color background_color = sf::Color::Transparent,
                sf::Color outline_color = sf::Color::White,

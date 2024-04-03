@@ -15,7 +15,6 @@ class Panel : public RectangleComponent {
 public:
     std::vector<std::shared_ptr<InterfaceComponent>> components;
     std::vector<sf::Vector2f> relative_position;
-    std::shared_ptr<InputField> focused_field;
 
     Panel(sf::Vector2f pos, sf::Vector2f size,
         sf::Color background_color = sf::Color(100,100,100),

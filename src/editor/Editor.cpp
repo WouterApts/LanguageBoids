@@ -33,7 +33,7 @@ void Editor::Init() {
     interface_manager->AddComponent(tool_selector_interface);
 
     // Initialize Settings Interfacer
-    auto settings_interface_pos = sf::Vector2f(context->window->getSize().x - 220, 20);
+    auto settings_interface_pos = sf::Vector2f(context->window->getSize().x - 210, 20);
     auto settings_interface = std::make_shared<SettingsInterface>(interface_manager, context, simulation_data, settings_interface_pos);
     interface_manager->AddComponent(settings_interface);
 }

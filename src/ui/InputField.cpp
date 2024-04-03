@@ -4,13 +4,15 @@
 
 #include "InputField.h"
 
+#include <format>
 #include <iostream>
 #include <utility>
 
+#include "InterfaceManager.h"
 #include "ResourceManager.h"
 
-InputField::InputField(sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
-    : RectangleComponent(pos, size, sf::Color::White), character_limit(character_limit), default_value(std::move(default_value)) {
+InputField::InputField(InterfaceManager& interface_manager, sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
+    : RectangleComponent(pos, size, sf::Color::White), interface_manager(interface_manager), character_limit(character_limit), default_value(std::move(default_value)) {
 
     font = *ResourceManager::GetFont("arial");
     m_text.setFont(font);
@@ -41,7 +43,13 @@ void InputField::Draw(sf::RenderWindow* window) {
 }
 
 void InputField::OnLeftClick(sf::Vector2f mouse_pos) {
-    RectangleComponent::OnLeftClick(mouse_pos);
+    if (GetGlobalBoundsWithOrigin().contains(mouse_pos)) {
+        if (interface_manager.focused_input_field) {
+            interface_manager.focused_input_field->SetFocus(false);
+        }
+        SetFocus(true);
+        interface_manager.focused_input_field = this;
+    }
 }
 
 void InputField::OnMouseEnter(sf::Vector2f mouse_pos) {
@@ -49,7 +57,7 @@ void InputField::OnMouseEnter(sf::Vector2f mouse_pos) {
 }
 
 void InputField::OnKeyBoardEnter(sf::Uint32 unicode) {
-    if (m_focused) {
+    if (m_focused && active) {
         std::string currentText = m_text.getString();
 
         // Check if character limit is reached
@@ -73,8 +81,8 @@ void InputField::SetFocus(bool focus) {
 
 
 // Integers //
-IntInputField::IntInputField(std::function<void(int)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
-    : InputField(pos, size, character_limit, std::move(default_value)), callback(std::move(callback)) {
+IntInputField::IntInputField(InterfaceManager& interface_manager, std::function<void(int)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, int default_value)
+    : InputField(interface_manager, pos, size, character_limit, std::to_string(default_value)), callback(std::move(callback)) {
 }
 
 void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
@@ -106,8 +114,8 @@ void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
 }
 
 
-FloatInputField::FloatInputField(std::function<void(float)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
-    : InputField(pos, size, character_limit, std::move(default_value)), callback(std::move(callback)) {
+FloatInputField::FloatInputField(InterfaceManager& interface_manager, std::function<void(float)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, float default_value)
+    : InputField(interface_manager, pos, size, character_limit, std::format("{:.1f}", default_value)), callback(std::move(callback)) {
 }
 
 void FloatInputField::OnKeyBoardEnter(sf::Uint32 unicode) {

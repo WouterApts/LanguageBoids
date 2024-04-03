@@ -72,6 +72,8 @@ set(SOURCE_FILES
         ui/EscapeInterface.h
         SimulationData.h
         SimulationConfig.h
+        ui/ConfigInterface.cpp
+        ui/ConfigInterface.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
