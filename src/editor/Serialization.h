@@ -11,7 +11,8 @@
 
 namespace serialization {
     void SaveSimulationDataToFile(const SimulationData &data);
-    std::optional<World> LoadSimulationDataFromFile(const std::string& filename);
+
+    std::optional<SimulationData> LoadSimulationDataFromFile(const std::string &filename);
     std::string GetFileNameThroughSaveDialog();
     std::string GetFileNameThroughLoadDialog();
 };

@@ -4,8 +4,8 @@
 
 #include "ToolSelectorInterface.h"
 
-#include "BoidToolInterface.h"
-#include "Button.h"
+#include "BoidToolInterfaces.h"
+#include "components/Button.h"
 #include "TerrainToolInterface.h"
 
 ToolSelectorInterface::ToolSelectorInterface(std::shared_ptr<InterfaceManager> interface_manager, const std::shared_ptr<ToolSelector>& t_selector, sf::Vector2f pos)
@@ -38,15 +38,15 @@ ToolSelectorInterface::ToolSelectorInterface(std::shared_ptr<InterfaceManager> i
     interface_manager->AddComponent(terrain_tool_interface);
     terrain_tool_interface->Deactivate();
 
-    auto p_boid_circle_tool = std::dynamic_pointer_cast<KeyBoidCircleTool>(tool_selector->tools[BoidCircleT]);
-    boid_circle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_circle_tool, *this->interface_manager);
-    interface_manager->AddComponent(boid_circle_tool_interface);
-    boid_circle_tool_interface->Deactivate();
+    auto p_boid_circle_tool = std::dynamic_pointer_cast<KeyBoidCircleTool>(tool_selector->tools[KeyBoidCircleT]);
+    keyboid_circle_tool_interface = std::make_shared<KeyBoidToolInterface>(tool_interface_position, p_boid_circle_tool, *this->interface_manager);
+    interface_manager->AddComponent(keyboid_circle_tool_interface);
+    keyboid_circle_tool_interface->Deactivate();
 
-    auto p_boid_rectangle_tool = std::dynamic_pointer_cast<KeyBoidRectangleTool>(tool_selector->tools[BoidRectangleT]);
-    boid_rectangle_tool_interface = std::make_shared<BoidToolInterface>(tool_interface_position, p_boid_rectangle_tool, *this->interface_manager);
-    interface_manager->AddComponent(boid_rectangle_tool_interface);
-    boid_rectangle_tool_interface->Deactivate();
+    auto p_boid_rectangle_tool = std::dynamic_pointer_cast<KeyBoidRectangleTool>(tool_selector->tools[KeyBoidRectangleT]);
+    keyboid_rectangle_tool_interface = std::make_shared<KeyBoidToolInterface>(tool_interface_position, p_boid_rectangle_tool, *this->interface_manager);
+    interface_manager->AddComponent(keyboid_rectangle_tool_interface);
+    keyboid_rectangle_tool_interface->Deactivate();
 
     // Activate the tool selector interface
     this->Activate();
@@ -76,11 +76,15 @@ void ToolSelectorInterface::Draw(sf::RenderWindow* window) {
             selection_highlight.setPosition(components[3]->getPosition());
             window->draw(selection_highlight);
             break;
-        case BoidCircleT:
+        case KeyBoidCircleT:
+        case VectorBoidCircleT:
+        case StudyBoidCircleT:
             selection_highlight.setPosition(components[4]->getPosition());
             window->draw(selection_highlight);
             break;
-        case BoidRectangleT:
+        case KeyBoidRectangleT:
+        case VectorBoidRectangleT:
+        case StudyBoidRectangleT:
             selection_highlight.setPosition(components[5]->getPosition());
             window->draw(selection_highlight);
             break;
@@ -113,14 +117,35 @@ void ToolSelectorInterface::SelectTool(Tools tool) {
             active_tool_interface = terrain_tool_interface;
             break;
         case BoidCircleT:
-            tool_selector->SelectTool(BoidCircleT);
-            active_tool_interface = boid_circle_tool_interface;
+            if (tool_selector->simulation_data.type == KeySimulation) {
+                tool_selector->SelectTool(KeyBoidCircleT);
+                active_tool_interface = keyboid_circle_tool_interface;
+            }
+            else if (tool_selector->simulation_data.type == VectorSimulation) {
+                // tool_selector->SelectTool(VectorBoidCircleT);
+                // active_tool_interface = vectorboid_circle_tool_interface;
+            }
+            else if (tool_selector->simulation_data.type == DominanceStudy) {
+                tool_selector->SelectTool(StudyBoidCircleT);
+                active_tool_interface = keyboid_circle_tool_interface;
+            }
             break;
         case BoidRectangleT:
-            tool_selector->SelectTool(BoidRectangleT);
-            active_tool_interface = boid_rectangle_tool_interface;
+            if (tool_selector->simulation_data.type == KeySimulation) {
+                tool_selector->SelectTool(KeyBoidRectangleT);
+                active_tool_interface = keyboid_rectangle_tool_interface;
+            }
+            else if (tool_selector->simulation_data.type == VectorSimulation) {
+                // tool_selector->SelectTool(VectorBoidRectangleT);
+                // active_tool_interface = vectorboid_circle_tool_interface;
+            }
+            else if (tool_selector->simulation_data.type == DominanceStudy) {
+                tool_selector->SelectTool(StudyBoidRectangleT);
+                active_tool_interface = keyboid_circle_tool_interface;
+            }
             break;
-        default: ;
+        default:
+            break;
     }
 
     // Deactivate the appropriate interface

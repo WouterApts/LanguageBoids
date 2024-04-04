@@ -86,7 +86,9 @@ bool CircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
 
 void KeyBoidCircularSpawner::Draw(sf::RenderWindow *window) const {
     window->draw(circle);
-    window->draw(text);
+    if (boids_spawned > 0) {
+        window->draw(text);
+    }
 }
 
 bool KeyBoidCircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
@@ -155,7 +157,9 @@ void KeyBoidRectangularSpawner::AddBoids(const World& world, const std::shared_p
 
 void KeyBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
     window->draw(rect);
-    window->draw(text);
+    if (boids_spawned > 0) {
+        window->draw(text);
+    }
 }
 
 bool KeyBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {

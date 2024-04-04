@@ -8,7 +8,6 @@
 
 #include "Tools.h"
 #include "State.h"
-#include "ui/Interface.h"
 #include "Application.h"
 #include "Camera.h"
 #include "SimulationData.h"

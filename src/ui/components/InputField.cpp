@@ -8,8 +8,8 @@
 #include <iostream>
 #include <utility>
 
-#include "InterfaceManager.h"
-#include "ResourceManager.h"
+#include "../InterfaceManager.h"
+#include "../../ResourceManager.h"
 
 InputField::InputField(InterfaceManager& interface_manager, sf::Vector2f pos, sf::Vector2f size, int character_limit, std::string default_value)
     : RectangleComponent(pos, size, sf::Color::White), interface_manager(interface_manager), character_limit(character_limit), default_value(std::move(default_value)) {

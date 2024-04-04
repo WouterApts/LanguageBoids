@@ -33,16 +33,16 @@ void serialization::SaveSimulationDataToFile(const SimulationData& data) {
     file << "Simulation-Type: ";
     switch (data.type) {
         case KeySimulation:
-            file << "LanguageKey \n"
+            file << "KeySimulation \n"
                  << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
                  << "INFLUENCE_RATE: " << data.config->INFLUENCE_RATE << '\n';
             break;
         case VectorSimulation:
-            file << "LanguageVector \n"
+            file << "VectorSimulation \n"
                  << "LANGUAGE_SIZE: " << data.config->LANGUAGE_SIZE << '\n'
                  << "MUTATION_RATE: " << data.config->MUTATION_RATE << '\n';
             break;
-        case DominanceSimulation:
+        case DominanceStudy:
             file << "DominanceStudy \n"
                  << "RUNS_PER_DISTRIBUTION: " << data.config->RUNS_PER_DISTRIBUTION << '\n'
                  << "DISTRIBUTIONS: " << data.config->DISTRIBUTIONS << '\n'
@@ -88,12 +88,9 @@ void serialization::SaveSimulationDataToFile(const SimulationData& data) {
 }
 
 //TODO: FIX THIS
-std::optional<World> serialization::LoadSimulationDataFromFile(const std::string& filename) {
+std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const std::string &filename) {
 
-    float width, height;
-    std::vector<std::shared_ptr<Obstacle>> obstacles;
-    std::vector<std::shared_ptr<Terrain>> terrains;
-    std::vector<std::shared_ptr<KeyBoidSpawner>> competition_spawners;
+    SimulationData data = SimulationData();
 
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -103,12 +100,71 @@ std::optional<World> serialization::LoadSimulationDataFromFile(const std::string
 
     std::string line;
 
+      // Parse Simulation Type:
+    if (std::getline(file, line)) {
+        std::string str_type;
+        std::stringstream ss(line);
+        std::string prefix;
+        ss >> prefix >> str_type;
+        if (str_type == "KeySimulation") {
+            data.type = KeySimulation;
+        } else if (str_type == "VectorSimulation") {
+            data.type = VectorSimulation;
+        } else if (str_type == "DominanceStudy") {
+            data.type = DominanceStudy;
+        } else {
+            std::cerr << "Error: Unknown simulation type. \nUnable to load from file: " << filename << std::endl;
+            return std::nullopt;
+        }
+    }
+
+    // Parse Config
+    int n_parameters = 15;
+    for (int i = 0; i < n_parameters; ++i) {
+        std::getline(file, line);
+        std::stringstream ss(line);
+        std::string prefix;
+        float value;
+        ss >> prefix >> value;
+        if (prefix == "a_COEFFICIENT:") {
+            data.config->a_COEFFICIENT = value;
+        } else if (prefix == "INFLUENCE_RATE:") {
+            data.config->INFLUENCE_RATE = value;
+        } else if (prefix == "COHERENCE_FACTOR:") {
+            data.config->COHERENCE_FACTOR = value;
+        } else if (prefix == "ALIGNMENT_FACTOR:") {
+            data.config->ALIGNMENT_FACTOR = value;
+        } else if (prefix == "SEPARATION_FACTOR:") {
+            data.config->SEPARATION_FACTOR = value;
+        } else if (prefix == "AVOIDANCE_FACTOR:") {
+            data.config->AVOIDANCE_FACTOR = value;
+        } else if (prefix == "MAX_SPEED:") {
+            data.config->MAX_SPEED = value;
+        } else if (prefix == "MIN_SPEED:") {
+            data.config->MIN_SPEED = value;
+        } else if (prefix == "PERCEPTION_RADIUS:") {
+            data.config->PERCEPTION_RADIUS = value;
+        } else if (prefix == "INTERACTION_RADIUS:") {
+            data.config->INTERACTION_RADIUS = value;
+        } else if (prefix == "SEPARATION_RADIUS:") {
+            data.config->SEPARATION_RADIUS = value;
+        } else if (prefix == "BOID_COLLISION_RADIUS:") {
+            data.config->BOID_COLLISION_RADIUS = value;
+        } else if (prefix == "RESTITUTION_COEFFICIENT:") {
+            data.config->RESTITUTION_COEFFICIENT = value;
+        } else if (prefix == "LANGUAGE_LOG_INTERVAL:") {
+            data.config->LANGUAGE_LOG_INTERVAL = static_cast<int>(value);
+        } else if (prefix == "POSITION_LOG_INTERVAL:") {
+            data.config->POSITION_LOG_INTERVAL = static_cast<int>(value);
+        }
+    }
+
     // Parse Size
     if (std::getline(file, line)) {
         std::stringstream ss(line);
         std::string prefix;
         char delimiter;
-        ss >> prefix >> width >> delimiter >> height;
+        ss >> prefix >> data.world.width >> delimiter >> data.world.height;
         if (prefix != "Size:") {
             std::cerr << "Error: Invalid format." << std::endl;
             return std::nullopt;
@@ -124,27 +180,27 @@ std::optional<World> serialization::LoadSimulationDataFromFile(const std::string
         if (line.compare(0, 12, "LineObstacle") == 0) {
             auto obstacle = LineObstacle::fromString(line);
             if (obstacle != nullptr) {
-                obstacles.push_back(obstacle);
+                data.world.obstacles.push_back(obstacle);
             }
         } else if (line.compare(0, 14, "CircleObstacle") == 0) {
             auto obstacle = CircleObstacle::FromString(line);
             if (obstacle != nullptr) {
-                obstacles.push_back(obstacle);
+                data.world.obstacles.push_back(obstacle);
             }
         } else if (line.compare(0, 7, "Terrain") == 0) {
             auto terrain = Terrain::FromString(line);
             if (terrain != nullptr) {
-                terrains.push_back(terrain);
+                data.world.terrains.push_back(terrain);
             }
         } else if (line.compare(0, 23, "CompBoidCircularSpawner") == 0) {
             auto spawner = KeyBoidCircularSpawner::FromString(line);
             if (spawner != nullptr) {
-                competition_spawners.push_back(spawner);
+                data.boid_spawners.push_back(spawner);
             }
         } else if (line.compare(0, 26, "CompBoidRectangularSpawner") == 0) {
             auto spawner = KeyBoidRectangularSpawner::FromString(line);
             if (spawner != nullptr) {
-                competition_spawners.push_back(spawner);
+                data.boid_spawners.push_back(spawner);
             }
         } else {
             // Unknown type, handle accordingly (ignore or report error)
@@ -154,29 +210,32 @@ std::optional<World> serialization::LoadSimulationDataFromFile(const std::string
     }
 
     file.close();
-
-    // Construct simulation_data from parsed data;
-    return std::nullopt;
+    return data;
 }
 
 std::string serialization::GetFileNameThroughSaveDialog() {
 #ifdef _WIN32
-    char filename[MAX_PATH];
-    OPENFILENAME ofn;
-    ZeroMemory(&ofn, sizeof(ofn));
+    char filename[MAX_PATH] = ""; // Initialize to empty string
+    OPENFILENAME ofn = {}; // Zero-initialize for clarity
     ofn.lStructSize = sizeof(ofn);
     ofn.lpstrFilter = "Data Files (*.dat)\0*.dat\0All Files (*.*)\0*.*\0";
     ofn.lpstrFile = filename;
     ofn.nMaxFile = MAX_PATH;
     ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT;
-    if (GetSaveFileName(&ofn) == TRUE) {
+
+    if (GetSaveFileName(&ofn)) {
         std::string filepath(filename);
-        // Ensure the file path has ".dat" extension
-        if (filepath.substr(filepath.length() - 4) != ".dat") {
+
+        // Ensure .dat extension if not already present (case-insensitive)
+        if (filepath.substr(filepath.length() - 4)  != ".dat" &&
+            filepath.substr(filepath.length() - 4)  != ".DAT") {
             filepath += ".dat";
-        }
+            }
+
         return filepath;
     } else {
+        // Handle error cases (see debugging suggestions below)
+        // ...
         return "";
     }
 #elif __linux__

@@ -206,6 +206,9 @@ void BoidTool::OnRightClick(sf::Vector2f tool_pos, World *world) {
     building = false;
 }
 
+//----------------------------------//
+//      KEY BOID SPAWNER TOOLS      //
+//----------------------------------//
 KeyBoidCircleTool::KeyBoidCircleTool() = default;
 
 void KeyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
@@ -288,6 +291,52 @@ void KeyBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window)
     }
 }
 
+//----------------------------------//
+//     STUDY BOID SPAWNER TOOLS     //
+//----------------------------------//
+StudyBoidCircleTool::StudyBoidCircleTool() = default;
+
+void StudyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
+    if (!building) {
+        building = true;
+        center_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
+    } else {
+        building = false;
+        auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
+        float radius = (center_pos - world_pos).norm();
+        if (radius >= 1) {
+            auto spawner = std::make_shared<KeyBoidCircularSpawner>(0, language_key, center_pos, radius);
+            simulation_data.boid_spawners.push_back(spawner);
+        }
+    }
+}
+
+StudyBoidRectangleTool::StudyBoidRectangleTool() = default;
+
+void StudyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData &simulation_data) {
+    if (!building) {
+        building = true;
+        start_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
+    } else {
+        building = false;
+        auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
+        float width = world_pos.x() - start_pos.x();
+        float height = world_pos.y() - start_pos.y() ;
+        auto pos = start_pos;
+        if (width < 0) {
+            pos.x() = pos.x() + width;
+            width = -width;
+        }
+        if (height < 0) {
+            pos.y() = pos.y() + height;
+            height = -height;
+        }
+        if (width >= 1 && height >= 1) {
+            auto spawner = std::make_shared<KeyBoidRectangularSpawner>(0, language_key, pos, width, height);
+            simulation_data.boid_spawners.push_back(spawner);
+        }
+    }
+}
 
 
 

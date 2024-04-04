@@ -6,7 +6,6 @@
 #define CONFIGURATION_H
 
 struct SimulationConfig {
-
     // Default: Flocking
     float COHERENCE_FACTOR = 1.f;
     float ALIGNMENT_FACTOR = 0.3f;
@@ -41,4 +40,5 @@ struct SimulationConfig {
     int DISTRIBUTIONS = 20;
     int TOTAL_BOIDS = 3000;
 };
+
 #endif //CONFIGURATION_H

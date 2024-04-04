@@ -23,7 +23,6 @@ void Panel::Draw(sf::RenderWindow* window) {
 }
 
 void Panel::OnLeftClick(sf::Vector2f mouse_pos) {
-
     for (const auto& component : components) {
         if (component->IsPointInside(mouse_pos) && component->active) {
             component->OnLeftClick(mouse_pos);
@@ -67,4 +66,3 @@ void Panel::SetPosition(const sf::Vector2f &pos) {
         components[i]->SetPosition(this->getPosition() - this->getOrigin() + relative_position[i]);
     }
 }
-

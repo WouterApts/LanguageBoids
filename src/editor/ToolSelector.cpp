@@ -4,14 +4,19 @@
 
 #include "ToolSelector.h"
 
+#include "Editor.h"
 
-ToolSelector::ToolSelector() : selected_tool(EraserT) {
+
+ToolSelector::ToolSelector(SimulationData& simulation_data)
+    : selected_tool(EraserT), simulation_data(simulation_data) {
     tools[EraserT] = std::make_shared<EraserTool>();
     tools[LineObstacleT] = std::make_shared<LineObstacleTool>();
     tools[CircleObstacleT] = std::make_shared<CircleObstacleTool>();
     tools[TerrainT] = std::make_shared<TerrainTool>();
-    tools[BoidCircleT] = std::make_shared<KeyBoidCircleTool>();
-    tools[BoidRectangleT] = std::make_shared<KeyBoidRectangleTool>();
+    tools[KeyBoidCircleT] = std::make_shared<KeyBoidCircleTool>();
+    tools[KeyBoidRectangleT] = std::make_shared<KeyBoidRectangleTool>();
+    tools[StudyBoidCircleT] = std::make_shared<StudyBoidCircleTool>();
+    tools[StudyBoidRectangleT] = std::make_shared<StudyBoidRectangleTool>();
 }
 
 void ToolSelector::SelectTool(Tools tool) {

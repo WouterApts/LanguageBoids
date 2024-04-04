@@ -5,7 +5,7 @@
 #ifndef ESCAPEINTERFACE_H
 #define ESCAPEINTERFACE_H
 #include "Application.h"
-#include "Panel.h"
+#include "components/Panel.h"
 
 
 class EscapeInterface : public Panel {

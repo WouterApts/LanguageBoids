@@ -10,8 +10,8 @@
 #include "Simulator.h"
 #include "editor/Editor.h"
 #include "editor/Serialization.h"
-#include "ui/Button.h"
-#include "ui/Panel.h"
+#include "ui/components/Button.h"
+#include "ui/components/Panel.h"
 
 MainMenu::MainMenu(std::shared_ptr<Context>& context) : context(context) {
 
@@ -54,16 +54,18 @@ void MainMenu::StartSimulation() {
         return;
     }
 
-    //TODO: FIX THIS, load in simulation data instead of world!
-    auto loaded_world = serialization::LoadSimulationDataFromFile(file_name);
-    if (loaded_world) {
-        //World world = loaded_world.value();
-        auto world = World{6000, 3000};
-        auto configuration = std::make_shared<SimulationConfig>();
-        auto simulation_data = KeySimulationData(world, configuration);
-        std::vector<float> language_statuses = {0.24, 0.26, 0.20, 0.30};
-        auto simulation = std::make_unique<KeySimulator>(context, simulation_data, language_statuses, 1600, 900);
-        context->state_manager->AddState(std::move(simulation));
+    if (auto loaded_data = serialization::LoadSimulationDataFromFile(file_name)) {
+        if (loaded_data->type == KeySimulation) {
+            std::vector<float> language_statuses = {0.24, 0.26, 0.20, 0.30};
+            auto simulation_data = KeySimulationData(loaded_data->world, loaded_data->config);
+            // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
+            std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
+                           [](const std::shared_ptr<BoidSpawner>& spawner) {
+                               return std::dynamic_pointer_cast<KeyBoidSpawner>(spawner);
+                           });
+            auto simulation = std::make_unique<KeySimulator>(context, simulation_data, language_statuses, 1600, 900);
+            context->state_manager->AddState(std::move(simulation));
+        }
     } else {
         std::cerr << "Error: Something wrong, cannot open file! " << std::endl;
         return;

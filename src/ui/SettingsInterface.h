@@ -6,9 +6,9 @@
 #define SETTINGSINTERFACE_H
 #include "Application.h"
 #include "InterfaceManager.h"
-#include "Panel.h"
-#include "SimulationData.h"
+#include "components/Panel.h"
 
+class Editor;
 
 class SettingsInterface : public Panel {
 public:
@@ -20,7 +20,7 @@ public:
     float button_size[2] = {50, 50};
 
     SettingsInterface(std::shared_ptr<InterfaceManager> &interface_manager, std::shared_ptr<Context> &context,
-                      SimulationData& simulation_data, const sf::Vector2f &pos);
+                      Editor& editor, const sf::Vector2f &pos);
 };
 
 

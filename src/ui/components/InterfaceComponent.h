@@ -16,8 +16,8 @@ public:
 
     explicit InterfaceComponent(sf::Vector2f pos);
 
-    void Activate();
-    void Deactivate();
+    virtual void Activate();
+    virtual void Deactivate();
     void ToggleActivation();
 
     virtual bool IsPointInside(sf::Vector2f point) const { return false; };

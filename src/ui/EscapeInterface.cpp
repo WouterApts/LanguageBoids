@@ -4,9 +4,9 @@
 
 #include "EscapeInterface.h"
 
-#include "Button.h"
+#include "components/Button.h"
 #include "ResourceManager.h"
-#include "TextField.h"
+#include "components/TextField.h"
 
 
 EscapeInterface::EscapeInterface(sf::Vector2f pos, std::shared_ptr<Context>& context)

@@ -173,11 +173,3 @@ void KeySimulator::AddBoid(const std::shared_ptr<KeyBoid> &boid) {
     boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (the 'boids' vector)
     spatial_boid_grid.AddObj(boid);
 }
-
-void KeySimulator::LoadWorldFromFile(const std::string &file_name) {
-    if (auto loaded_world = serialization::LoadSimulationDataFromFile(file_name)) {
-        world = loaded_world.value();
-    } else {
-        std::cerr << "Unable to load world from file." << std::endl;
-    }
-}

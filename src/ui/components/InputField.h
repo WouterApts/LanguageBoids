@@ -6,9 +6,8 @@
 #define TEXTBOX_H
 #include <functional>
 #include <SFML/Graphics/Text.hpp>
-#include "Interface.h"
 #include "InterfaceComponent.h"
-#include "InterfaceManager.h"
+#include "../InterfaceManager.h"
 
 
 class InputField : public RectangleComponent {
@@ -24,10 +23,10 @@ public:
     void SetFocus(bool focus);
 
     InterfaceManager& interface_manager;
-    sf::RectangleShape m_cursor;
-    sf::Text m_text;
     sf::Font font;
     int character_limit;
+    sf::RectangleShape m_cursor;
+    sf::Text m_text;
     bool m_focused = false;
     std::string default_value;
 };

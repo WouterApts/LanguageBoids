@@ -7,8 +7,6 @@
 #include <functional>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
-
-#include "Interface.h"
 #include "InterfaceComponent.h"
 
 class Button : public RectangleComponent {

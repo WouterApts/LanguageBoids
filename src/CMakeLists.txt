@@ -33,18 +33,16 @@ set(SOURCE_FILES
         Analysis/CompAnalyser.h
         editor/Editor.cpp
         editor/Editor.h
-        ui/Interface.cpp
-        ui/Interface.h
         ResourceManager.cpp
         ResourceManager.h
         editor/Tools.cpp
         editor/Tools.h
-        ui/Button.cpp
-        ui/Button.h
-        ui/Panel.cpp
-        ui/Panel.h
-        ui/InputField.cpp
-        ui/InputField.h
+        ui/components/Button.cpp
+        ui/components/Button.h
+        ui/components/Panel.cpp
+        ui/components/Panel.h
+        ui/components/InputField.cpp
+        ui/components/InputField.h
         editor/ToolSelector.cpp
         editor/ToolSelector.h
         ui/ToolSelectorInterface.cpp
@@ -54,10 +52,10 @@ set(SOURCE_FILES
         TimedEvent.h
         ui/InterfaceManager.cpp
         ui/InterfaceManager.h
-        ui/TextField.cpp
-        ui/TextField.h
-        ui/BoidToolInterface.cpp
-        ui/BoidToolInterface.h
+        ui/components/TextField.cpp
+        ui/components/TextField.h
+        ui/BoidToolInterfaces.cpp
+        ui/BoidToolInterfaces.h
         BoidSpawners.cpp
         BoidSpawners.h
         editor/Serialization.cpp
@@ -66,8 +64,8 @@ set(SOURCE_FILES
         ui/SettingsInterface.h
         MainMenu.cpp
         MainMenu.h
-        ui/InterfaceComponent.cpp
-        ui/InterfaceComponent.h
+        ui/components/InterfaceComponent.cpp
+        ui/components/InterfaceComponent.h
         ui/EscapeInterface.cpp
         ui/EscapeInterface.h
         SimulationData.h

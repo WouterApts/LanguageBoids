@@ -28,7 +28,6 @@ public:
     void OnKeyBoardEnter(sf::Uint32 unicode) override;
 
     void AddComponentWithRelativePos(const std::shared_ptr<InterfaceComponent> &component, sf::Vector2f relative_pos);
-
     void SetPosition(const sf::Vector2f &pos) override;
 };
 

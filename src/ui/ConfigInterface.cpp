@@ -4,56 +4,87 @@
 
 #include "ConfigInterface.h"
 
-#include "Button.h"
+#include "components/Button.h"
 #include "ResourceManager.h"
-#include "TextField.h"
+#include "components/TextField.h"
+#include "editor/Editor.h"
 
 
-ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_manager, sf::Vector2f pos, SimulationData& simulation_data)
-    : Panel(pos, {800, 650}, sf::Color(125,125,125)), simulation_data(simulation_data) {
+ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_manager, sf::Vector2f pos, Editor& editor)
+    : Panel(pos, {800, 650}, sf::Color(125,125,125)), simulation_data(editor.simulation_data), editor(editor) {
 
     auto default_config = SimulationConfig();
     float fld_w = 100;
     float fld_h = 30;
 
-    auto btn_size = sf::Vector2f(200, 100);
+    auto btn_size = sf::Vector2f(240, 100);
     float btn_txt_size = 20;
 
     auto active_config_position = sf::Vector2f(0, 150);
     auto active_config_size = sf::Vector2f(this->rect.getSize().x, 100);
 
     // Simulation Type Buttons:
-    auto key_btn = std::make_shared<TextButton>([&](){ this->SwitchToKeySimulator(); }, "LANGUAGE KEY\n SIMULATOR", sf::Vector2f(0,0), btn_size, btn_txt_size);
-    auto vector_btn = std::make_shared<TextButton>([&](){ this->SwitchToVectorSimulator(); }, "LANGUAGE VECTOR\n SIMULATOR", sf::Vector2f(0,0), btn_size, btn_txt_size);
-    auto study_btn = std::make_shared<TextButton>([&](){ this->SwitchToDominanceStudy(); }, "DOMINANCE\n STUDY", sf::Vector2f(0,0), btn_size, btn_txt_size);
+    auto key_btn = std::make_shared<TextButton>([&](){ this->SwitchTo(KeySimulation); }, "LANGUAGE KEY\n SIMULATOR", sf::Vector2f(0,0), btn_size, btn_txt_size);
+    auto vector_btn = std::make_shared<TextButton>([&](){ this->SwitchTo(VectorSimulation); }, "LANGUAGE VECTOR\n SIMULATOR", sf::Vector2f(0,0), btn_size, btn_txt_size);
+    auto study_btn = std::make_shared<TextButton>([&](){ this->SwitchTo(DominanceStudy); }, "DOMINANCE\n STUDY", sf::Vector2f(0,0), btn_size, btn_txt_size);
     AddComponentWithRelativePos(key_btn, {10,10});
-    AddComponentWithRelativePos(vector_btn, {10 + btn_size.x + 50,10});
-    AddComponentWithRelativePos(study_btn, {10 + 2*(btn_size.x + 50),10});
+    AddComponentWithRelativePos(vector_btn, {10 + btn_size.x + 30,10});
+    AddComponentWithRelativePos(study_btn, {10 + 2*(btn_size.x + 30),10});
 
-    // Default Config:
+    // Default Configuration Interface:
     CreateDefaultConfigFields(simulation_data, default_config, fld_w, fld_h, *interface_manager);
 
-    // Language Key Configuration:
-    key_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size);
-    auto a_coefficient_fld = std::make_shared<FloatInputField>(*interface_manager, [&simulation_data](float value){ simulation_data.config->a_COEFFICIENT = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.a_COEFFICIENT);
+    // Key Simulation Configuration Interface:
+    auto a_coefficient_fld = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->a_COEFFICIENT = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.a_COEFFICIENT);
     std::shared_ptr<InterfaceComponent> a_coefficient_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "A Coefficient", *ResourceManager::GetFont("arial"), sf::Color::Black);
-    auto influence_fld = std::make_shared<FloatInputField>(*interface_manager, [&simulation_data](float value){ simulation_data.config->INFLUENCE_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.INFLUENCE_RATE);
+    auto influence_fld = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->INFLUENCE_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.INFLUENCE_RATE);
     std::shared_ptr<InterfaceComponent> influence_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Influence Rate", *ResourceManager::GetFont("arial"), sf::Color::Black);
 
+    key_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size);
     AddComponentWithRelativePos(key_config_interface, active_config_position);
     key_config_interface->AddComponentWithRelativePos(a_coefficient_fld, {10, 10});
     key_config_interface->AddComponentWithRelativePos(a_coefficient_text, {10 + fld_w + 10, 10});
     key_config_interface->AddComponentWithRelativePos(influence_fld, {10, 10 + fld_h + 10});
     key_config_interface->AddComponentWithRelativePos(influence_text, {10 + fld_w + 10, 10 + fld_h + 10});
-    active_config = key_config_interface;
+    active_config_interface = key_config_interface;
 
-    this->Deactivate();
+    //Vector Simulation Configuration Interface:
+    vector_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size);
+    AddComponentWithRelativePos(vector_config_interface, active_config_position);
+
+    //Dominance Study Configuration Interface:
+    auto a_coefficient_fld_2 = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->a_COEFFICIENT = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.a_COEFFICIENT);
+    std::shared_ptr<InterfaceComponent> a_coefficient_text_2 = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "A Coefficient", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto influence_fld_2 = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->INFLUENCE_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.INFLUENCE_RATE);
+    std::shared_ptr<InterfaceComponent> influence_text_2 = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Influence Rate", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto runs_per_distribution_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->RUNS_PER_DISTRIBUTION = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 3, default_config.RUNS_PER_DISTRIBUTION);
+    std::shared_ptr<InterfaceComponent> runs_per_distribution_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Runs per Distribution", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto distribution_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->DISTRIBUTIONS = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 3, default_config.DISTRIBUTIONS);
+    std::shared_ptr<InterfaceComponent> distribution_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Distributions", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto total_boids_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->TOTAL_BOIDS = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.TOTAL_BOIDS);
+    std::shared_ptr<InterfaceComponent> total_boids_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Boids Total", *ResourceManager::GetFont("arial"), sf::Color::Black);
+
+    study_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size);
+    AddComponentWithRelativePos(study_config_interface, active_config_position);
+    study_config_interface->AddComponentWithRelativePos(a_coefficient_fld_2, {10, 10});
+    study_config_interface->AddComponentWithRelativePos(a_coefficient_text_2, {20 + fld_w, 10});
+    study_config_interface->AddComponentWithRelativePos(influence_fld_2, {10, 20 + fld_h});
+    study_config_interface->AddComponentWithRelativePos(influence_text_2, {20 + fld_w, 20 + fld_h});
+    study_config_interface->AddComponentWithRelativePos(distribution_fld, {fld_w + 170, 10});
+    study_config_interface->AddComponentWithRelativePos(distribution_text, {2*(fld_w) + 180, 10});
+    study_config_interface->AddComponentWithRelativePos(runs_per_distribution_fld, {fld_w + 170, 20 + fld_h});
+    study_config_interface->AddComponentWithRelativePos(runs_per_distribution_text, {2*(fld_w) + 180, 20 + fld_h});
+    study_config_interface->AddComponentWithRelativePos(total_boids_fld, {2*(fld_w + 170), 10});
+    study_config_interface->AddComponentWithRelativePos(total_boids_text, {2*(fld_w + 170) + (fld_w + 10), 10});
+    study_config_interface->Deactivate();
+
+    this->InterfaceComponent::Deactivate();
 }
 
 void ConfigInterface::Draw(sf::RenderWindow* window) {
     Panel::Draw(window);
-    if (active_config) {
-        active_config->Draw(window);
+    if (active_config_interface) {
+        active_config_interface->Draw(window);
     }
 }
 
@@ -144,26 +175,31 @@ void ConfigInterface::CreateDefaultConfigFields(SimulationData &simulation_data,
     }
 }
 
-void ConfigInterface::SwitchToKeySimulator() {
-    if (active_config) {
-        active_config->Deactivate();
+void ConfigInterface::SwitchTo(SimulationType type) {
+    // Deactivate previously active config interface
+    if (active_config_interface) {
+        active_config_interface->Deactivate();
     }
-    active_config = key_config_interface;
-    active_config->Activate();
-}
+    // Remove existing spawners to avoid mixing incompatibilities
+    simulation_data.boid_spawners.clear();
 
-void ConfigInterface::SwitchToVectorSimulator() {
-    if (active_config) {
-        active_config->Deactivate();
-    }
-    active_config = vector_config_interface;
-    active_config->Activate();
-}
+    // Select Eraser tool to avoid incompatibilities with the boid tool
+    editor.tool_selector->SelectTool(EraserT);
 
-void ConfigInterface::SwitchToDominanceStudy() {
-    if (active_config) {
-        active_config->Deactivate();
+    // Activate selected interface
+    simulation_data.type = type;
+    switch (type) {
+        case KeySimulation:
+            active_config_interface = key_config_interface;
+            break;
+        case VectorSimulation:
+            active_config_interface = vector_config_interface;
+            break;
+        case DominanceStudy:
+            active_config_interface = study_config_interface;
+            break;
+        default:
+            break;
     }
-    active_config = study_config_interface;
-    active_config->Activate();
+    active_config_interface->Activate();
 }

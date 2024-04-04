@@ -4,9 +4,9 @@
 
 #ifndef TOOLSELECTORINTERFACE_H
 #define TOOLSELECTORINTERFACE_H
-#include "BoidToolInterface.h"
+#include "BoidToolInterfaces.h"
 #include "InterfaceManager.h"
-#include "Panel.h"
+#include "components/Panel.h"
 #include "editor/ToolSelector.h"
 #include "ui/TerrainToolInterface.h"
 
@@ -16,8 +16,17 @@ public:
     std::shared_ptr<InterfaceManager> interface_manager;
 
     std::shared_ptr<TerrainToolInterface> terrain_tool_interface;
-    std::shared_ptr<BoidToolInterface> boid_circle_tool_interface;
-    std::shared_ptr<BoidToolInterface> boid_rectangle_tool_interface;
+
+    // Key Simulator
+    std::shared_ptr<KeyBoidToolInterface> keyboid_circle_tool_interface;
+    std::shared_ptr<KeyBoidToolInterface> keyboid_rectangle_tool_interface;
+
+    //Vector Simulator
+
+    //Dominance Study
+    //std::shared_ptr<StudyBoidToolInterface> studyboid_circle_tool_interface;
+    //std::shared_ptr<StudyBoidToolInterface> studyboid_rectangle_tool_interface;
+
     std::shared_ptr<ToolSelector> tool_selector;
     std::shared_ptr<InterfaceComponent> active_tool_interface;
     float button_size[2] = {50, 50};
@@ -30,6 +39,7 @@ public:
     void Draw(sf::RenderWindow *window) override;
     void SelectTool(Tools tool);
 
+    void SelectBoidCircleTool();
 };
 
 

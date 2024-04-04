@@ -15,7 +15,7 @@
 enum SimulationType {
     KeySimulation,
     VectorSimulation,
-    DominanceSimulation
+    DominanceStudy
 };
 
 class SimulationData {
@@ -26,6 +26,10 @@ public:
     std::vector<std::shared_ptr<BoidSpawner>> boid_spawners;
 
     SimulationData(World world, const std::shared_ptr<SimulationConfig>& config) : world(std::move(world)), config(config) {};
+    SimulationData() {
+        world = World();
+        config = std::make_shared<SimulationConfig>();
+    }
 };
 
 class KeySimulationData : public SimulationData {

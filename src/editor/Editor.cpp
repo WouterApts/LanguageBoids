@@ -10,8 +10,8 @@
 #include "Serialization.h"
 #include "ToolSelector.h"
 #include "Utility.h"
-#include "ui/Button.h"
-#include "ui/Panel.h"
+#include "ui/components/Button.h"
+#include "ui/components/Panel.h"
 #include "ui/SettingsInterface.h"
 #include "ui/ToolSelectorInterface.h"
 
@@ -28,13 +28,13 @@ void Editor::Init() {
     camera.SetZoom(static_cast<float>(static_cast<int>(simulation_data.world.width*1.1 / camera.default_width * 10)) / 10.f);
 
     // Initialize ToolSelector and Tool Interfaces
-    tool_selector = std::make_shared<ToolSelector>();
+    tool_selector = std::make_shared<ToolSelector>(simulation_data);
     auto tool_selector_interface = std::make_shared<ToolSelectorInterface>(interface_manager, tool_selector, sf::Vector2f(20, 20));
     interface_manager->AddComponent(tool_selector_interface);
 
     // Initialize Settings Interfacer
     auto settings_interface_pos = sf::Vector2f(context->window->getSize().x - 210, 20);
-    auto settings_interface = std::make_shared<SettingsInterface>(interface_manager, context, simulation_data, settings_interface_pos);
+    auto settings_interface = std::make_shared<SettingsInterface>(interface_manager, context, *this, settings_interface_pos);
     interface_manager->AddComponent(settings_interface);
 }
 

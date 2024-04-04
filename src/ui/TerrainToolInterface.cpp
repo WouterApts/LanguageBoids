@@ -6,11 +6,11 @@
 
 #include <iostream>
 
-#include "Button.h"
+#include "components/Button.h"
 #include "ResourceManager.h"
-#include "TextField.h"
+#include "components/TextField.h"
 #include "editor/Tools.h"
-#include "ui/InputField.h"
+#include "components/InputField.h"
 
 
 TerrainToolInterface::TerrainToolInterface(sf::Vector2f pos, const std::shared_ptr<TerrainTool>& p_terrain_tool, InterfaceManager& interface_manager)

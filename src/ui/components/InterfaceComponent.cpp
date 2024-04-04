@@ -17,7 +17,11 @@ void InterfaceComponent::Deactivate() {
 }
 
 void InterfaceComponent::ToggleActivation() {
-    this->active = !this->active;
+    if (this->active) {
+        this->Deactivate();
+    } else {
+        this->Activate();
+    }
 }
 
 void InterfaceComponent::SetPosition(const sf::Vector2f &pos) {

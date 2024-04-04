@@ -115,4 +115,18 @@ public:
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
 };
+
+class StudyBoidCircleTool : public KeyBoidCircleTool {
+public:
+    StudyBoidCircleTool();
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
+
+};
+
+class StudyBoidRectangleTool : public KeyBoidRectangleTool {
+public:
+    StudyBoidRectangleTool();
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
+
+};
 #endif //TOOL_H

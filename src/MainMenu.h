@@ -7,7 +7,7 @@
 #include "Application.h"
 #include "State.h"
 #include "ui/InterfaceManager.h"
-#include "ui/Panel.h"
+#include "ui/components/Panel.h"
 
 
 class MainMenu : public State {

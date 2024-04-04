@@ -2,12 +2,12 @@
 // Created by wouter on 20-3-2024.
 //
 
-#include "BoidToolInterface.h"
+#include "BoidToolInterfaces.h"
 
 #include "ResourceManager.h"
-#include "TextField.h"
+#include "components/TextField.h"
 
-BoidToolInterface::BoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager)
+KeyBoidToolInterface::KeyBoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager)
     : Panel(pos, sf::Vector2f(310, 90), sf::Color(125,125,125)) {
 
     std::vector<std::shared_ptr<InterfaceComponent>> fields;

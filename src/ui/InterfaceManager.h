@@ -8,7 +8,7 @@
 #include <vector>
 #include <SFML/Graphics/RenderWindow.hpp>
 
-#include "InterfaceComponent.h"
+#include "components/InterfaceComponent.h"
 
 class InputField;
 

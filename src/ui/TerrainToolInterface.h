@@ -4,7 +4,7 @@
 
 #ifndef TERRAINSETTINGSINTERFACE_H
 #define TERRAINSETTINGSINTERFACE_H
-#include "Panel.h"
+#include "components/Panel.h"
 #include "editor/Tools.h"
 
 

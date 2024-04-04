@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include "components/InputField.h"
+
 void InterfaceManager::AddComponent(const std::shared_ptr<InterfaceComponent>& component) {
     components.push_back(component);
 }
@@ -29,6 +31,13 @@ void InterfaceManager::DrawComponents(sf::RenderWindow *window) {
 }
 
 void InterfaceManager::OnLeftClick(sf::Vector2f mouse_pos) {
+    // Unfocus on left click.
+    if (focused_input_field) {
+        focused_input_field->SetFocus(false);
+        focused_input_field = nullptr;
+    }
+
+    // Handle left click for all active components, possibly re-focusing an input field.
     for (auto& component : components) {
         if (component->active & component->IsPointInside(mouse_pos)) {
             std::cout << "clicked" << std::endl;

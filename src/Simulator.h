@@ -86,9 +86,6 @@ public:
     void Pause() override;
 
     void AddBoid(const std::shared_ptr<KeyBoid> &boid);
-    void AddBoidCluster(Eigen::Vector2f position, float radius, int ammount, int language_key);
-
-    void LoadWorldFromFile(const std::string &file_name);
 };
 
 #endif //SIMULATION_H
