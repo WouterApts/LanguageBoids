@@ -33,6 +33,7 @@ public:
 
 class IntInputField : public InputField {
 public:
+    int value;
     std::function<void(int)> callback;
 
     IntInputField(InterfaceManager& interface_manager, std::function<void(int)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit,
@@ -43,6 +44,7 @@ public:
 
 class FloatInputField : public InputField {
 public:
+    float value;
     std::function<void(float)> callback;
 
     FloatInputField(InterfaceManager& interface_manager, std::function<void(float)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit,

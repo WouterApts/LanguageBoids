@@ -36,6 +36,7 @@ struct SimulationConfig {
     float MUTATION_RATE = 0.01f;
 
     // Language Dominance Simulation
+    int SECONDS_PER_RUN = 600;
     int RUNS_PER_DISTRIBUTION = 20;
     int DISTRIBUTIONS = 20;
     int TOTAL_BOIDS = 3000;

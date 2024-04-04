@@ -44,9 +44,12 @@ void serialization::SaveSimulationDataToFile(const SimulationData& data) {
             break;
         case DominanceStudy:
             file << "DominanceStudy \n"
+                 << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
+                 << "INFLUENCE_RATE: " << data.config->INFLUENCE_RATE << '\n'
+                 << "TOTAL_BOIDS: " << data.config->TOTAL_BOIDS << '\n'
                  << "RUNS_PER_DISTRIBUTION: " << data.config->RUNS_PER_DISTRIBUTION << '\n'
-                 << "DISTRIBUTIONS: " << data.config->DISTRIBUTIONS << '\n'
-                 << "TOTAL_BOIDS: " << data.config->TOTAL_BOIDS << '\n';
+                 << "SECONDS_PER_RUN: " << data.config->SECONDS_PER_RUN << '\n'
+                 << "DISTRIBUTIONS: " << data.config->DISTRIBUTIONS << '\n';
             break;
     }
 
@@ -118,9 +121,9 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
         }
     }
 
-    // Parse Config
-    int n_parameters = 15;
-    for (int i = 0; i < n_parameters; ++i) {
+    // Parse Configuration
+    int n_max_parameters = 42069;
+    for (int i = 0; i < n_max_parameters; ++i) {
         std::getline(file, line);
         std::stringstream ss(line);
         std::string prefix;
@@ -130,6 +133,14 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             data.config->a_COEFFICIENT = value;
         } else if (prefix == "INFLUENCE_RATE:") {
             data.config->INFLUENCE_RATE = value;
+        } else if (prefix == "RUNS_PER_DISTRIBUTION:") {
+            data.config->RUNS_PER_DISTRIBUTION = static_cast<int>(value);
+        } else if (prefix == "DISTRIBUTIONS:") {
+            data.config->DISTRIBUTIONS = static_cast<int>(value);
+        } else if (prefix == "TOTAL_BOIDS:") {
+            data.config->TOTAL_BOIDS = static_cast<int>(value);
+        } else if (prefix == "SECONDS_PER_RUN:") {
+            data.config->SECONDS_PER_RUN = static_cast<int>(value);
         } else if (prefix == "COHERENCE_FACTOR:") {
             data.config->COHERENCE_FACTOR = value;
         } else if (prefix == "ALIGNMENT_FACTOR:") {
@@ -156,21 +167,19 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             data.config->LANGUAGE_LOG_INTERVAL = static_cast<int>(value);
         } else if (prefix == "POSITION_LOG_INTERVAL:") {
             data.config->POSITION_LOG_INTERVAL = static_cast<int>(value);
+        } else {
+            break;
         }
     }
 
-    // Parse Size
-    if (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string prefix;
-        char delimiter;
-        ss >> prefix >> data.world.width >> delimiter >> data.world.height;
-        if (prefix != "Size:") {
-            std::cerr << "Error: Invalid format." << std::endl;
-            return std::nullopt;
-        }
-    } else {
-        std::cerr << "Error: Missing Line" << std::endl;
+    // Parse World Size
+    std::stringstream ss(line);
+    std::cout << line << std::endl;
+    std::string prefix;
+    char delimiter;
+    ss >> prefix >> data.world.width >> delimiter >> data.world.height;
+    if (prefix != "Size:") {
+        std::cerr << "Error: Invalid format in line:" << line << std::endl;
         return std::nullopt;
     }
 
@@ -192,19 +201,19 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             if (terrain != nullptr) {
                 data.world.terrains.push_back(terrain);
             }
-        } else if (line.compare(0, 23, "CompBoidCircularSpawner") == 0) {
+        } else if (line.compare(0, 22, "KeyBoidCircularSpawner") == 0) {
             auto spawner = KeyBoidCircularSpawner::FromString(line);
             if (spawner != nullptr) {
                 data.boid_spawners.push_back(spawner);
             }
-        } else if (line.compare(0, 26, "CompBoidRectangularSpawner") == 0) {
+        } else if (line.compare(0, 25, "KeyBoidRectangularSpawner") == 0) {
             auto spawner = KeyBoidRectangularSpawner::FromString(line);
             if (spawner != nullptr) {
                 data.boid_spawners.push_back(spawner);
             }
         } else {
             // Unknown type, handle accordingly (ignore or report error)
-            std::cerr << "Error: Unknown object type in line: " << line << std::endl;
+            std::cerr << "Error: Invalid format and/or unknown object type in line: " << line << std::endl;
             return std::nullopt;
         }
     }

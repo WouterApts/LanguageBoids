@@ -22,18 +22,19 @@ private:
     // Static map shared among all instances of LanguageManager
     static std::map<int, sf::Color> InitLanguageColors();
     std::unordered_map<int, std::shared_ptr<Language>> language_map;
-    int n_languages;
+    int n_languages{};
 
 public:
 
     static std::map<int, sf::Color> language_colors;
+
+    LanguageManager() = default;
+    explicit LanguageManager(int number_of_languages);
+
     static sf::Color GetLanguageColor(int key);
-
-    explicit LanguageManager(const std::vector<float>& language_statuses);
-
-    void                      AddLanguage(int key, std::shared_ptr<Language> language);
+    void AddLanguage(int key, std::shared_ptr<Language> language);
     std::shared_ptr<Language> GetLanguage(int key);
-    int                       GetNumberOfLanguages() const;
+    int GetNumberOfLanguages() const;
 
 };
 #endif //LANGUAGEMANAGER_H

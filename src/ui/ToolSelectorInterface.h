@@ -14,7 +14,6 @@ class ToolSelectorInterface : public Panel {
 public:
 
     std::shared_ptr<InterfaceManager> interface_manager;
-
     std::shared_ptr<TerrainToolInterface> terrain_tool_interface;
 
     // Key Simulator
@@ -24,22 +23,22 @@ public:
     //Vector Simulator
 
     //Dominance Study
-    //std::shared_ptr<StudyBoidToolInterface> studyboid_circle_tool_interface;
-    //std::shared_ptr<StudyBoidToolInterface> studyboid_rectangle_tool_interface;
+    std::shared_ptr<StudyBoidToolInterface> studyboid_circle_tool_interface;
+    std::shared_ptr<StudyBoidToolInterface> studyboid_rectangle_tool_interface;
 
-    std::shared_ptr<ToolSelector> tool_selector;
+    std::shared_ptr<ToolSelector> p_tool_selector;
     std::shared_ptr<InterfaceComponent> active_tool_interface;
     float button_size[2] = {50, 50};
 
 
-    ToolSelectorInterface(std::shared_ptr<InterfaceManager> interface_manager,
-                          const std::shared_ptr<ToolSelector> &t_selector,
+    ToolSelectorInterface(const std::shared_ptr<InterfaceManager> &interface_manager,
+                          const std::shared_ptr<ToolSelector> &p_tool_selector,
                           sf::Vector2f pos);
 
     void Draw(sf::RenderWindow *window) override;
     void SelectTool(Tools tool);
 
-    void SelectBoidCircleTool();
+    void ActivateSelectedToolInterface();
 };
 
 

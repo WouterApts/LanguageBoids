@@ -38,7 +38,7 @@ SpatialGrid<ObjType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_siz
         }
     }
 
-    // TODO: possible change this to a hashmap, because there will be large 'gaps' between different values.
+    // TODO: possibly change this to a hashmap, because there will be large 'gaps' between different values.
     num_offsets_within_distance = std::vector<int>(max_dist_squared + 1);
 
     int num_cells = grid_dimensions.x() * grid_dimensions.y();

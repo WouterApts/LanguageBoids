@@ -17,7 +17,7 @@ public:
     std::vector<sf::Vector2f> relative_position;
 
     Panel(sf::Vector2f pos, sf::Vector2f size,
-        sf::Color background_color = sf::Color(100,100,100),
+        sf::Color background_color = sf::Color(80,80,80),
         sf::Color outline_color = sf::Color::Transparent,
         float outline_thickness = 0.f);
 

@@ -97,7 +97,7 @@ bool KeyBoidCircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
 
 std::string KeyBoidCircularSpawner::ToString() {
     std::stringstream ss;
-    ss << "CompBoidCircularSpawner: "
+    ss << "KeyBoidCircularSpawner: "
        << "Center: " << center_pos.x() << " , " << center_pos.y() << " "
        << "Radius: " << radius << " "
        << "Boids: " << boids_spawned << " "
@@ -168,7 +168,7 @@ bool KeyBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
 
 std::string KeyBoidRectangularSpawner::ToString() {
     std::stringstream ss;
-    ss << "CompBoidRectangularSpawner: "
+    ss << "KeyBoidRectangularSpawner: "
        << "Position: " << pos.x() << " , " << pos.y() << " "
        << "Width: " << width << " "
        << "height: " << height << " "

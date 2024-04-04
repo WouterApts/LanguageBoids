@@ -23,7 +23,7 @@ void InputField::Draw(sf::RenderWindow* window) {
     // Draw the box
     window->draw(rect);
     // Draw the text
-    m_text.setCharacterSize(20);
+    m_text.setCharacterSize(2.f/3.f * rect.getSize().y);
     m_text.setFillColor(sf::Color::Black);
     m_text.setPosition(this->getPosition().x + 5.f, this->getPosition().y + this->rect.getSize().y / 4.f);
     window->draw(m_text);
@@ -82,7 +82,7 @@ void InputField::SetFocus(bool focus) {
 
 // Integers //
 IntInputField::IntInputField(InterfaceManager& interface_manager, std::function<void(int)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, int default_value)
-    : InputField(interface_manager, pos, size, character_limit, std::to_string(default_value)), callback(std::move(callback)) {
+    : InputField(interface_manager, pos, size, character_limit, std::to_string(default_value)), callback(std::move(callback)), value(default_value) {
 }
 
 void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
@@ -100,7 +100,7 @@ void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
         if (!currentText.empty()) {
             // Call the callback only when the input is a valid integer
             try {
-                int value = std::stoi(currentText);
+                value = std::stoi(currentText);
                 if (callback) callback(value);
             } catch (std::invalid_argument&) {
                 rect.setFillColor(sf::Color(255, 200, 200));
@@ -115,7 +115,7 @@ void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
 
 
 FloatInputField::FloatInputField(InterfaceManager& interface_manager, std::function<void(float)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, float default_value)
-    : InputField(interface_manager, pos, size, character_limit, std::format("{:.1f}", default_value)), callback(std::move(callback)) {
+    : InputField(interface_manager, pos, size, character_limit, std::format("{:.1f}", default_value)), callback(std::move(callback)), value(default_value) {
 }
 
 void FloatInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
@@ -133,7 +133,7 @@ void FloatInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
         if (!currentText.empty()) {
             // Call the callback only when the input is a valid integer
             try {
-                float value = std::stof(currentText);
+                value = std::stof(currentText);
                 if (callback) callback(value);
             } catch (std::invalid_argument&) {
                 rect.setFillColor(sf::Color(255, 200, 200));

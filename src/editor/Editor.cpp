@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "BoidSpawners.h"
+#include "ResourceManager.h"
 #include "Serialization.h"
 #include "ToolSelector.h"
 #include "Utility.h"
@@ -14,6 +15,8 @@
 #include "ui/components/Panel.h"
 #include "ui/SettingsInterface.h"
 #include "ui/ToolSelectorInterface.h"
+#include "ui/WorldSizeInterface.h"
+#include "ui/components/TextField.h"
 
 Editor::Editor(const std::shared_ptr<Context>& context, const SimulationData& simulation_data, float camera_width, float camera_height)
     : context(context),
@@ -30,12 +33,22 @@ void Editor::Init() {
     // Initialize ToolSelector and Tool Interfaces
     tool_selector = std::make_shared<ToolSelector>(simulation_data);
     auto tool_selector_interface = std::make_shared<ToolSelectorInterface>(interface_manager, tool_selector, sf::Vector2f(20, 20));
+    tool_selector->tool_selector_interface = tool_selector_interface;
     interface_manager->AddComponent(tool_selector_interface);
 
-    // Initialize Settings Interfacer
+    // Initialize Settings Interface
     auto settings_interface_pos = sf::Vector2f(context->window->getSize().x - 210, 20);
     auto settings_interface = std::make_shared<SettingsInterface>(interface_manager, context, *this, settings_interface_pos);
     interface_manager->AddComponent(settings_interface);
+
+    // Initialize World Size Interface
+    auto world_size_interface_pos = tool_selector_interface->getPosition() + sf::Vector2f(tool_selector_interface->rect.getSize().x + 20, 0);
+    auto world_size_interface = std::make_shared<WorldSizeInterface>(world_size_interface_pos, simulation_data.world, interface_manager);
+    interface_manager->AddComponent(world_size_interface);
+
+    auto type_text = std::make_shared<TextField>(sf::Vector2f(context->window->getSize().x - 350, 40), 16, "LANGUAGE KEY\nSIMULATOR", *ResourceManager::GetFont("arial"), sf::Color::White);
+    this->type_text = type_text;
+    //interface_manager->AddComponent(type_text);
 }
 
 void Editor::ProcessInput() {
@@ -123,21 +136,31 @@ void Editor::Draw() {
     context->window->clear(sf::Color::Black);
     context->window->setView(camera.view);
 
+    // Draw grid
     if (grid_spacing > 0) {
         DrawCursorHighlightOnGrid();
         DrawGrid(context->window.get());
     }
 
+    // Draw World
     for (auto& terrain : simulation_data.world.terrains) {
         terrain->Draw(context->window.get());
-    }
-    for (auto& spawner : simulation_data.boid_spawners) {
-        spawner->Draw(context->window.get());
     }
     for (auto& obstacle : simulation_data.world.obstacles) {
         obstacle->Draw(context->window.get());
     }
+    for (auto& spawner : simulation_data.boid_spawners) {
+        spawner->Draw(context->window.get());
+    }
 
+    // Draw Borders
+    auto border_rect = sf::RectangleShape(sf::Vector2f(simulation_data.world.width, simulation_data.world.height));
+    border_rect.setFillColor(sf::Color::Transparent);
+    border_rect.setOutlineColor(sf::Color::White);
+    border_rect.setOutlineThickness(10);
+    context->window->draw(border_rect);
+
+    // Draw Tool
     if (tool_selector->GetSelectedTool()) tool_selector->GetSelectedTool()->Draw(tool_pos, context->window.get());
 
     context->window->setView(context->window->getDefaultView());

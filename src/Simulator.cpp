@@ -71,15 +71,6 @@ void Simulator::DrawBoidSelectionCircle() {
     }
 }
 
-void Simulator::DrawBorderOutline() const {
-    auto border_rect = sf::RectangleShape(sf::Vector2f(world.width, world.height));
-    border_rect.setFillColor(sf::Color::Transparent);
-    border_rect.setOutlineColor(sf::Color::White);
-    border_rect.setOutlineThickness(10);
-    context->window->draw(border_rect);
-    context->window->display();
-}
-
 void Simulator::CreateWorldBorderLines() {
     auto p1 = Eigen::Vector2f(0,0);
     auto p2 = Eigen::Vector2f(world.width,0);

@@ -25,18 +25,13 @@ std::map<int, sf::Color> LanguageManager::InitLanguageColors() {
 
 std::map<int, sf::Color> LanguageManager::language_colors = InitLanguageColors();
 
-LanguageManager::LanguageManager(const std::vector<float>& language_statuses) {
-    n_languages = static_cast<int>(language_statuses.size());
-    for (int i = 0; i < n_languages; ++i) {
-        AddLanguage(i, std::make_shared<Language>(language_colors[i], language_statuses[i]));
-    }
-};
+LanguageManager::LanguageManager(int number_of_languages) : n_languages(number_of_languages) {}
 
 sf::Color LanguageManager::GetLanguageColor(int key) {
     if (auto color_iter = language_colors.find(key); color_iter != language_colors.end()) {
         return language_colors[key];
     } else {
-        return {0,0,0};
+        return sf::Color::Red;
     }
 }
 

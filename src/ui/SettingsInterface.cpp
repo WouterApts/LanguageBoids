@@ -14,7 +14,7 @@
 #include "editor/Serialization.h"
 
 SettingsInterface::SettingsInterface(std::shared_ptr<InterfaceManager>& interface_manager, std::shared_ptr<Context>& context, Editor& editor, const sf::Vector2f &pos)
-    : Panel(pos, sf::Vector2f(190, 70), sf::Color(80, 80, 80)), interface_manager(interface_manager) {
+    : Panel(pos, sf::Vector2f(190, 70)), interface_manager(interface_manager) {
 
     // Save, Configuration, Escape buttons
     std::vector<std::shared_ptr<InterfaceComponent> > btns;
@@ -44,3 +44,14 @@ SettingsInterface::SettingsInterface(std::shared_ptr<InterfaceManager>& interfac
 
     this->InterfaceComponent::Activate();
 }
+
+void SettingsInterface::Draw(sf::RenderWindow *window) {
+    Panel::Draw(window);
+    if (config_interface->active) {
+        auto selection_highlight = sf::RectangleShape(sf::Vector2f(button_size[0], button_size[1]));
+        selection_highlight.setFillColor(sf::Color(255,255,255,80));
+        selection_highlight.setPosition(components[1]->getPosition());
+        window->draw(selection_highlight);
+    }
+}
+

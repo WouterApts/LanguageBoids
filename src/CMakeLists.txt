@@ -29,8 +29,8 @@ set(SOURCE_FILES
         LanguageManager.cpp
         Terrain.cpp
         Terrain.h
-        Analysis/CompAnalyser.cpp
-        Analysis/CompAnalyser.h
+        analysis/KeyAnalyser.cpp
+        analysis/KeyAnalyser.h
         editor/Editor.cpp
         editor/Editor.h
         ResourceManager.cpp
@@ -72,6 +72,8 @@ set(SOURCE_FILES
         SimulationConfig.h
         ui/ConfigInterface.cpp
         ui/ConfigInterface.h
+        ui/WorldSizeInterface.cpp
+        ui/WorldSizeInterface.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

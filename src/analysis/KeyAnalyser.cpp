@@ -2,17 +2,17 @@
 // Created by wouter on 15-3-2024.
 //
 
-#include "CompAnalyser.h"
+#include "KeyAnalyser.h"
 #include <iostream>
 #include <fstream>
 
-CompAnalyser::CompAnalyser(const World &world, int cell_size, std::vector<std::shared_ptr<KeyBoid>>& boids, LanguageManager& language_manager)
+KeyAnalyser::KeyAnalyser(World &world, int cell_size, std::vector<std::shared_ptr<KeyBoid>>& boids, LanguageManager& language_manager)
 : ref_boids(boids), ref_language_manager(language_manager), cell_size(cell_size),
   n_cells_in_width(std::ceil(world.width / static_cast<float>(cell_size))),
   n_cells_in_height(std::ceil(world.height / static_cast<float>(cell_size))){
 }
 
-void CompAnalyser::LogAllMetrics(sf::Time delta_time) {
+void KeyAnalyser::LogAllMetrics(sf::Time delta_time) {
     static sf::Time time_since_last_bpl_log;
     static sf::Time time_since_last_lpc_log;
 
@@ -30,7 +30,7 @@ void CompAnalyser::LogAllMetrics(sf::Time delta_time) {
     }
 }
 
-void CompAnalyser::LogBoidsPerLanguage() {
+void KeyAnalyser::LogBoidsPerLanguage() {
     auto map = std::map<int, int>();
     for (auto& boid : ref_boids) {
         map[boid->language_key] += 1;
@@ -40,7 +40,7 @@ void CompAnalyser::LogBoidsPerLanguage() {
 }
 
 
-void CompAnalyser::LogLanguagesPerCell() {
+void KeyAnalyser::LogLanguagesPerCell() {
     int dim1 = ref_language_manager.GetNumberOfLanguages();
     int dim2 = n_cells_in_width;
     int dim3 = n_cells_in_height;
@@ -61,7 +61,7 @@ void CompAnalyser::LogLanguagesPerCell() {
     std::cout << "LPC logging complete" << std::endl;
 }
 
-void CompAnalyser::SaveBoidPerLanguageToCSV(const std::string& filename) {
+void KeyAnalyser::SaveBoidPerLanguageToCSV(const std::string& filename) {
     if (!boids_per_language.empty()) {
         std::ofstream file(filename);
         if (!file.is_open()) {
@@ -85,7 +85,7 @@ void CompAnalyser::SaveBoidPerLanguageToCSV(const std::string& filename) {
     }
 }
 
-void CompAnalyser::SaveLanguagesPerCellToCSV(const std::string &filename) {
+void KeyAnalyser::SaveLanguagesPerCellToCSV(const std::string &filename) {
     if (!languages_per_cell.empty()) {
         std::ofstream file(filename);
         if (!file.is_open()) {
@@ -116,11 +116,11 @@ void CompAnalyser::SaveLanguagesPerCellToCSV(const std::string &filename) {
     }
 }
 
-void CompAnalyser::SetBPLTimeInterval(sf::Time interval) {
+void KeyAnalyser::SetBPLTimeInterval(sf::Time interval) {
     bpl_time_interval = interval;
 }
 
-void CompAnalyser::SetLPCTimeInterval(sf::Time interval) {
+void KeyAnalyser::SetLPCTimeInterval(sf::Time interval) {
     lpc_time_interval = interval;
 }
 

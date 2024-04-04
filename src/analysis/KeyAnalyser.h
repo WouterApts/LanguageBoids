@@ -13,10 +13,14 @@
 
 using Matrix3D = std::vector<std::vector<std::vector<int>>>;
 
-class CompAnalyser {
+class KeyAnalyser {
 public:
-    CompAnalyser(const World &world, int cell_size, std::vector<std::shared_ptr<KeyBoid>>& boids, LanguageManager& language_manager);
-    ~CompAnalyser() = default;
+    std::vector<std::map<int, int>> boids_per_language;
+    std::vector<Matrix3D> languages_per_cell;
+
+    KeyAnalyser(World &world, int cell_size, std::vector<std::shared_ptr<KeyBoid>>& boids,
+                LanguageManager& language_manager);
+    ~KeyAnalyser() = default;
 
     void LogAllMetrics(sf::Time delta_time);
     void LogBoidsPerLanguage();
@@ -25,9 +29,6 @@ public:
     void SaveLanguagesPerCellToCSV(const std::string& filename);
     void SetBPLTimeInterval(sf::Time interval);
     void SetLPCTimeInterval(sf::Time interval);
-
-    std::vector<std::map<int, int>> boids_per_language;
-    std::vector<Matrix3D> languages_per_cell;
 
 private:
     std::vector<std::shared_ptr<KeyBoid>>& ref_boids;
@@ -39,7 +40,5 @@ private:
     sf::Time bpl_time_interval = sf::seconds(1.f);
     sf::Time lpc_time_interval = sf::seconds(1.f);
 };
-
-
 
 #endif //ANALYSER_H

@@ -13,6 +13,7 @@
 #include "SimulationData.h"
 #include "ToolSelector.h"
 #include "ui/InterfaceManager.h"
+#include "ui/components/TextField.h"
 
 class Editor: public State {
 public:
@@ -28,6 +29,7 @@ public:
     sf::Vector2f tool_pos{};
 
     std::shared_ptr<InterfaceManager> interface_manager;
+    std::shared_ptr<TextField> type_text;
     std::shared_ptr<ToolSelector> tool_selector;
 
 

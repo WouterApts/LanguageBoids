@@ -56,15 +56,17 @@ void MainMenu::StartSimulation() {
 
     if (auto loaded_data = serialization::LoadSimulationDataFromFile(file_name)) {
         if (loaded_data->type == KeySimulation) {
-            std::vector<float> language_statuses = {0.24, 0.26, 0.20, 0.30};
             auto simulation_data = KeySimulationData(loaded_data->world, loaded_data->config);
             // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
             std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
                            [](const std::shared_ptr<BoidSpawner>& spawner) {
                                return std::dynamic_pointer_cast<KeyBoidSpawner>(spawner);
                            });
-            auto simulation = std::make_unique<KeySimulator>(context, simulation_data, language_statuses, 1600, 900);
+            auto simulation = std::make_unique<KeySimulator>(context, simulation_data, 1600, 900);
             context->state_manager->AddState(std::move(simulation));
+        }
+        else if (loaded_data->type == DominanceStudy) {
+
         }
     } else {
         std::cerr << "Error: Something wrong, cannot open file! " << std::endl;

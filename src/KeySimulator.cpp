@@ -11,19 +11,26 @@
 #include "Utility.h"
 #include "editor/Serialization.h"
 
-KeySimulator::KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, const std::vector<float>& language_statuses, float camera_width, float camera_height)
+KeySimulator::KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height)
     : Simulator(context, simulation_data.config, simulation_data.world, camera_width, camera_height),
       boid_spawners(simulation_data.boid_spawners),
-      spatial_boid_grid(SpatialGrid<KeyBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS))),
-      language_manager(LanguageManager(language_statuses)),
-      analyser(CompAnalyser(world, 100, boids, language_manager)){
+      spatial_boid_grid(SpatialGrid<KeyBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS)))
+      //analyser(world, 100, boids, language_manager)
+      {
 
+    std::map<int, int> languages;
+    for (auto& spawner : boid_spawners) {
+        languages[spawner->language_key] += 1;
+    }
+    int number_of_languages = static_cast<int>(languages.size());
+    language_manager = LanguageManager(number_of_languages);
+    //analyser = KeyAnalyser(world, 100, boids, language_manager);
 }
 
 void KeySimulator::Init() {
     // Setup analysis logging
-    analyser.SetBPLTimeInterval(sf::seconds(1.f));
-    analyser.SetLPCTimeInterval(sf::seconds(5.f));
+    //analyser.SetBPLTimeInterval(sf::seconds(1.f));
+    //analyser.SetLPCTimeInterval(sf::seconds(5.f));
 
     // Setup world borders
     CreateWorldBorderLines();
@@ -45,7 +52,7 @@ void KeySimulator::Init() {
 void KeySimulator::Update(sf::Time delta_time) {
 
     // Log metrics based on interval settings
-    analyser.LogAllMetrics(delta_time);
+    //analyser.LogAllMetrics(delta_time);
 
     for (const auto& boid: boids) {
 
@@ -123,8 +130,8 @@ void KeySimulator::ProcessInput() {
     }
 
     if (IsKeyPressedOnce(sf::Keyboard::F5)) {
-        analyser.SaveBoidPerLanguageToCSV("bpl_output.csv");
-        analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
+        //analyser.SaveBoidPerLanguageToCSV("bpl_output.csv");
+        //analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
     }
 
     if (IsKeyPressedOnce(sf::Keyboard::Escape)) {

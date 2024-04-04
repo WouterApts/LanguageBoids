@@ -11,7 +11,7 @@
 #include "State.h"
 #include "Application.h"
 #include "Camera.h"
-#include "analysis/CompAnalyser.h"
+#include "analysis/KeyAnalyser.h"
 #include "LanguageManager.h"
 #include "Obstacles.h"
 #include "SimulationData.h"
@@ -65,18 +65,16 @@ public:
 
 class KeySimulator : public Simulator {
 public:
-
     std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
     SpatialGrid<KeyBoid> spatial_boid_grid;
     std::vector<std::shared_ptr<KeyBoid>> boids;
 
+    // KeyAnalyser analyser;
     LanguageManager language_manager;
-    CompAnalyser analyser;
 
     sf::Time passedTime;
 
-    KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, const std::vector<float> &language_statuses,
-                   float camera_width, float camera_height);
+    KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
 
     void Init() override;
     void Update(sf::Time delta_time) override;
@@ -87,5 +85,14 @@ public:
 
     void AddBoid(const std::shared_ptr<KeyBoid> &boid);
 };
+
+// class DominanceStudy : public Simulator {
+// public:
+//     std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
+//     SpatialGrid<KeyBoid> spatial_boid_grid;
+//     std::vector<std::shared_ptr<KeyBoid>> boids;
+//
+//     LanguageManager language_manager;
+// };
 
 #endif //SIMULATION_H

@@ -10,7 +10,7 @@
 
 
 EscapeInterface::EscapeInterface(sf::Vector2f pos, std::shared_ptr<Context>& context)
-    : Panel(pos, sf::Vector2f(400, 200), sf::Color(100,100,100)) {
+    : Panel(pos, sf::Vector2f(400, 200)) {
 
     std::vector<std::shared_ptr<InterfaceComponent> > btns;
     btns.emplace_back(std::make_shared<TextButton>([&context]() { context->state_manager->PopState();},

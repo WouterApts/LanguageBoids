@@ -203,10 +203,5 @@ void KeyBoid::SetLanguageKey(int key) {
 }
 
 void KeyBoid::UpdateColor(LanguageManager& languageManager) {
-    try {
-        std::shared_ptr<Language> language = languageManager.GetLanguage(language_key);
-        this->sprite.setColor(language->color);
-    } catch (const std::runtime_error& e) {
-        std::cout << "ERROR: " << e.what() << std::endl;
-    }
+    this->sprite.setColor(LanguageManager::GetLanguageColor(language_key));
 }
