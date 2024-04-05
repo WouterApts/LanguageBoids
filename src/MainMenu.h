@@ -5,6 +5,7 @@
 #ifndef MAINMENU_H
 #define MAINMENU_H
 #include "Application.h"
+#include "SimulationData.h"
 #include "State.h"
 #include "ui/InterfaceManager.h"
 #include "ui/components/Panel.h"
@@ -23,6 +24,8 @@ public:
 
     void StartEditor();
     void StartSimulation();
+
+    static KeySimulationData load_key_simulation_data(std::optional<SimulationData> loaded_data);
 
     void Init() override;
     void ProcessInput() override;

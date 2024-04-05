@@ -18,11 +18,11 @@ SettingsInterface::SettingsInterface(std::shared_ptr<InterfaceManager>& interfac
 
     // Save, Configuration, Escape buttons
     std::vector<std::shared_ptr<InterfaceComponent> > btns;
-    btns.emplace_back(std::make_shared<ImageButton>([&editor]() { serialization::SaveSimulationDataToFile(editor.simulation_data); },
+    btns.emplace_back(std::make_shared<ImageButton>([&, &editor]() { serialization::SaveSimulationDataToFile(editor.simulation_data); this->config_interface->Deactivate(); },
                                                     "save_button", sf::Vector2f(0, 0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([&]() { this->config_interface->ToggleActivation(); },
                                                 "config_button", sf::Vector2f(0, 0), sf::Vector2f(button_size[0], button_size[1])));
-    btns.emplace_back(std::make_shared<ImageButton>([&]() { this->config_interface->Deactivate(); this->escape_interface->Activate(); },
+    btns.emplace_back(std::make_shared<ImageButton>([&]() { this->escape_interface->Activate(); this->config_interface->Deactivate(); },
                                             "escape_button", sf::Vector2f(0, 0), sf::Vector2f(button_size[0], button_size[1])));
 
     for (int i = 0; i < btns.size(); ++i) {

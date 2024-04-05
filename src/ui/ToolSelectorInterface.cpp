@@ -59,7 +59,7 @@ ToolSelectorInterface::ToolSelectorInterface(const std::shared_ptr<InterfaceMana
     studyboid_rectangle_tool_interface->Deactivate();
 
     // Activate the tool selector interface
-    this->Activate();
+    this->InterfaceComponent::Activate();
 }
 
 
@@ -112,6 +112,7 @@ void ToolSelectorInterface::ActivateSelectedToolInterface() {
         active_tool_interface->Deactivate();
     }
 
+    //Todo, attatch tool_interface to the specific tool class
     switch (p_tool_selector->selected_tool) {
         case EraserT:
             active_tool_interface = nullptr;

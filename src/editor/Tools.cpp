@@ -180,7 +180,7 @@ void TerrainTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
         } else {
             auto polygon = sf::ConvexShape();
             polygon.setPointCount(vertices.size() + 1);
-            std::cout << vertices.size() + 1 << std::endl;
+
             for (int i = 0; i < vertices.size(); ++i) {
                 polygon.setPoint(i, sf::Vector2f(vertices[i].x(), vertices[i].y()));
             }

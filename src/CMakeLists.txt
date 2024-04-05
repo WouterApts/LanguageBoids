@@ -74,6 +74,8 @@ set(SOURCE_FILES
         ui/ConfigInterface.h
         ui/WorldSizeInterface.cpp
         ui/WorldSizeInterface.h
+        DominanceStudySimulator.cpp
+        DominanceStudySimulator.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

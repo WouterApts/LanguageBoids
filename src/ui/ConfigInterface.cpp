@@ -208,7 +208,7 @@ void ConfigInterface::SwitchTo(SimulationType type) {
 
     // Activate selected interface
         simulation_data.type = type;
-        switch (type) {
+        switch (simulation_data.type) {
             case KeySimulation:
                 active_config_interface = key_config_interface;
                 break;

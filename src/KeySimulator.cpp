@@ -36,7 +36,8 @@ void KeySimulator::Init() {
     CreateWorldBorderLines();
 
     // Fit Camera view to world
-    camera.SetZoom(static_cast<float>(static_cast<int>(world.width*1.1 / camera.default_width * 10)) / 10.f);
+    float max_zoom = std::max((world.height*1.1 / camera.default_height), world.width*1.1 / camera.default_width);
+    camera.SetZoom(static_cast<float>(static_cast<int>(max_zoom * 10)) / 10.f);
 
     // Spawn Boids
     for (auto& spawner : boid_spawners) {
@@ -88,6 +89,9 @@ void KeySimulator::Update(sf::Time delta_time) {
         //Update boids sprite
         boid->UpdateSprite();
     }
+
+    // Increment simulation time
+    total_simulation_time += delta_time.asSeconds();
 };
 
 void KeySimulator::ProcessInput() {

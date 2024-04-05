@@ -38,8 +38,6 @@ public:
 
     // Draw methods
     void DrawBoidSelectionCircle();
-    void DrawBorderOutline() const;
-
     void CreateWorldBorderLines();
 };
 
@@ -73,6 +71,7 @@ public:
     LanguageManager language_manager;
 
     sf::Time passedTime;
+    float total_simulation_time = 0.f;
 
     KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
 
@@ -85,14 +84,5 @@ public:
 
     void AddBoid(const std::shared_ptr<KeyBoid> &boid);
 };
-
-// class DominanceStudy : public Simulator {
-// public:
-//     std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
-//     SpatialGrid<KeyBoid> spatial_boid_grid;
-//     std::vector<std::shared_ptr<KeyBoid>> boids;
-//
-//     LanguageManager language_manager;
-// };
 
 #endif //SIMULATION_H

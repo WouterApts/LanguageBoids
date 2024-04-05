@@ -40,7 +40,6 @@ void InterfaceManager::OnLeftClick(sf::Vector2f mouse_pos) {
     // Handle left click for all active components, possibly re-focusing an input field.
     for (auto& component : components) {
         if (component->active & component->IsPointInside(mouse_pos)) {
-            std::cout << "clicked" << std::endl;
             component->OnLeftClick(mouse_pos);
             interface_clicked = true;
         }

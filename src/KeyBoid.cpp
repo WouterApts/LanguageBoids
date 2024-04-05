@@ -173,8 +173,8 @@ Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>&
         float squared_distance = pos_difference.squaredNorm();
         float squared_avoidance_radius = separation_radius * separation_radius;
         if (squared_distance <= squared_avoidance_radius) {
-            float strength = (squared_avoidance_radius - squared_distance) / squared_avoidance_radius;
-            acceleration = acceleration - pos_difference.normalized() * max_speed * config->SEPARATION_FACTOR * (strength);
+            float strength = std::pow((squared_avoidance_radius - squared_distance) / squared_avoidance_radius, 2);
+            acceleration -= pos_difference.normalized() * max_speed * config->SEPARATION_FACTOR * (strength);
         }
     }
 

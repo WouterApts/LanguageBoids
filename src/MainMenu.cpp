@@ -7,6 +7,7 @@
 #include <iostream>
 #include <SFML/Window/Event.hpp>
 #include "Application.h"
+#include "DominanceStudySimulator.h"
 #include "Simulator.h"
 #include "editor/Editor.h"
 #include "editor/Serialization.h"
@@ -56,17 +57,14 @@ void MainMenu::StartSimulation() {
 
     if (auto loaded_data = serialization::LoadSimulationDataFromFile(file_name)) {
         if (loaded_data->type == KeySimulation) {
-            auto simulation_data = KeySimulationData(loaded_data->world, loaded_data->config);
-            // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
-            std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
-                           [](const std::shared_ptr<BoidSpawner>& spawner) {
-                               return std::dynamic_pointer_cast<KeyBoidSpawner>(spawner);
-                           });
+            KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
             auto simulation = std::make_unique<KeySimulator>(context, simulation_data, 1600, 900);
             context->state_manager->AddState(std::move(simulation));
         }
         else if (loaded_data->type == DominanceStudy) {
-
+            KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
+            auto simulation = std::make_unique<DominanceStudySimulator>(context, simulation_data, 1600, 900);
+            context->state_manager->AddState(std::move(simulation));
         }
     } else {
         std::cerr << "Error: Something wrong, cannot open file! " << std::endl;
@@ -113,4 +111,15 @@ void MainMenu::Draw() {
 
 void MainMenu::Start() {
     context->window->setView(context->window->getDefaultView());
+}
+
+
+KeySimulationData MainMenu::load_key_simulation_data(std::optional<SimulationData> loaded_data) {
+    auto simulation_data = KeySimulationData(loaded_data->world, loaded_data->config);
+    // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
+    std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
+                   [](const std::shared_ptr<BoidSpawner>& spawner) {
+                       return std::dynamic_pointer_cast<KeyBoidSpawner>(spawner);
+                   });
+    return simulation_data;
 }

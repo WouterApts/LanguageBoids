@@ -143,7 +143,6 @@ KeyBoidRectangularSpawner::KeyBoidRectangularSpawner(int boids_spawned, int lang
     float textPosX = this->pos.x() + this->rect.getSize().x/2 - textBounds.width / 2.0f;
     float textPosY = this->pos.y() + this->rect.getSize().y/2 - textBounds.height;
     // Set the position of the text
-    std::cout << textPosX << " " << textPosY;
     text.setPosition(textPosX, textPosY);
 }
 
