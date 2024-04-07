@@ -10,7 +10,7 @@
 #include "SimulationData.h"
 
 namespace serialization {
-    void SaveSimulationDataToFile(const SimulationData &data);
+    bool SaveSimulationDataToFile(const SimulationData &data);
 
     std::optional<SimulationData> LoadSimulationDataFromFile(const std::string &filename);
     std::string GetFileNameThroughSaveDialog();

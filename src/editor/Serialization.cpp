@@ -16,17 +16,17 @@
 #include "SimulationData.h"
 
 
-void serialization::SaveSimulationDataToFile(const SimulationData& data) {
+bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
     // Have user input save file location.
     auto file_name = GetFileNameThroughSaveDialog();
     if (file_name.empty()) {
         std::cerr << "Error: Empty file name! " << std::endl;
-        return;
+        return false;
     }
     std::ofstream file(file_name);
     if (!file.is_open()) {
         std::cerr << "Error: Unable to open file for writing: " << file_name << std::endl;
-        return;
+        return false;
     }
 
     // Write the simulation type and simulation specific config:
@@ -88,6 +88,7 @@ void serialization::SaveSimulationDataToFile(const SimulationData& data) {
 
     file.close();
     std::cout << "Simulation Data saved succesfully to: " << file_name << std::endl;
+    return true;
 }
 
 //TODO: FIX THIS
@@ -338,3 +339,5 @@ std::string serialization::GetFileNameThroughLoadDialog() {
     }
 #endif
 }
+
+

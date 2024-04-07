@@ -13,16 +13,16 @@
 
 CircularSpawner::CircularSpawner(Eigen::Vector2f center_pos, float radius) : center_pos(std::move(center_pos)), radius(radius) {}
 
-Eigen::Vector2f CircularSpawner::CalcRandomPointInSpawnZone(const World& world) const {
+Eigen::Vector2f CircularSpawner::CalcRandomPointInSpawnZone(const World& world, float buffer) const {
 
     float angle = GetRandomFloatBetween(0, 2*std::numbers::pi);
     float length = GetRandomFloatBetween(0, radius);
     float x = center_pos.x() + std::cos(angle) * length;
     float y = center_pos.y() + std::sin(angle) * length;
 
-    //Keep spawn position within world border
-    x = std::max(std::min(x, world.width), 0.f);
-    y = std::max(std::min(y, world.height), 0.f);
+    //Keep spawn position within world border (including buffer)
+    x = std::max(std::min(x, world.width - buffer), buffer);
+    y = std::max(std::min(y, world.height - buffer), buffer);
 
     return {x, y};
 }
@@ -31,13 +31,13 @@ RectangularSpawner::RectangularSpawner(Eigen::Vector2f pos, float width, float h
     : pos(std::move(pos)), width(width), height(height) {
 }
 
-Eigen::Vector2f RectangularSpawner::CalcRandomPointInSpawnZone(const World &world) const {
+Eigen::Vector2f RectangularSpawner::CalcRandomPointInSpawnZone(const World &world, float buffer) const {
     float x = pos.x() + GetRandomFloatBetween(0, width);
     float y = pos.y() + GetRandomFloatBetween(0, height);
 
-    //Keep spawn position within world border
-    x = std::max(std::min(x, world.width), 0.f);
-    y = std::max(std::min(y, world.height), 0.f);
+    //Keep spawn position within world border (including buffer)
+    x = std::max(std::min(x, world.width - buffer), buffer);
+    y = std::max(std::min(y, world.height - buffer), buffer);
 
     return {x, y};
 }
@@ -74,7 +74,7 @@ KeyBoidCircularSpawner::KeyBoidCircularSpawner(int boids_spawned, int language_k
 
 void KeyBoidCircularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<KeyBoid>>& boids) {
     for (int i = 0; i < boids_spawned; ++i) {
-        auto spawn_point = CalcRandomPointInSpawnZone(world);
+        auto spawn_point = CalcRandomPointInSpawnZone(world, config->BOID_COLLISION_RADIUS);
         auto new_boid = std::make_shared<KeyBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config, language_key);
         boids.emplace_back(std::move(new_boid));
     }
@@ -148,7 +148,7 @@ KeyBoidRectangularSpawner::KeyBoidRectangularSpawner(int boids_spawned, int lang
 
 void KeyBoidRectangularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<KeyBoid>>& boids) {
     for (int i = 0; i < boids_spawned; ++i) {
-        auto spawn_point = CalcRandomPointInSpawnZone(world);
+        auto spawn_point = CalcRandomPointInSpawnZone(world, config->BOID_COLLISION_RADIUS);
         auto new_boid = std::make_shared<KeyBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config, language_key);
         boids.emplace_back(std::move(new_boid));
     }

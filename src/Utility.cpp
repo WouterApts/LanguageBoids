@@ -6,7 +6,16 @@
 #include <iostream>
 #include <random>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/Text.hpp>
 #include <SFML/System/Vector2.hpp>
+
+#include "ResourceManager.h"
+#include "ui/InterfaceManager.h"
+#include "ui/components/TextField.h"
+
+namespace sf {
+    class RenderWindow;
+}
 
 /* Input Processing */
 bool IsKeyPressedOnce(sf::Keyboard::Key keyCode)
@@ -47,5 +56,12 @@ void PrintFPS(sf::Time delta_time) {
         fps_timer -= sf::seconds(1.f);
     }
 }
+
+void DisplayMessage(InterfaceManager interface_manager, sf::Vector2f pos, const std::string& message, sf::Time time, sf::Color text_color, int text_size) {
+    auto text_fld = std::make_shared<TextField>(pos, text_size, message, *ResourceManager::GetFont("arial"), text_color);
+
+    interface_manager.AddComponent(text_fld);
+}
+
 
 

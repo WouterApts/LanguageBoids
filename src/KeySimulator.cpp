@@ -44,6 +44,11 @@ void KeySimulator::Init() {
         spawner->AddBoids(world, config, boids);
     }
 
+    // Initialize boids in spatial grid
+    for (auto& boid : boids) {
+        spatial_boid_grid.AddObj(boid);
+    }
+
     for (auto& boid : boids) {
         boid->UpdateColor(language_manager);
     }
@@ -145,8 +150,8 @@ void KeySimulator::ProcessInput() {
     camera.Drag(mouse_pos);
 };
 
-void KeySimulator::Draw() {
-    context->window->clear(sf::Color::Black);
+void KeySimulator::DrawWorldAndBoids() {
+    // Set camera view
     context->window->setView(camera.view);
 
     // Draw Terrain
@@ -169,6 +174,14 @@ void KeySimulator::Draw() {
 
     // Draw Boid Selection Circle
     DrawBoidSelectionCircle();
+
+    // Reset camera view to default
+    context->window->setView(context->window->getDefaultView());
+}
+
+void KeySimulator::Draw() {
+    context->window->clear(sf::Color::Black);
+    DrawWorldAndBoids();
     context->window->display();
 }
 

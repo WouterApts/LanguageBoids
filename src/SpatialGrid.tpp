@@ -6,15 +6,19 @@
 #define SPATIALGRID_TPP
 
 #include <cmath>
+#include <iostream>
 #include <utility>
+
+#include "ResourceManager.h"
 #include "SpatialGrid.h"
 
 template <typename ObjType>
 SpatialGrid<ObjType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_size)
     : cell_size(cell_size), world_dimensions(std::move(world_dimensions)), is_visible(false){
 
-    grid_dimensions.x() = ceil(this->world_dimensions.x() / static_cast<double>(cell_size));
-    grid_dimensions.y() = ceil(this->world_dimensions.y() / static_cast<double>(cell_size));
+    // To allow for maximum query distances, the grid length is doubled in both dimensions
+    grid_dimensions.x() = ceil(this->world_dimensions.x() * 2 / static_cast<double>(cell_size));
+    grid_dimensions.y() = ceil(this->world_dimensions.y() * 2 / static_cast<double>(cell_size));
 
     Eigen::Vector2i center = grid_dimensions / 2;
     int center_key = CreateKeyFromIndex(center.x(), center.y());
@@ -29,8 +33,8 @@ SpatialGrid<ObjType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_siz
                 continue;
             }
             int key = CreateKeyFromIndex(colIndex, rowIndex);
-            int d_x = std::max((abs(colIndex - center.x())-1),0); // min.horizontal dist between this cell to center cell
-            int d_y = std::max((abs(rowIndex - center.y())-1),0); // min.vertical dist between this cell to center cell
+            int d_x = std::max((abs(colIndex - center.x())-1),0); // min. horizontal dist between this cell to center cell
+            int d_y = std::max((abs(rowIndex - center.y())-1),0); // min. vertical dist between this cell to center cell
             int dist_squared = static_cast<int>(std::pow(d_x, 2) + std::pow(d_y, 2));
             offsets_by_distance_to_center[dist_squared].insert(key - center_key);
 
@@ -38,8 +42,7 @@ SpatialGrid<ObjType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_siz
         }
     }
 
-    // TODO: possibly change this to a hashmap, because there will be large 'gaps' between different values.
-    num_offsets_within_distance = std::vector<int>(max_dist_squared + 1);
+    max_d2 = max_dist_squared;
 
     int num_cells = grid_dimensions.x() * grid_dimensions.y();
     global_offset = std::vector<int>(num_cells);
@@ -52,7 +55,6 @@ SpatialGrid<ObjType>::SpatialGrid(Eigen::Vector2i world_dimensions, int cell_siz
             // if there are no cells whose min. squared dist. to center is d2:
             num_offsets_within_distance[d2] = num_offsets_within_distance[d2-1];
         } else {
-
             for(auto& offset : offsets_by_distance_to_center[d2]) {
                 global_offset[n] = offset;
                 n++;
@@ -69,8 +71,9 @@ int SpatialGrid<ObjType>::CreateKeyFromIndex(int x, int y) const {
 
 template <typename ObjType>
 Eigen::Vector2i SpatialGrid<ObjType>::GetIndex(Eigen::Vector2f position) {
-    float cX = position.x() / world_dimensions.x();
-    float cY = position.y() / world_dimensions.y();
+
+    float cX = (position.x()) / (world_dimensions.x() * 2);
+    float cY = (position.y()) / (world_dimensions.y() * 2);
 
     int xIndex = static_cast<int>(std::floor(cX * grid_dimensions.x()));
     int yIndex = static_cast<int>(std::floor(cY * grid_dimensions.y()));
@@ -96,6 +99,7 @@ void SpatialGrid<ObjType>::DrawGrid(sf::RenderWindow* window) {
                     rect.setOutlineColor(sf::Color(grayscale_value, grayscale_value, grayscale_value));
                     rect.setOutlineThickness(3);
                     window->draw(rect);
+
                 }
             }
         }
@@ -135,22 +139,35 @@ std::vector<ObjType*> SpatialGrid<ObjType>::ObjRadiusSearch(float query_radius, 
 
     double d = query_radius / static_cast<double>(cell_size); // convert radius in pixel space to grid space
     int d2 = std::floor(d*d);
+    if (d2 > max_d2) d2 = max_d2;
+
+    float squared_query_radius = query_radius * query_radius;
 
     int obj_cell_key = obj->spatial_key;
-
     for(int i = 0; i < num_offsets_within_distance[d2]; i++) {
-        // Get candidate cell's key by adding the appropriate offset to the cell_key of the querying object
+        // Get neighbouring cell's key by adding the appropriate offset to the cell_key of the querying object
         int key = obj_cell_key + global_offset[i];
-        // Make sure the key is within the grid bounds
-        key = std::min<int>(std::max(0, key), max_possible_key);
 
-        // Check objects within candidate cells
+        // Check if neighbour cell is within the grid bounds, if not disregard it and continue.
+        if (key < 0 || key > max_possible_key) continue;
+
+        // Check objects within the neighbour cell
         for(const auto& other_obj : grid[key]) {
             if(other_obj.get() == obj.get()) continue;
 
             Eigen::Vector2f difference = (obj->pos - other_obj->pos);
             float squared_distance = difference.squaredNorm();
-            if (squared_distance <= query_radius * query_radius) obj_in_radius.push_back(other_obj.get());
+            if (squared_distance <= squared_query_radius) {
+                obj_in_radius.push_back(other_obj.get());
+            }
+            // else {
+            //     // World wraps around both its vertical sides
+            //     difference.x() = world_dimensions[0] - std::abs(obj->pos.x() - other_obj->pos.x());
+            //     squared_distance = difference.squaredNorm();
+            //     if (squared_distance <= squared_query_radius) {
+            //         obj_in_radius.push_back(other_obj.get());
+            //     }
+            // }
         }
     }
     return obj_in_radius;
@@ -161,19 +178,22 @@ std::vector<ObjType*> SpatialGrid<ObjType>::PosRadiusSearch(float query_radius, 
 
     std::vector<ObjType*> obj_in_radius;
 
-    double d = query_radius / static_cast<double>(cell_size); // convert radius in pixel space to grid space
+    double d = query_radius / static_cast<double>(cell_size); // convert radius in world space to grid space
     int d2 = std::floor(d*d);
+    if (d2 > max_d2) d2 = max_d2;
 
     Eigen::Vector2i index = GetIndex(std::move(position));
     int key_of_position = CreateKeyFromIndex(index.x(), index.y());
 
     for(int i = 0; i < num_offsets_within_distance[d2]; i++) {
-        // Get candidate cell's key by adding the appropriate offset to the cell_key of the querying object
-        int key = key_of_position + global_offset[i];
-        // Make sure the key is within the grid bounds
-        key = std::min<int>(std::max(0, key), max_possible_key);
 
-        // Check objects within candidate cells
+        // Get neighbouring cell's key by adding the appropriate offset to the cell_key of the querying object
+        int key = key_of_position + global_offset[i];
+
+        // Check if neighbour cell is within the grid bounds, if not disregard it and continue.
+        if (key < 0 || key > max_possible_key) continue;
+
+        // Check objects within the neighbour cell
         for(const auto& other_obj : grid[key]) {
             Eigen::Vector2f difference = (position - other_obj->pos);
             float squared_distance = difference.squaredNorm();

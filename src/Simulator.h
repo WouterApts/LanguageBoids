@@ -78,6 +78,9 @@ public:
     void Init() override;
     void Update(sf::Time delta_time) override;
     void ProcessInput() override;
+
+    void DrawWorldAndBoids();
+
     void Draw() override;
     void Start() override;
     void Pause() override;

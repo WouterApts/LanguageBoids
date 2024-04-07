@@ -8,10 +8,11 @@
 #include "components/Panel.h"
 
 
-class EscapeInterface : public Panel {
+class EscapeStateInterface : public Panel {
 public:
     float button_size[2] = {100, 50};
-    EscapeInterface(sf::Vector2f pos, std::shared_ptr<Context> &context);
+
+    EscapeStateInterface(sf::Vector2f pos, std::shared_ptr<Context> &context, const std::string& message, int text_size = 30);
 };
 
 

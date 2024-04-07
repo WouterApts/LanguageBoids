@@ -21,8 +21,9 @@ public:
     Eigen::Vector2i world_dimensions;
     bool is_visible;
 
-    std::vector<int> num_offsets_within_distance;
+    std::map<int,int> num_offsets_within_distance;
     std::vector<int> global_offset;
+    int max_d2;
 
     int CreateKeyFromIndex(int x, int y) const;
     Eigen::Vector2i GetIndex(Eigen::Vector2f position);

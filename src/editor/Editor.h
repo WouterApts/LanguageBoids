@@ -46,6 +46,8 @@ public:
     void Pause() override;
     void Draw() override;
     void Start() override;
+
+    void SaveSimulationToFile() const;
 };
 
 

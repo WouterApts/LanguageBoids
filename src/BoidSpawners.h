@@ -17,7 +17,7 @@ public:
 
     CircularSpawner(Eigen::Vector2f center_pos, float radius);
     virtual ~CircularSpawner() = default;
-    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world) const;
+    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world, float buffer = 0.f) const;
     virtual bool IsInside(Eigen::Vector2f pos, float radius);
 };
 
@@ -29,7 +29,7 @@ public:
 
     RectangularSpawner(Eigen::Vector2f pos, float width, float height);
     virtual ~RectangularSpawner() = default;
-    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world) const;
+    Eigen::Vector2f CalcRandomPointInSpawnZone(const World &world, float buffer = 0.f) const;
 
     virtual bool IsInside(Eigen::Vector2f pos, float radius);
 };

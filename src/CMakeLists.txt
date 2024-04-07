@@ -66,8 +66,8 @@ set(SOURCE_FILES
         MainMenu.h
         ui/components/InterfaceComponent.cpp
         ui/components/InterfaceComponent.h
-        ui/EscapeInterface.cpp
-        ui/EscapeInterface.h
+        ui/EscapeStateInterface.cpp
+        ui/EscapeStateInterface.h
         SimulationData.h
         SimulationConfig.h
         ui/ConfigInterface.cpp
@@ -76,6 +76,8 @@ set(SOURCE_FILES
         ui/WorldSizeInterface.h
         DominanceStudySimulator.cpp
         DominanceStudySimulator.h
+        ui/StudyInterface.cpp
+        ui/StudyInterface.h
 )
 
 add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

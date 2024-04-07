@@ -13,6 +13,8 @@ class Editor;
 class SettingsInterface : public Panel {
 public:
 
+    Editor& editor;
+
     std::shared_ptr<Panel> escape_interface;
     std::shared_ptr<Panel> config_interface;
 

@@ -9,16 +9,16 @@
 #include "Application.h"
 #include "components/Button.h"
 #include "ConfigInterface.h"
-#include "EscapeInterface.h"
+#include "EscapeStateInterface.h"
 #include "editor/Editor.h"
 #include "editor/Serialization.h"
 
 SettingsInterface::SettingsInterface(std::shared_ptr<InterfaceManager>& interface_manager, std::shared_ptr<Context>& context, Editor& editor, const sf::Vector2f &pos)
-    : Panel(pos, sf::Vector2f(190, 70)), interface_manager(interface_manager) {
+    : Panel(pos, sf::Vector2f(190, 70)), interface_manager(interface_manager), editor(editor) {
 
     // Save, Configuration, Escape buttons
     std::vector<std::shared_ptr<InterfaceComponent> > btns;
-    btns.emplace_back(std::make_shared<ImageButton>([&, &editor]() { serialization::SaveSimulationDataToFile(editor.simulation_data); this->config_interface->Deactivate(); },
+    btns.emplace_back(std::make_shared<ImageButton>([&]() { this->config_interface->Deactivate(); editor.SaveSimulationToFile(); },
                                                     "save_button", sf::Vector2f(0, 0), sf::Vector2f(button_size[0], button_size[1])));
     btns.emplace_back(std::make_shared<ImageButton>([&]() { this->config_interface->ToggleActivation(); },
                                                 "config_button", sf::Vector2f(0, 0), sf::Vector2f(button_size[0], button_size[1])));
@@ -32,7 +32,7 @@ SettingsInterface::SettingsInterface(std::shared_ptr<InterfaceManager>& interfac
 
     // Escape Interface
     auto escape_interface_pos = sf::Vector2f(context->window->getSize().x/2 - 200, context->window->getSize().y/2 - 100);
-    escape_interface = std::make_shared<EscapeInterface>(escape_interface_pos, context);
+    escape_interface = std::make_shared<EscapeStateInterface>(escape_interface_pos, context, "Exit Editor?");
     interface_manager->AddComponent(escape_interface);
     escape_interface->Deactivate();
 

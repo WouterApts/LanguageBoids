@@ -2,14 +2,14 @@
 // Created by wouter on 25-3-2024.
 //
 
-#include "EscapeInterface.h"
+#include "EscapeStateInterface.h"
 
 #include "components/Button.h"
 #include "ResourceManager.h"
 #include "components/TextField.h"
 
 
-EscapeInterface::EscapeInterface(sf::Vector2f pos, std::shared_ptr<Context>& context)
+EscapeStateInterface::EscapeStateInterface(sf::Vector2f pos, std::shared_ptr<Context>& context, const std::string& message, int text_size)
     : Panel(pos, sf::Vector2f(400, 200)) {
 
     std::vector<std::shared_ptr<InterfaceComponent> > btns;
@@ -23,6 +23,8 @@ EscapeInterface::EscapeInterface(sf::Vector2f pos, std::shared_ptr<Context>& con
         AddComponentWithRelativePos(btns[i], sf::Vector2f(75 + offset*i,100));
     }
 
-    std::shared_ptr<InterfaceComponent> text = std::make_shared<TextField>(sf::Vector2f(0,0), 30, "Exit Editor?", *ResourceManager::GetFont("arial"), sf::Color::White);
-    AddComponentWithRelativePos(text, sf::Vector2f(130,20));
+    std::shared_ptr<TextField> text = std::make_shared<TextField>(sf::Vector2f(0,0), text_size, message, *ResourceManager::GetFont("arial"), sf::Color::White);
+    float width = text->text.getGlobalBounds().width;
+    auto text_fld_pos = sf::Vector2f((this->rect.getSize().x - width)/2.f,20);
+    AddComponentWithRelativePos(text, text_fld_pos);
 }

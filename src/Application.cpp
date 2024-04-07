@@ -14,36 +14,23 @@
 #include "editor/Serialization.h"
 
 Application::Application() : context(std::make_shared<Context>()){
-    //Create application window
+    // Create application window
     context->window->create(sf::VideoMode(1600,900), "Language Boids");
-    context->window->setFramerateLimit(static_cast<int>(FRAME_RATE));
+    // context->window->setFramerateLimit(static_cast<int>(FRAME_RATE));
 }
 
 void Application::Run() {
 
     InitializeRescources();
 
-    // Create Simulation and push it to the State Stack, which will Initialize and Start it.
-    World world{6000,3000};
-    std::vector<float> language_statuses = {0.24, 0.26, 0.20, 0.30};
-
-    //Simulation Test
-    //std::unique_ptr<CompSimulation> simulation = std::make_unique<CompSimulation>(context, world, language_statuses, 1600, 900);
-    //simulation->LoadWorldFromFile("test_world.dat");
-    //context->state_manager->AddState(std::move(simulation));
-
-    //Editor test
-    //std::unique_ptr<State> editor = std::make_unique<Editor>(context, world, 1600, 900);
-    //context->state_manager->AddState(std::move(editor));
-
-    //Main menu
+    // Start MainMenu State
     std::unique_ptr<MainMenu> main_menu = std::make_unique<MainMenu>(context);
     context->state_manager->AddState(std::move(main_menu));
 
     while (context->window->isOpen()) {
         sf::Time delta_time = clock.restart();
         if (delta_time > TIME_PER_FRAME) delta_time = TIME_PER_FRAME;
-        //PrintFPS(delta_time);
+        // PrintFPS(delta_time);
 
         context->state_manager->ProcessStateChange();
         context->state_manager->GetCurrentState()->ProcessInput();;

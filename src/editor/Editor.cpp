@@ -132,6 +132,13 @@ void Editor::Pause() {
 void Editor::Start() {
 }
 
+void Editor::SaveSimulationToFile() const {
+    bool success = serialization::SaveSimulationDataToFile(simulation_data);
+    if (success) {
+        // DisplayMessage(context->window.get(), "Saved Successfully!", sf::seconds(1));
+    }
+}
+
 void Editor::Draw() {
     context->window->clear(sf::Color::Black);
     context->window->setView(camera.view);
