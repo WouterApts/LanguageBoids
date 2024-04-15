@@ -5,6 +5,7 @@
 #include "DominanceStudySimulator.h"
 
 #include <format>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -16,12 +17,17 @@
 
 
 DominanceStudySimulator::DominanceStudySimulator(std::shared_ptr<Context> &context, KeySimulationData &simulation_data,
-                                                 std::string output_file_name, float camera_width, float camera_height, int starting_distributin_nr)
+                                                 std::string sim_file_name_without_extension, float camera_width, float camera_height, int starting_distributin_nr)
     : context(context), simulation_data(simulation_data),
       camera(sf::Vector2f(simulation_data.world.width/2, simulation_data.world.height/2), camera_width, camera_height),
       interface_manager(std::make_shared<InterfaceManager>()),
-      output_file_name(std::move(output_file_name)),
+      output_file_path("output/" + sim_file_name_without_extension +  + "_output.txt"),
       current_distrubution_nr(starting_distributin_nr) {
+
+    // Create the output directory if it doesn't exist
+    if (!std::filesystem::exists("output/"))
+        std::filesystem::create_directory("output/");
+    std::ofstream file(output_file_path);
 
     // set all language_keys to 0 and 1
     SetLanguageKeysToOneAndZero();
@@ -44,10 +50,7 @@ void DominanceStudySimulator::Init() {
     interface_manager->AddComponent(study_interface);
 
     // Calculate Distribution and setup boids spanwed for each Spawner
-    SetAndInitializeCurrentDistribution(current_distrubution_nr);
-
-    // Reset the output data file
-    std::ofstream file(output_file_name);
+    SetupCurrentDistribution(current_distrubution_nr);
 
 }
 
@@ -72,18 +75,18 @@ void DominanceStudySimulator::ProcessInput() {
 
     if (IsKeyPressedOnce(sf::Keyboard::Key::Right)) {
         current_simulation.reset(nullptr);
-        SetAndInitializeCurrentDistribution(current_distrubution_nr + 1);
+        SetupCurrentDistribution(current_distrubution_nr + 1);
     }
 
     if (IsKeyPressedOnce(sf::Keyboard::Key::Left)) {
         current_simulation.reset(nullptr);
-        SetAndInitializeCurrentDistribution(current_distrubution_nr - 1);
+        SetupCurrentDistribution(current_distrubution_nr - 1);
     }
 }
 
-void DominanceStudySimulator::SetAndInitializeCurrentDistribution(int number) {
+void DominanceStudySimulator::SetupCurrentDistribution(int number) {
     current_distrubution_nr = std::min(simulation_data.config->DISTRIBUTIONS, std::max(number, 0));
-    SetCurrentInitialDistribition();
+    CalcInitialDistribitionValues();
     SetBoidsSpawnedPerSpawner();
 
     // Reset run number to 0
@@ -93,6 +96,20 @@ void DominanceStudySimulator::SetAndInitializeCurrentDistribution(int number) {
     run_outcomes.clear();
     run_final_distributions.clear();
     run_times.clear();
+}
+
+void DominanceStudySimulator::SetNextDistribution() {
+    if (fast_analysis) {
+        // End simulation (Skip to last number) if a one-sided outcome has been found for both languages.
+        if (one_sided_outcome_found[0] && one_sided_outcome_found[1]) {
+            current_distrubution_nr = simulation_data.config->DISTRIBUTIONS;
+        }
+        //Skip distrubutions of which the outcome is already known due to the outcome of previous (less unequal) distributions.
+        else if (current_distrubution_nr%2 && one_sided_outcome_found[0] || (!current_distrubution_nr%2 && one_sided_outcome_found[1])) {
+            current_distrubution_nr++;
+        }
+    }
+    SetupCurrentDistribution(current_distrubution_nr + 1);
 }
 
 void DominanceStudySimulator::Update(sf::Time deltaTime) {
@@ -157,11 +174,22 @@ void DominanceStudySimulator::Update(sf::Time deltaTime) {
             // Check if all runs for this distribution have been simulated
             if (current_run_nr >= simulation_data.config->RUNS_PER_DISTRIBUTION) {
 
-                //LogDataToFile
-                LogDataToFile(output_file_name, current_distrubution_nr, current_initial_distribution, run_outcomes, run_times, run_final_distributions);
+                // Check if the current initial distrubution had a one-sided dominant outcome.
+                if (current_distrubution_nr != 0 && !run_outcomes.empty()) {
+                    if (std::ranges::adjacent_find(run_outcomes, std::not_equal_to<>()) == run_outcomes.end() )
+                    {
+                        auto language_key = run_outcomes[0];
+                        one_sided_outcome_found[language_key] = true;
+                        std::cout << "one-sided dominant distribution found for language: " << language_key << std::endl;
+                    }
+                }
 
+                // Log analysis data to the output file
+                LogDataToFile(output_file_path, current_distrubution_nr, current_initial_distribution, run_outcomes, run_times, run_final_distributions);
+
+                // Go to next initial distribution
                 if (current_distrubution_nr < simulation_data.config->DISTRIBUTIONS) {
-                    SetAndInitializeCurrentDistribution(current_distrubution_nr + 1);
+                    SetNextDistribution();
                 }
             }
         }
@@ -205,22 +233,23 @@ void DominanceStudySimulator::SetBoidsSpawnedPerSpawner() {
     }
 }
 
-void DominanceStudySimulator::SetCurrentInitialDistribition() {
+void DominanceStudySimulator::CalcInitialDistribitionValues() {
     auto total = static_cast<double>(simulation_data.config->TOTAL_BOIDS);
     auto distributions = static_cast<double>(simulation_data.config->DISTRIBUTIONS);
+    // zero (both languages have an equal starting population)
     if (current_distrubution_nr == 0) {
         current_initial_distribution[0] = total/2;
         current_initial_distribution[1] = total - current_initial_distribution[0];
     }
-    // odd
+    // odd (langauge 1 is in the majority)
     else if (current_distrubution_nr % 2) {
-        current_initial_distribution[0] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/distributions);
-        current_initial_distribution[1] = total - current_initial_distribution[0];
-    }
-    // even
-    else {
         current_initial_distribution[1] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/distributions);
         current_initial_distribution[0] = total - current_initial_distribution[1];
+    }
+    // even (language 0 is in the majority)
+    else {
+        current_initial_distribution[0] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/distributions);
+        current_initial_distribution[1] = total - current_initial_distribution[0];
     }
 }
 
@@ -242,13 +271,15 @@ void DominanceStudySimulator::SetLanguageKeysToOneAndZero() {
     }
 }
 
-void DominanceStudySimulator::LogDataToFile(const std::string& file_name,
+void DominanceStudySimulator::LogDataToFile(const std::string& file_path,
                                             int distribution_nr,
                                             std::map<int, int> current_initial_distribution,
                                             const std::vector<int>& run_outcomes,
                                             const std::vector<double>& run_times,
                                             const std::vector<std::array<int, 2>>& run_final_distributions) {
-    std::ofstream logfile(file_name, std::ios::app); // Open file in append mode
+
+    std::ofstream logfile(file_path, std::ios::app); // Open file in append mode
+    std::cout << file_path << std::endl;
     if (!logfile.is_open()) {
         std::cerr << "Error opening file!" << std::endl;
         return;
@@ -281,4 +312,59 @@ void DominanceStudySimulator::LogDataToFile(const std::string& file_name,
     logfile << "\n";
     logfile.close();
 }
+
+
+//----------------------------------//
+//          PREVIEW STATE           //
+//----------------------------------//
+DominanceStudyPreview::DominanceStudyPreview(const std::shared_ptr<Context> &context, KeySimulationData simulation_data,
+                                             float camera_width, float camera_height)
+    : interface_manager(std::make_shared<InterfaceManager>()),
+      context(context),
+      simulation_data(std::move(simulation_data)){
+
+    simulation_preview = std::make_unique<KeySimulator>(this->context, this->simulation_data, camera_width, camera_height);
+
+    // Set camera viewport to take up 3/4 of the screens height, for displaying a preview of the simultion world.
+    simulation_preview->camera.view.setViewport(sf::FloatRect(0.f, 0.25f, 1.f, 0.75f));
+
+}
+
+void DominanceStudyPreview::Init() {
+    // Initialize interfaces.
+
+}
+
+void DominanceStudyPreview::ProcessInput() {
+    sf::Event event{};
+    auto mouse_pos = sf::Mouse::getPosition(*context->window);
+    auto mouse_interface_pos = context->window->mapPixelToCoords(mouse_pos, context->window->getDefaultView());
+    interface_manager->OnMouseEnter(mouse_interface_pos);
+    interface_manager->OnMouseLeave(mouse_interface_pos);
+
+    while (context->window->pollEvent(event)) {
+        if (event.type == sf::Event::MouseButtonPressed) {
+            if (event.mouseButton.button == sf::Mouse::Left) {
+                interface_manager->OnLeftClick(mouse_interface_pos);
+            }
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
+            context->state_manager->PopState();
+        }
+    }
+}
+
+void DominanceStudyPreview::Update(sf::Time deltaTime) {}
+
+void DominanceStudyPreview::Pause() {}
+
+void DominanceStudyPreview::Draw() {
+    if (simulation_preview) {
+        simulation_preview->DrawWorldAndBoids();
+        simulation_preview->DrawSpawners();
+    }
+}
+
+void DominanceStudyPreview::Start() {}
 

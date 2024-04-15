@@ -25,7 +25,7 @@ public:
     void StartEditor();
     void StartSimulation();
 
-    std::string removeExtension(const std::string &filename);
+    static std::string ExtractFileName(const std::string &filename);
 
     static KeySimulationData load_key_simulation_data(std::optional<SimulationData> loaded_data);
 

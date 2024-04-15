@@ -80,12 +80,15 @@ public:
     void ProcessInput() override;
 
     void DrawWorldAndBoids();
+    void DrawSpawners() const;
 
     void Draw() override;
     void Start() override;
     void Pause() override;
 
     void AddBoid(const std::shared_ptr<KeyBoid> &boid);
+
+
 };
 
 #endif //SIMULATION_H

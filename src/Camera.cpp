@@ -21,6 +21,11 @@ void Camera::StopDragging() {
     dragging = false;
 }
 
+void Camera::FitWorld(const World &world) {
+    float max_zoom = std::max((world.height*1.1 / default_height), world.width*1.1 / default_width);
+    SetZoom(static_cast<float>(static_cast<int>(max_zoom * 10)) / 10.f);
+}
+
 void Camera::Drag(sf::Vector2i mouse_pos) {
     if (dragging) {
         sf::Vector2i direction = (prev_mouse_pos - mouse_pos);

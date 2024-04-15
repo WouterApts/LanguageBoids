@@ -91,7 +91,7 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
     return true;
 }
 
-//TODO: FIX THIS
+
 std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const std::string &filename) {
 
     SimulationData data = SimulationData();

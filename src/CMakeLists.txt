@@ -1,6 +1,5 @@
 set(HEADER_FILES
         Boid.h
-        Config.h
         Simulator.h
         State.h
         StateManager.h

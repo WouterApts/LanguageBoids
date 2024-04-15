@@ -28,7 +28,7 @@ Editor::Editor(const std::shared_ptr<Context>& context, const SimulationData& si
 void Editor::Init() {
 
     // Fit Camera view to world
-    camera.SetZoom(static_cast<float>(static_cast<int>(simulation_data.world.width*1.1 / camera.default_width * 10)) / 10.f);
+    camera.FitWorld(simulation_data.world);
 
     // Initialize ToolSelector and Tool Interfaces
     tool_selector = std::make_shared<ToolSelector>(simulation_data);

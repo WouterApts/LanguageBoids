@@ -36,8 +36,7 @@ void KeySimulator::Init() {
     CreateWorldBorderLines();
 
     // Fit Camera view to world
-    float max_zoom = std::max((world.height*1.1 / camera.default_height), world.width*1.1 / camera.default_width);
-    camera.SetZoom(static_cast<float>(static_cast<int>(max_zoom * 10)) / 10.f);
+    camera.FitWorld(world);
 
     // Spawn Boids
     for (auto& spawner : boid_spawners) {
@@ -174,6 +173,19 @@ void KeySimulator::DrawWorldAndBoids() {
 
     // Draw Boid Selection Circle
     DrawBoidSelectionCircle();
+
+    // Reset camera view to default
+    context->window->setView(context->window->getDefaultView());
+}
+
+void KeySimulator::DrawSpawners() const {
+    // Set camera view
+    context->window->setView(camera.view);
+
+    // Draw Spawners
+    for (const auto& spawners : boid_spawners) {
+        spawners->Draw(context->window.get());
+    }
 
     // Reset camera view to default
     context->window->setView(context->window->getDefaultView());

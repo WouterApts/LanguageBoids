@@ -6,6 +6,7 @@
 #define CAMERA_H
 
 #include <SFML/Graphics.hpp>
+#include "World.h"
 
 class Camera {
 public:
@@ -15,6 +16,8 @@ public:
 
     void StartDragging(sf::Vector2i mouse_pos);
     void StopDragging();
+
+    void FitWorld(const World & world);
 
     sf::View view;
     sf::Vector2f center;

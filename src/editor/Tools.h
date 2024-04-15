@@ -4,7 +4,6 @@
 
 #ifndef TOOL_H
 #define TOOL_H
-#include "Config.h"
 #include "SimulationData.h"
 #include "World.h"
 
@@ -69,8 +68,8 @@ public:
     std::vector<Eigen::Vector2f> vertices;
     float friction_modifier = 1;
     float struggle_modifier = 1;
-    int min_speed = MIN_SPEED;
-    int max_speed = MAX_SPEED;
+    int min_speed = 75;
+    int max_speed = 100;
 
     void Reset() override;
     void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;

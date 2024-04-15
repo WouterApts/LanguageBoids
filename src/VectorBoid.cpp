@@ -53,11 +53,11 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
 
         // COHERENCE
         Eigen::Vector2f pos_difference = avg_pos - this->pos;
-        acceleration = pos_difference.normalized() * COHERENCE_FACTOR * max_speed;
+        acceleration = pos_difference.normalized() * config->COHERENCE_FACTOR * max_speed;
 
         // ALIGNMENT
         Eigen::Vector2f vel_difference = (avg_vel - this->vel);
-        acceleration += vel_difference.normalized() * ALIGNMENT_FACTOR * max_speed;
+        acceleration += vel_difference.normalized() * config->ALIGNMENT_FACTOR * max_speed;
     }
 
     return acceleration;
@@ -73,7 +73,7 @@ Eigen::Vector2f VectorBoid::CalcSeparationAcceleration(const std::vector<VectorB
         float squared_avoidance_radius = separation_radius * separation_radius;
         if (squared_distance <= squared_avoidance_radius) {
             float strength = (squared_avoidance_radius - squared_distance) / squared_avoidance_radius;
-            acceleration = acceleration - pos_difference.normalized() * max_speed * SEPARATION_FACTOR * (strength);
+            acceleration = acceleration - pos_difference.normalized() * max_speed * config->SEPARATION_FACTOR * (strength);
         }
     }
 
@@ -90,7 +90,7 @@ Eigen::Vector2f VectorBoid::CalcAvoidanceAcceleration(const std::vector<VectorBo
             Eigen::Vector2f pos_difference = nearby_boids[i]->pos - this->pos;
             float squared_distance = pos_difference.squaredNorm();
             float strength = (squared_perception_radius - squared_distance) / squared_perception_radius;
-            acceleration -= pos_difference.normalized() * max_speed * AVOIDANCE_FACTOR * (strength);
+            acceleration -= pos_difference.normalized() * max_speed * config->AVOIDANCE_FACTOR * (strength);
         }
     }
     return acceleration;
@@ -103,7 +103,7 @@ Eigen::VectorXf VectorBoid::CalcLanguageSimilarities(const std::vector<VectorBoi
     for (Eigen::Index i = 0; i < num_boids; ++i) {
         const Eigen::VectorXi& other_language = boids[i]->language_vector;
         float distance = (other_language - this->language_vector).cast<float>().squaredNorm();
-        similarities[i] = (0.5f - (distance / LANGUAGE_MAX_DIFF)) * 2.f; // [-1, 1]
+        similarities[i] = (0.5f - (distance / config->LANGUAGE_SIZE)) * 2.f; // [-1, 1]
     }
     return similarities;
 }
@@ -114,7 +114,7 @@ void VectorBoid::UpdateLanguage(const std::vector<VectorBoid*>& boids, sf::Time 
         return;
     }
 
-    Eigen::VectorXf avg_language = Eigen::VectorXf::Zero(LANGUAGE_SIZE);
+    Eigen::VectorXf avg_language = Eigen::VectorXf::Zero(config->LANGUAGE_SIZE);
     float total_weight = 0;
     for (const auto& boid : boids) {
         total_weight += boid->language_influence;
@@ -126,7 +126,7 @@ void VectorBoid::UpdateLanguage(const std::vector<VectorBoid*>& boids, sf::Time 
 
     // Calculate mutation_chance for each bit in the boid's language
     Eigen::VectorXf mutation_chance = (language_vector.cast<float>() - avg_language).cwiseAbs()
-                                      * LANGUAGE_MUTATION_RATE * delta_time.asSeconds();
+                                      * config->MUTATION_RATE * delta_time.asSeconds();
 
     std::random_device rd;
     std::mt19937 gen(rd());

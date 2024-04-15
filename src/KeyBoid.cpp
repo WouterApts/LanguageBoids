@@ -167,13 +167,13 @@ Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ke
 Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>& nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
+    float squared_separation_radius = separation_radius * separation_radius;
 
     for (auto & nearby_boid : nearby_boids) {
         Eigen::Vector2f pos_difference = nearby_boid->pos - this->pos;
         float squared_distance = pos_difference.squaredNorm();
-        float squared_avoidance_radius = separation_radius * separation_radius;
-        if (squared_distance <= squared_avoidance_radius) {
-            float strength = std::pow((squared_avoidance_radius - squared_distance) / squared_avoidance_radius, 2);
+        if (squared_distance <= squared_separation_radius) {
+            float strength = std::pow((squared_separation_radius - squared_distance) / squared_separation_radius, 2);
             acceleration -= pos_difference.normalized() * max_speed * config->SEPARATION_FACTOR * (strength);
         }
     }
@@ -185,13 +185,13 @@ Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>&
 Eigen::Vector2f KeyBoid::CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
-    const float squared_perception_radius = interaction_radius * interaction_radius;
+    const float squared_interaction_radius = interaction_radius * interaction_radius;
 
     for (auto& boid : nearby_boids) {
         if (boid->language_key != this->language_key) {
             Eigen::Vector2f pos_difference = boid->pos - this->pos;
             float squared_distance = pos_difference.squaredNorm();
-            float strength = (squared_perception_radius - squared_distance) / squared_perception_radius;
+            float strength = std::pow((squared_interaction_radius - squared_distance) / squared_interaction_radius, 2);
             acceleration -= pos_difference.normalized() * max_speed * config->AVOIDANCE_FACTOR * (strength);
         }
     }

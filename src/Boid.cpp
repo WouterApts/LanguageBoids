@@ -7,7 +7,6 @@
 #include <random>
 #include <memory>
 
-#include "Config.h"
 #include "Boid.h"
 #include "Obstacles.h"
 #include "ResourceManager.h"

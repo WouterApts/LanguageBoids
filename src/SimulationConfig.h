@@ -9,11 +9,11 @@ struct SimulationConfig {
     // Default: Flocking
     float COHERENCE_FACTOR = 1.f;
     float ALIGNMENT_FACTOR = 0.3f;
-    float SEPARATION_FACTOR = 5.f;
-    float AVOIDANCE_FACTOR = 0.3f;
+    float SEPARATION_FACTOR = 10.f;
+    float AVOIDANCE_FACTOR = 1.f;
 
-    float MAX_SPEED = 150;
-    float MIN_SPEED = 75;
+    float MAX_SPEED = 100;
+    float MIN_SPEED = 50;
 
     float PERCEPTION_RADIUS = 500;
     float INTERACTION_RADIUS = 250;
@@ -36,9 +36,9 @@ struct SimulationConfig {
     float MUTATION_RATE = 0.01f;
 
     // Language Dominance Simulation
-    int SECONDS_PER_RUN = 600;
+    int SECONDS_PER_RUN = 300;
     int RUNS_PER_DISTRIBUTION = 20;
-    int DISTRIBUTIONS = 20;
+    int DISTRIBUTIONS = 100;
     int TOTAL_BOIDS = 3000;
 };
 

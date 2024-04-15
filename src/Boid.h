@@ -11,7 +11,6 @@
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
 
-#include "Config.h"
 #include "Obstacles.h"
 #include "World.h"
 #include "LanguageManager.h"
@@ -105,10 +104,10 @@ class VectorBoid : public Boid {
 public:
     VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
             Eigen::VectorXi language, float language_influence,
-            float perception_radius = PERCEPTION_RADIUS,
-            float interaction_radius = INTERACTION_RADIUS,
-            float separation_radius = SEPARATION_RADIUS,
-            float collision_radius = BOID_COLLISION_RADIUS);
+            float perception_radius,
+            float interaction_radius,
+            float separation_radius,
+            float collision_radius);
 
     Eigen::VectorXi language_vector;
     float language_influence;

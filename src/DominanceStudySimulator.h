@@ -24,40 +24,64 @@ public:
     int current_run_nr = 0;
     int current_distrubution_nr = 0;
     std::map<int, int> current_initial_distribution;
+    bool fast_analysis = false;
 
     //Data logging
     std::vector<int> run_outcomes;
     std::vector<double> run_times;
     std::vector<std::array<int, 2>> run_final_distributions;
-    std::string output_file_name;
+    std::string output_file_path;
 
     // Interface
     std::shared_ptr<StudyInterface> study_interface;
     std::shared_ptr<EscapeStateInterface> escape_interface;
     std::shared_ptr<InterfaceManager> interface_manager;
+    std::map<int, bool> one_sided_outcome_found;
 
-    DominanceStudySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string file_name_without_extension,
+    DominanceStudySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string sim_file_name_without_extension,
                             float camera_width, float camera_height, int starting_distribution_nr = 0);
 
-    static void LogDataToFile(const std::string &file_name, int distribution_nr, std::map<int, int> current_initial_distribution, const std::vector<
+    static void LogDataToFile(const std::string &file_path, int distribution_nr, std::map<int, int> current_initial_distribution, const std::vector<
                               int> &run_outcomes, const std::vector<double> &run_times, const std::vector<std::array<int, 2>> &
                               run_final_distributions);
 
     void Init() override;
     void ProcessInput() override;
 
-    void SetAndInitializeCurrentDistribution(int number);
+    void SetupCurrentDistribution(int number);
+
+    void SetNextDistribution();
 
     void Update(sf::Time deltaTime) override;
     void Pause() override;
     void Draw() override;
     void Start() override;
 
-    void SetCurrentInitialDistribition();
+    void CalcInitialDistribitionValues();
     void SetBoidsSpawnedPerSpawner();
     void SetLanguageKeysToOneAndZero();
 };
 
+class DominanceStudyPreview : public State {
+public:
+
+    std::string output_file_name;
+    KeySimulationData simulation_data;
+
+    std::shared_ptr<Context> context;
+    std::shared_ptr<InterfaceManager> interface_manager;
+
+    std::unique_ptr<KeySimulator> simulation_preview;
+
+    DominanceStudyPreview(const std::shared_ptr<Context>& context, KeySimulationData  simulation_data, float camera_width, float camera_height);
+
+    void Init() override;
+    void ProcessInput() override;
+    void Update(sf::Time deltaTime) override;
+    void Pause() override;
+    void Draw() override;
+    void Start() override;
+};
 
 
 #endif //DOMINANCESTUDY_H

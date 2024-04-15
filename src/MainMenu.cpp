@@ -63,8 +63,9 @@ void MainMenu::StartSimulation() {
         }
         else if (loaded_data->type == DominanceStudy) {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
-            auto output_file_name = removeExtension(file_name) + "_output.txt";
-            auto simulation = std::make_unique<DominanceStudySimulator>(context, simulation_data, output_file_name, 1600, 900);
+            auto simulation_file_name = ExtractFileName(file_name);
+            auto simulation = std::make_unique<DominanceStudySimulator>(context, simulation_data, simulation_file_name, 1600, 900);
+            simulation->fast_analysis = true;
             context->state_manager->AddState(std::move(simulation));
         }
     } else {
@@ -73,10 +74,11 @@ void MainMenu::StartSimulation() {
     }
 }
 
-std::string MainMenu::removeExtension(const std::string& filename) {
+std::string MainMenu::ExtractFileName(const std::string& filename) {
+    size_t lastSlashPos = filename.find_last_of('\\');
     size_t lastDotPos = filename.find_last_of('.');
-    if (lastDotPos != std::string::npos) {
-        return filename.substr(0, lastDotPos);
+    if (lastSlashPos != std::string::npos && lastDotPos != std::string::npos) {
+        return filename.substr(lastSlashPos + 1, lastDotPos - lastSlashPos - 1);
     }
     return filename; // No extension found
 }
