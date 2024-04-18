@@ -105,7 +105,7 @@ void DominanceStudySimulator::SetNextDistribution() {
             current_distrubution_nr = simulation_data.config->DISTRIBUTIONS;
         }
         //Skip distrubutions of which the outcome is already known due to the outcome of previous (less unequal) distributions.
-        else if (current_distrubution_nr%2 && one_sided_outcome_found[0] || (!current_distrubution_nr%2 && one_sided_outcome_found[1])) {
+        else if ((current_distrubution_nr%2 == 1 && one_sided_outcome_found[0]) || (current_distrubution_nr%2 == 0 && one_sided_outcome_found[1])) {
             current_distrubution_nr++;
         }
     }
@@ -241,7 +241,7 @@ void DominanceStudySimulator::CalcInitialDistribitionValues() {
         current_initial_distribution[0] = total/2;
         current_initial_distribution[1] = total - current_initial_distribution[0];
     }
-    // odd (langauge 1 is in the majority)
+    // odd (language 1 is in the majority)
     else if (current_distrubution_nr % 2) {
         current_initial_distribution[1] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/distributions);
         current_initial_distribution[0] = total - current_initial_distribution[1];

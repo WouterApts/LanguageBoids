@@ -18,6 +18,7 @@ file(COPY fonts DESTINATION ${CMAKE_BINARY_DIR})
 # adds the specified directory to the include directories for all targets in the current CMakeLists.txt file and all its subdirectories.
 include_directories(C:/SFML/include)
 include_directories(C:/Eigen-3.4.0)
+
 include_directories(src)
 
 # Add local subdirectories and read their CMakeList.txt files
@@ -29,7 +30,7 @@ add_executable(Thesis_run ${SOURCE_FILES})
 target_link_libraries(Thesis_run ${CMAKE_PROJECT_NAME}_lib) # adding Thesis_lib to build (SFML already linked)
 
 # Enable testing
-enable_testing()
+# enable_testing()
 
 
 
