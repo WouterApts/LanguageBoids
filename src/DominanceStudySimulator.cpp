@@ -55,32 +55,41 @@ void DominanceStudySimulator::Init() {
 }
 
 void DominanceStudySimulator::ProcessInput() {
-    if (current_simulation) {
-        current_simulation->ProcessInput();
-    }
+    // if (current_simulation) {
+    //     current_simulation->ProcessInput();
+    // }
 
     sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
     auto mouse_interface_pos = context->window->mapPixelToCoords(mouse_pos, context->window->getDefaultView());
     interface_manager->OnMouseEnter(mouse_interface_pos);
     interface_manager->OnMouseLeave(mouse_interface_pos);
 
+    // TODO: Only poll events once in the program!
     sf::Event event{};
     while(context->window->pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            context->window->close();
+        }
+
         if (event.type == sf::Event::MouseButtonPressed) {
             if (event.mouseButton.button == sf::Mouse::Left) {
                 interface_manager->OnLeftClick(mouse_interface_pos);
             }
         }
-    }
 
-    if (IsKeyPressedOnce(sf::Keyboard::Key::Right)) {
-        current_simulation.reset(nullptr);
-        SetupCurrentDistribution(current_distrubution_nr + 1);
-    }
+        if (IsKeyPressedOnce(sf::Keyboard::Key::Right)) {
+            current_simulation.reset(nullptr);
+            SetupCurrentDistribution(current_distrubution_nr + 1);
+        }
 
-    if (IsKeyPressedOnce(sf::Keyboard::Key::Left)) {
-        current_simulation.reset(nullptr);
-        SetupCurrentDistribution(current_distrubution_nr - 1);
+        if (IsKeyPressedOnce(sf::Keyboard::Key::Left)) {
+            current_simulation.reset(nullptr);
+            SetupCurrentDistribution(current_distrubution_nr - 1);
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
+            context->state_manager->PopState();
+        }
     }
 }
 

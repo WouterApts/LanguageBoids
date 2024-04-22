@@ -9,18 +9,16 @@
 
 #include "Boid.h"
 #include "State.h"
-#include "Application.h"
 #include "Camera.h"
 #include "analysis/KeyAnalyser.h"
 #include "LanguageManager.h"
 #include "Obstacles.h"
 #include "SimulationData.h"
 #include "SpatialGrid.tpp"
-
+#include "Application.h"
 
 class Simulator : public State {
 public:
-
     std::shared_ptr<Context> context;
     std::shared_ptr<SimulationConfig> config;
     World world;
@@ -34,6 +32,7 @@ public:
     // ProcessInput Methods
     template <typename BoidType>
     void ProcessBoidSelection(const Context* context, sf::Vector2i& mouse_pos, SpatialGrid<BoidType>& spatial_boid_grid);
+
     void ProcessCameraZoom(const sf::Event &event);
 
     // Draw methods

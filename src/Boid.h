@@ -69,6 +69,7 @@ class KeyBoid : public Boid {
 public:
     int language_key;
     float language_satisfaction;
+    int updated_language_key = -1;
 
     KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
             const std::shared_ptr<SimulationConfig> &config,
@@ -85,17 +86,16 @@ public:
     Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<KeyBoid*> &nearby_boids) const;
     Eigen::Vector2f CalcSeparationAcceleration(const std::vector<KeyBoid*>& nearby_boids) const;
     Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& nearby_boids) const;
+    void CalcLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+                                  const std::vector<KeyBoid *> &interacting_boids,
+                                  sf::Time delta_time);
 
-    void SetLanguageKey(int key);
 
     void UpdateColor(LanguageManager &languageManager);
-    void UpdateLanguage(const std::vector<KeyBoid*> &nearby_boids, LanguageManager &language_manager,
-                        sf::Time delta_time);
+    void UpdateLanguage(LanguageManager &language_manager);
 
-    void UpdateLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
-                                    const std::vector<KeyBoid *> &interacting_boids, LanguageManager &language_manager,
-                                    sf::Time delta_time);
 
+    void SetLanguageKey(int key);
     void SetLanguageSatisfaction(float value);
 };
 

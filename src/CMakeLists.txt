@@ -11,6 +11,38 @@ set(HEADER_FILES
         SpatialGrid.h
         SpatialGrid.tpp
         World.h
+        Terrain.h
+        ResourceManager.h
+        TimedEvent.h
+        DominanceStudySimulator.h
+        BoidSpawners.h
+        MainMenu.h
+        SimulationData.h
+        SimulationConfig.h
+
+        editor/Editor.h
+        editor/Tools.h
+        editor/ToolSelector.h
+        editor/Serialization.h
+
+        analysis/KeyAnalyser.h
+
+        ui/components/Button.h
+        ui/components/Panel.h
+        ui/components/InputField.h
+        ui/ToolSelectorInterface.h
+        ui/TerrainToolInterface.h
+        ui/InterfaceManager.h
+        ui/BoidToolInterfaces.h
+        ui/SettingsInterface.h
+        ui/components/InterfaceComponent.h
+        ui/EscapeStateInterface.h
+        ui/ConfigInterface.h
+        ui/WorldSizeInterface.h
+        ui/StudyInterface.h
+        ui/components/TextField.h
+
+        PARENT_SCOPE
 )
 
 set(SOURCE_FILES
@@ -21,72 +53,40 @@ set(SOURCE_FILES
         Camera.cpp
         Obstacles.cpp
         Utility.cpp
-        #VectorSimulator.cpp
+        # VectorSimulator.cpp
         KeySimulator.cpp
         KeyBoid.cpp
         VectorBoid.cpp
         LanguageManager.cpp
         Terrain.cpp
-        Terrain.h
-        analysis/KeyAnalyser.cpp
-        analysis/KeyAnalyser.h
-        editor/Editor.cpp
-        editor/Editor.h
         ResourceManager.cpp
-        ResourceManager.h
-        editor/Tools.cpp
-        editor/Tools.h
-        ui/components/Button.cpp
-        ui/components/Button.h
-        ui/components/Panel.cpp
-        ui/components/Panel.h
-        ui/components/InputField.cpp
-        ui/components/InputField.h
-        editor/ToolSelector.cpp
-        editor/ToolSelector.h
-        ui/ToolSelectorInterface.cpp
-        ui/ToolSelectorInterface.h
-        ui/TerrainToolInterface.cpp
-        ui/TerrainToolInterface.h
-        TimedEvent.h
-        ui/InterfaceManager.cpp
-        ui/InterfaceManager.h
-        ui/components/TextField.cpp
-        ui/components/TextField.h
-        ui/BoidToolInterfaces.cpp
-        ui/BoidToolInterfaces.h
         BoidSpawners.cpp
-        BoidSpawners.h
-        editor/Serialization.cpp
-        editor/Serialization.h
-        ui/SettingsInterface.cpp
-        ui/SettingsInterface.h
         MainMenu.cpp
-        MainMenu.h
-        ui/components/InterfaceComponent.cpp
-        ui/components/InterfaceComponent.h
-        ui/EscapeStateInterface.cpp
-        ui/EscapeStateInterface.h
-        SimulationData.h
-        SimulationConfig.h
-        ui/ConfigInterface.cpp
-        ui/ConfigInterface.h
-        ui/WorldSizeInterface.cpp
-        ui/WorldSizeInterface.h
         DominanceStudySimulator.cpp
-        DominanceStudySimulator.h
+
+        analysis/KeyAnalyser.cpp
+
+        editor/Editor.cpp
+        editor/Tools.cpp
+        editor/ToolSelector.cpp
+        editor/Serialization.cpp
+
+        ui/components/Button.cpp
+        ui/components/Panel.cpp
+        ui/components/InputField.cpp
+        ui/components/InterfaceComponent.cpp
+        ui/ToolSelectorInterface.cpp
+        ui/TerrainToolInterface.cpp
+        ui/InterfaceManager.cpp
+        ui/components/TextField.cpp
+        ui/BoidToolInterfaces.cpp
+        ui/EscapeStateInterface.cpp
+        ui/SettingsInterface.cpp
+        ui/ConfigInterface.cpp
+        ui/WorldSizeInterface.cpp
         ui/StudyInterface.cpp
-        ui/StudyInterface.h
+
+        PARENT_SCOPE
 )
 
-add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
-
-# SFML package configuration
-set(SFML_STATIC_LIBRARIES TRUE)
-set(SFML_DIR C:/SFML/lib/cmake/SFML)
-find_package(SFML COMPONENTS system window graphics audio network REQUIRED)
-
-# Link SFML libraries
-# (PRIVATE: The dependency is only visible to the target being linked and not to any targets that depend on this target.)
-# (PUBLIC: The dependency is visible to the target being linked and also to any targets that depend on this target.)
-target_link_libraries(${CMAKE_PROJECT_NAME}_lib PUBLIC sfml-system sfml-window sfml-graphics sfml-audio)
+# add_library(${CMAKE_PROJECT_NAME}_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})

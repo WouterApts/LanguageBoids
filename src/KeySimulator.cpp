@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 
+#include "Application.h"
 #include "BoidSpawners.h"
 #include "LanguageManager.h"
 #include "Simulator.h"
@@ -78,8 +79,8 @@ void KeySimulator::Update(sf::Time delta_time) {
         }
         if (!in_terrain) boid->SetDefaultMinMaxSpeed();
 
-        //Update boids language
-        boid->UpdateLanguageSatisfaction(perceived_boids, interacting_boids, language_manager, delta_time);
+        //Update boids language satisfaction
+        boid->CalcLanguageSatisfaction(perceived_boids, interacting_boids, delta_time);
     }
 
     for (const auto& boid : boids) {
@@ -89,6 +90,9 @@ void KeySimulator::Update(sf::Time delta_time) {
         //Update boids position
         boid->UpdatePosition(delta_time);
         spatial_boid_grid.UpdateObj(boid);
+
+        //Update boids language
+        boid->UpdateLanguage(language_manager);
 
         //Update boids sprite
         boid->UpdateSprite();
@@ -103,7 +107,6 @@ void KeySimulator::ProcessInput() {
     sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
     sf::Event event{};
     while(context->window->pollEvent(event)) {
-
         if (event.type == sf::Event::Closed) {
             context->window->close();
         }
@@ -130,22 +133,21 @@ void KeySimulator::ProcessInput() {
             //Camera Zoom
             ProcessCameraZoom(event);
         }
-    }
 
-    if (IsKeyPressedOnce(sf::Keyboard::G)) {
-        std::cout << "Visual Spatial Grid:" << !spatial_boid_grid.is_visible << std::endl;
-        spatial_boid_grid.is_visible = !spatial_boid_grid.is_visible;
-    }
+        if (IsKeyPressedOnce(sf::Keyboard::G)) {
+            std::cout << "Visual Spatial Grid:" << !spatial_boid_grid.is_visible << std::endl;
+            spatial_boid_grid.is_visible = !spatial_boid_grid.is_visible;
+        }
 
-    if (IsKeyPressedOnce(sf::Keyboard::F5)) {
-        //analyser.SaveBoidPerLanguageToCSV("bpl_output.csv");
-        //analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
-    }
+        if (IsKeyPressedOnce(sf::Keyboard::F5)) {
+            //analyser.SaveBoidPerLanguageToCSV("bpl_output.csv");
+            //analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
+        }
 
-    if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
-        context->state_manager->PopState();
+        if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
+            context->state_manager->PopState();
+        }
     }
-
     camera.Drag(mouse_pos);
 };
 

@@ -7,8 +7,6 @@
 
 #include "MainMenu.h"
 #include "ResourceManager.h"
-#include "World.h"
-#include "Simulator.cpp"
 #include "Utility.h"
 #include "editor/Editor.h"
 #include "editor/Serialization.h"

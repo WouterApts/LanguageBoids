@@ -2,7 +2,6 @@
 // Created by wouter on 20-2-2024.
 //
 
-
 #include <SFML/Window/Event.hpp>
 #include "Simulator.h"
 #include "ResourceManager.h"

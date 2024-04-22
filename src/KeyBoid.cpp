@@ -20,44 +20,9 @@ KeyBoid::KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, 
       language_key(language_key), language_satisfaction(1.f) {
 }
 
-void KeyBoid::UpdateLanguage(const std::vector<KeyBoid*>& nearby_boids, LanguageManager& language_manager, sf::Time delta_time) {
-    // Calculate prevalence per language in the boid's neighborhood.
-    std::unordered_map<int, float> language_prevalence;
-    language_prevalence[this->language_key] += 1;
-    for (auto& boid : nearby_boids) {
-        language_prevalence[boid->language_key] += 1;
-    }
-
-    // For each language, calculate chance for boid to convert to it.
-    float language_prevalence_sum = 0;
-    for (auto& [key, value] : language_prevalence) {
-        Language* language = language_manager.GetLanguage(key).get();
-        value /= static_cast<float>(nearby_boids.size());
-        value *= language->popularity_status;
-        language_prevalence_sum += value;
-    }
-
-    // Using a random number, choose a language based on the previously calculated chances.
-    float r = GetRandomFloatBetween(0, language_prevalence_sum);
-    float prev_threshold = 0;
-    for (auto it = language_prevalence.begin(); it != language_prevalence.end(); ++it) {
-        if (r < language_prevalence[it->first] + prev_threshold) {
-            int new_language_key = it->first;
-            if (new_language_key != this->language_key) {
-                this->language_key = new_language_key;
-                this->UpdateColor(language_manager);
-            }
-            break;  // Exit loop once a new language is selected
-        } else {
-            prev_threshold += language_prevalence[it->first];
-        }
-    }
-}
-
-void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
-                                          const std::vector<KeyBoid *> &interacting_boids,
-                                          LanguageManager& language_manager,
-                                          sf::Time delta_time) {
+void KeyBoid::CalcLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+                                       const std::vector<KeyBoid *> &interacting_boids,
+                                       sf::Time delta_time) {
 
     // Calculate language status based on the boids languages within the perception range.
     std::map<int, float> language_status;
@@ -93,18 +58,25 @@ void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *> &perceived
 
     // change language if current influence goes below zero
     if (this->language_satisfaction <= 0) {
-        int max_language_key = -1; // Initialize max_language to an invalid value
         float max_influence = -1.0f;
         // Get language with maximum influence
         for (const auto&[key, influence] : language_influence) {
             if (influence > max_influence) {
-                max_language_key = key;
+                updated_language_key = key;
                 max_influence = influence;
             }
         }
-        SetLanguageKey(max_language_key);
+    }
+}
+
+void KeyBoid::UpdateLanguage(LanguageManager& language_manager) {
+    if (updated_language_key != -1) {
+        SetLanguageKey(updated_language_key);
         SetLanguageSatisfaction(1.f);
         UpdateColor(language_manager);
+
+        //Reset new_language_key
+        updated_language_key = -1;
     }
 }
 
