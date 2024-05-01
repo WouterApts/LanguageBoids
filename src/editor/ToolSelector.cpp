@@ -15,7 +15,7 @@ ToolSelector::ToolSelector(SimulationData& simulation_data)
     tools[KeyBoidCircleT] = std::make_shared<KeyBoidCircleTool>();
     tools[KeyBoidRectangleT] = std::make_shared<KeyBoidRectangleTool>();
     tools[VectorBoidCircleT] = std::make_shared<VectorBoidCircleTool>();
-    tools[VectorBoidRectangleT] = std::make_shared<VectorBoidRectangularTool>();
+    tools[VectorBoidRectangleT] = std::make_shared<VectorBoidRectangleTool>();
     tools[StudyBoidCircleT] = std::make_shared<StudyBoidCircleTool>();
     tools[StudyBoidRectangleT] = std::make_shared<StudyBoidRectangleTool>();
 }

@@ -48,6 +48,16 @@ ToolSelectorInterface::ToolSelectorInterface(const std::shared_ptr<InterfaceMana
     interface_manager->AddComponent(keyboid_rectangle_tool_interface);
     keyboid_rectangle_tool_interface->Deactivate();
 
+    auto p_vectorboid_circle_tool = std::dynamic_pointer_cast<VectorBoidCircleTool>(p_tool_selector->tools[VectorBoidCircleT]);
+    vectorboid_circle_tool_interface = std::make_shared<VectorBoidToolInterface>(tool_interface_position, p_vectorboid_circle_tool, *this->interface_manager);
+    interface_manager->AddComponent(vectorboid_circle_tool_interface);
+    vectorboid_circle_tool_interface->Deactivate();
+
+    auto p_vectorboid_rectangle_tool = std::dynamic_pointer_cast<VectorBoidRectangleTool>(p_tool_selector->tools[VectorBoidRectangleT]);
+    vectorboid_rectangle_tool_interface = std::make_shared<VectorBoidToolInterface>(tool_interface_position, p_vectorboid_rectangle_tool, *this->interface_manager);
+    interface_manager->AddComponent(vectorboid_rectangle_tool_interface);
+    vectorboid_rectangle_tool_interface->Deactivate();
+
     auto p_study_boid_circle_tool = std::dynamic_pointer_cast<StudyBoidCircleTool>(p_tool_selector->tools[StudyBoidCircleT]);
     studyboid_circle_tool_interface = std::make_shared<StudyBoidToolInterface>(tool_interface_position, p_study_boid_circle_tool);
     interface_manager->AddComponent(studyboid_circle_tool_interface);
@@ -129,12 +139,18 @@ void ToolSelectorInterface::ActivateSelectedToolInterface() {
         case KeyBoidCircleT:
             active_tool_interface = keyboid_circle_tool_interface;
             break;
+        case VectorBoidCircleT:
+            active_tool_interface = vectorboid_circle_tool_interface;
+        break;
         case StudyBoidCircleT:
             active_tool_interface = studyboid_circle_tool_interface;
             break;
         case KeyBoidRectangleT:
             active_tool_interface = keyboid_rectangle_tool_interface;
             break;
+        case VectorBoidRectangleT:
+            active_tool_interface = vectorboid_rectangle_tool_interface;
+        break;
         case StudyBoidRectangleT:
             active_tool_interface = studyboid_rectangle_tool_interface;
             break;

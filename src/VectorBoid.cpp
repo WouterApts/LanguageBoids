@@ -20,15 +20,15 @@ VectorBoid::VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f
       language_vector(std::move(language_vector)), language_influence(language_influence) {}
 
 
-Eigen::Vector2f VectorBoid::GetUpdatedAcceleration(const std::vector<VectorBoid *> &nearby_boids, const Eigen::VectorXf& language_distances) const {
+Eigen::Vector2f VectorBoid::GetUpdatedAcceleration(const std::vector<VectorBoid*> &interacting_boids, const Eigen::VectorXf& language_distances) const {
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
-    if (!nearby_boids.empty()) {
+    if (!interacting_boids.empty()) {
         //Coherence & Alignment
-        acceleration += CalcCoherenceAlignmentAcceleration(nearby_boids, language_distances);
+        acceleration += CalcCoherenceAlignmentAcceleration(interacting_boids, language_distances);
         //Avoidance
-        acceleration += CalcAvoidanceAcceleration(nearby_boids, language_distances);
+        acceleration += CalcAvoidanceAcceleration(interacting_boids, language_distances);
         //Separation
-        acceleration += CalcSeparationAcceleration(nearby_boids);
+        acceleration += CalcSeparationAcceleration(interacting_boids);
     }
     return acceleration;
 }
@@ -50,9 +50,9 @@ float VectorBoid::CalcBehaviourModifier(const float language_distance) const {
     float behaviour_modifier;
     float n = (language_distance - 0.5f)*2;
     if (language_distance >= 0.5) {
-        behaviour_modifier =(static_cast<float>(std::tanh((2*n-1)*std::numbers::pi)) + 1) / 2;
+        behaviour_modifier = (static_cast<float>(std::tanh((2*n-1)*std::numbers::pi)) + 1) / 2;
     } else {
-        behaviour_modifier =(static_cast<float>(std::tanh((-2*n-1)*std::numbers::pi)) + 1) / 2;
+        behaviour_modifier = (static_cast<float>(std::tanh((-2*n-1)*std::numbers::pi)) + 1) / 2;
     }
     return behaviour_modifier;
 }
@@ -70,7 +70,7 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
     for (size_t i = 0; i < number_of_boids; ++i) {
         // Check if interacting boid has a similat language
         const float& language_distance = language_distances(i);
-        if (language_distance >= 0.5) {
+        if (language_distance <= 0.5) {
             float modifier = CalcBehaviourModifier(language_distance);
             total_modifier += modifier;
             avg_pos += interacting_boids[i]->pos * modifier;
@@ -79,9 +79,9 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
     }
 
     // account for own velocity and position (with modifier 1, logically)
-    avg_pos += this->pos;
-    avg_vel += this->vel;
-    total_modifier += 1;
+    // avg_pos += this->pos;
+    // avg_vel += this->vel;
+    // total_modifier += 1;
 
     // normalize all modifier weights by deviding with total_modifier weight.
     if (total_modifier > 0) {
@@ -125,7 +125,7 @@ Eigen::Vector2f VectorBoid::CalcAvoidanceAcceleration(const std::vector<VectorBo
 
     for (size_t i = 0; i < interacting_boids.size(); ++i) {
         const float& language_distance = language_distances(i);
-        if (language_distance < 0.5) {
+        if (language_distance > 0.5) {
             float modifier = CalcBehaviourModifier(language_distance);
             Eigen::Vector2f pos_difference = (interacting_boids[i]->pos - this->pos) * modifier;
             float squared_distance = pos_difference.squaredNorm();
@@ -167,7 +167,7 @@ Eigen::VectorXf VectorBoid::CalcLanguageDistances(const std::vector<std::shared_
 int VectorBoid::CalcMutatedLanguageFeature(sf::Time delta_time) const {
     auto r = GetRandomFloatBetween(0,1);
     int f_index = -1;
-    if (r < config->MUTATION_PROBABILITY * delta_time.asSeconds()) {
+    if (r < config->MUTATION_RATE * delta_time.asSeconds()) {
         f_index = GetRandomIntBetween(0, config->LANGUAGE_SIZE);
     }
     return f_index;
@@ -190,8 +190,8 @@ std::set<int> VectorBoid::CalcAdoptedLanguageFeatures(const std::vector<VectorBo
     for (Eigen::Index i = 0; i < num_boids; ++i) {
 
         auto boid = interacting_boids[i];
-        float interaction_probability = config->MIN_INTERACTION_PROBABILITY
-                                          + (1-config->MIN_INTERACTION_PROBABILITY) * std::pow(10, language_distances(i));
+        float interaction_probability = config->MIN_INTERACTION_RATE
+                                          + (1-config->MIN_INTERACTION_RATE) * std::pow(10, language_distances(i));
         // Interaction probability check per boid
         auto r = GetRandomFloatBetween(0,1);
         if (r < interaction_probability * delta_time.asSeconds()) {
@@ -200,7 +200,7 @@ std::set<int> VectorBoid::CalcAdoptedLanguageFeatures(const std::vector<VectorBo
             if (this->language_vector(f_index) != boid->language_vector(f_index)) {
                 // Calculate the number of times the feature variant occures in the perceived area
                 int f_variant_occurences = CalcFeatureVariantOccurences(boid->language_vector[f_index], f_index, perceived_boids);
-                float p = config->MIN_ADOPTION_PROBABILITY + f_variant_occurences/perceived_boids.size();
+                float p = config->MIN_ADOPTION_RATE + f_variant_occurences/perceived_boids.size();
                 float adoption_probability = std::min(1.f, p);
 
                 // Feature Adoption probability check

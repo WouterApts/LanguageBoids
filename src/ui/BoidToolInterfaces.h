@@ -13,6 +13,11 @@ public:
     KeyBoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager);
 };
 
+class VectorBoidToolInterface : public Panel {
+public:
+    VectorBoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager);
+};
+
 class StudyBoidToolInterface : public Panel {
 public:
 

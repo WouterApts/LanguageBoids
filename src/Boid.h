@@ -128,7 +128,7 @@ public:
 
     // Acceleration
     void UpdateAcceleration(const std::vector<VectorBoid *> &interacting_boids, const Eigen::VectorXf &language_distances);
-    Eigen::Vector2f GetUpdatedAcceleration(const std::vector<VectorBoid *> &nearby_boids, const Eigen::VectorXf &language_distances) const;
+    Eigen::Vector2f GetUpdatedAcceleration(const std::vector<VectorBoid *> &interacting_boids, const Eigen::VectorXf &language_distances) const;
     Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<VectorBoid*>& interacting_boids, Eigen::VectorXf language_distances) const;
     Eigen::Vector2f CalcSeparationAcceleration(const std::vector<VectorBoid*>& interacting_boids) const;
     Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<VectorBoid*>& interacting_boids, const Eigen::VectorXf& language_similarities) const;

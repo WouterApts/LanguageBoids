@@ -21,6 +21,8 @@ public:
     std::shared_ptr<KeyBoidToolInterface> keyboid_rectangle_tool_interface;
 
     //Vector Simulator
+    std::shared_ptr<VectorBoidToolInterface> vectorboid_circle_tool_interface;
+    std::shared_ptr<VectorBoidToolInterface> vectorboid_rectangle_tool_interface;
 
     //Dominance Study
     std::shared_ptr<StudyBoidToolInterface> studyboid_circle_tool_interface;

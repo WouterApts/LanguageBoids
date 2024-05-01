@@ -29,6 +29,8 @@ public:
 
     static KeySimulationData load_key_simulation_data(std::optional<SimulationData> loaded_data);
 
+    VectorSimulationData load_vector_simulation_data(std::optional<SimulationData> loaded_data);
+
     void Init() override;
     void ProcessInput() override;
     void Update(sf::Time deltaTime) override;

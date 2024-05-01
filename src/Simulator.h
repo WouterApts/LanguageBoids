@@ -26,6 +26,7 @@ public:
     Boid* selected_boid;
     sf::Sprite boid_selection_border;
     std::shared_ptr<sf::Texture>  boid_selection_texture;
+    float total_simulation_time = 0.f;
 
     Simulator(std::shared_ptr<Context> &context, std::shared_ptr<SimulationConfig>& config, World &world, float camera_width, float camera_height);
 
@@ -63,26 +64,30 @@ public:
     VectorSimulator(std::shared_ptr<Context>& context, VectorSimulationData& simulation_data, float camera_width, float camera_height);
 
     void Init() override;
-
-    UpdatedBoidValues UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<VectorBoid>> &boids,
-                                                    sf::Time delta_time) const;
+    void AddBoid(const std::shared_ptr<VectorBoid> &boid);
 
     void Update(sf::Time delta_time) override;
+    void MultiThreadUpdate(sf::Time delta_time);
+
+    VectorSimulator::UpdatedBoidValues MultiThreadUpdateStepOne(int start_index, int end_index, sf::Time delta_time) const;
+
+    void MultiThreadUpdateStepTwo(int start_index, int end_index, sf::Time delta_time);
 
     void UpdateBoidsStepTwo(sf::Time delta_time);
+
+
+    void MultiThreadUpdateTEMP(sf::Time delta_time);
 
     void ProcessInput() override;
 
     void DrawWorldAndBoids();
-
     void DrawSpawners() const;
 
     void Draw() override;
     void Start() override;
     void Pause() override;
 
-    void AddBoid(const std::shared_ptr<VectorBoid> &boid);
-    static VectorBoid CreateRandomBoid(float max_x_coord, float max_y_coord, bool random_language);
+
 };
 
 
@@ -105,9 +110,6 @@ public:
 
     // KeyAnalyser analyser;
     LanguageManager language_manager;
-
-    sf::Time passedTime;
-    float total_simulation_time = 0.f;
 
     KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
 

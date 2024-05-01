@@ -40,7 +40,10 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
         case VectorSimulation:
             file << "VectorSimulation \n"
                  << "LANGUAGE_SIZE: " << data.config->LANGUAGE_SIZE << '\n'
-                 << "MUTATION_RATE: " << data.config->MUTATION_PROBABILITY << '\n';
+                 << "MUTATION_RATE: " << data.config->MUTATION_RATE << '\n'
+                 << "MINIMUM_INTERACTION_RATE: " << data.config->MIN_INTERACTION_RATE << '\n'
+                 << "MINIMUM_ADOPTION_RATE: " << data.config->MIN_ADOPTION_RATE << '\n'
+                 << "BOID_LIFE_STEPS: " << data.config->BOID_LIFE_STEPS << '\n';
             break;
         case DominanceStudy:
             file << "DominanceStudy \n"
@@ -131,10 +134,12 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
         std::string prefix;
         float value;
         ss >> prefix >> value;
+        // Key Simulation
         if (prefix == "a_COEFFICIENT:") {
             data.config->a_COEFFICIENT = value;
         } else if (prefix == "INFLUENCE_RATE:") {
             data.config->INFLUENCE_RATE = value;
+        // Dominance Study
         } else if (prefix == "RUNS_PER_DISTRIBUTION:") {
             data.config->RUNS_PER_DISTRIBUTION = static_cast<int>(value);
         } else if (prefix == "DISTRIBUTIONS:") {
@@ -143,6 +148,18 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             data.config->TOTAL_BOIDS = static_cast<int>(value);
         } else if (prefix == "SECONDS_PER_RUN:") {
             data.config->TIME_STEPS_PER_RUN = static_cast<int>(value);
+        // Vector Simulation
+        } else if (prefix == "LANGUAGE_SIZE:") {
+            data.config->LANGUAGE_SIZE = static_cast<int>(value);
+        } else if (prefix == "MUTATION_RATE:") {
+            data.config->MUTATION_RATE = value;
+        } else if (prefix == "MINIMUM_INTERACTION_RATE:") {
+            data.config->MIN_INTERACTION_RATE = value;
+        } else if (prefix == "MINIMUM_ADOPTION_RATE:") {
+            data.config->MIN_ADOPTION_RATE = value;
+        } else if (prefix == "BOID_LIFE_STEPS:") {
+            data.config->BOID_LIFE_STEPS = static_cast<int>(value);
+        // Default Flocking Parameters
         } else if (prefix == "COHERENCE_FACTOR:") {
             data.config->COHERENCE_FACTOR = value;
         } else if (prefix == "ALIGNMENT_FACTOR:") {
@@ -211,6 +228,11 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             }
         } else if (line.compare(0, 25, "KeyBoidRectangularSpawner") == 0) {
             auto spawner = KeyBoidRectangularSpawner::FromString(line);
+            if (spawner != nullptr) {
+                data.boid_spawners.push_back(spawner);
+            }
+        } else if (line.compare(0, 25, "VectorBoidCircularSpawner") == 0) {
+            auto spawner = VectorBoidCircularSpawner::FromString(line);
             if (spawner != nullptr) {
                 data.boid_spawners.push_back(spawner);
             }

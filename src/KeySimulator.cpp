@@ -62,8 +62,6 @@ void KeySimulator::Init() {
 }
 
 void KeySimulator::DivideBoidChunks() {
-    // Define the number of threads to use
-
     // Split the boids vector into chunks for each thread
     boid_chunks.resize(num_threads);
     for (size_t i = 0; i < boids.size(); ++i) {
@@ -179,8 +177,6 @@ void KeySimulator::Update(sf::Time delta_time) {
     } else {
         UpdateBoidsStepOne(boids, delta_time);
     }
-
-    // join all updated_values together into one big list
 
     // Update boids position, language, and sprite sequentially
     UpdateBoidsStepTwo(boids, delta_time);

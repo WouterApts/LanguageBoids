@@ -374,9 +374,9 @@ void VectorBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window)
     }
 }
 
-VectorBoidRectangularTool::VectorBoidRectangularTool() = default;
+VectorBoidRectangleTool::VectorBoidRectangleTool() = default;
 
-void VectorBoidRectangularTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
+void VectorBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         start_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -401,7 +401,7 @@ void VectorBoidRectangularTool::OnLeftClick(sf::Vector2f tool_pos, SimulationDat
     }
 }
 
-void VectorBoidRectangularTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void VectorBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         DrawSpawnerRectangle(start_pos, tool_pos, sf::Color::White, window);
     }

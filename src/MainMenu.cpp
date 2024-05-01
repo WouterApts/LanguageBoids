@@ -65,14 +65,20 @@ void MainMenu::StartSimulation() {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
             auto simulation = std::make_unique<KeySimulator>(context, simulation_data, 1600, 900);
             context->state_manager->AddState(std::move(simulation));
+        }else if (loaded_data->type == VectorSimulation) {
+            VectorSimulationData simulation_data = load_vector_simulation_data(loaded_data);
+            auto simulation_file_name = ExtractFileName(file_name);
+            auto simulation = std::make_unique<VectorSimulator>(context, simulation_data, 1600, 900);
+            context->state_manager->AddState(std::move(simulation));
         }
         else if (loaded_data->type == DominanceStudy) {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
             auto simulation_file_name = ExtractFileName(file_name);
             auto simulation = std::make_unique<DominanceStudySimulator>(context, simulation_data, simulation_file_name, 1600, 900);
-            //simulation->fast_analysis = true;
+            //simulation->fast_analysis = true; //Skip testing distributions once a completely dominant one has been found.
             context->state_manager->AddState(std::move(simulation));
         }
+
     } else {
         std::cerr << "Error: Something wrong, cannot open file! " << std::endl;
         return;
@@ -136,6 +142,16 @@ KeySimulationData MainMenu::load_key_simulation_data(std::optional<SimulationDat
     std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
                    [](const std::shared_ptr<BoidSpawner>& spawner) {
                        return std::dynamic_pointer_cast<KeyBoidSpawner>(spawner);
+                   });
+    return simulation_data;
+}
+
+VectorSimulationData MainMenu::load_vector_simulation_data(std::optional<SimulationData> loaded_data) {
+    auto simulation_data = VectorSimulationData(loaded_data->world, loaded_data->config);
+    // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
+    std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
+                   [](const std::shared_ptr<BoidSpawner>& spawner) {
+                       return std::dynamic_pointer_cast<VectorBoidSpawner>(spawner);
                    });
     return simulation_data;
 }

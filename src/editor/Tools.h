@@ -143,9 +143,9 @@ public:
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 };
 
-class VectorBoidRectangularTool : public BoidTool {
+class VectorBoidRectangleTool : public BoidTool {
 public:
-    VectorBoidRectangularTool();
+    VectorBoidRectangleTool();
 
     Eigen::Vector2f start_pos;
 
