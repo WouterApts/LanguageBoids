@@ -38,7 +38,7 @@ public:
     void RemoveObj(const std::shared_ptr<ObjType> &obj);
     void UpdateObj(const std::shared_ptr<ObjType> &obj);
 
-    std::vector<ObjType*> ObjRadiusSearch(float query_radius, const std::shared_ptr<ObjType> &obj);
+    std::vector<ObjType*> ObjRadiusSearch(float query_radius, const std::shared_ptr<ObjType> &obj) const;
     std::vector<ObjType*> PosRadiusSearch(float query_radius, Eigen::Vector2f position);
     std::vector<ObjType*> LocalSearch(Eigen::Vector2f position);
 

@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "Application.h"
 #include "editor/Serialization.h"
 

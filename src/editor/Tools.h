@@ -85,7 +85,11 @@ public:
 
     bool building = false;
     int boid_count = 100;
+    // Key Boids
     int language_key = 0;
+    // Vector Boids
+    int language_seed = 42;
+    float feature_bias = 0.5;
 
     void Reset() override;
     void OnRightClick(sf::Vector2f tool_pos, World *world) override;
@@ -126,6 +130,27 @@ class StudyBoidRectangleTool : public KeyBoidRectangleTool {
 public:
     StudyBoidRectangleTool();
     void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
+
+};
+
+class VectorBoidCircleTool : public BoidTool {
+public:
+    VectorBoidCircleTool();
+
+    Eigen::Vector2f center_pos;
+
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
+    void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
+};
+
+class VectorBoidRectangularTool : public BoidTool {
+public:
+    VectorBoidRectangularTool();
+
+    Eigen::Vector2f start_pos;
+
+    void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
+    void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 
 };
 #endif //TOOL_H

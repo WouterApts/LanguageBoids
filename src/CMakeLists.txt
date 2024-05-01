@@ -53,7 +53,7 @@ set(SOURCE_FILES
         Camera.cpp
         Obstacles.cpp
         Utility.cpp
-        # VectorSimulator.cpp
+        VectorSimulator.cpp
         KeySimulator.cpp
         KeyBoid.cpp
         VectorBoid.cpp

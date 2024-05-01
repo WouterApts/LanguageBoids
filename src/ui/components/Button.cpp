@@ -77,7 +77,6 @@ void TextButton::OnMouseLeave(sf::Vector2f mouse_pos) {
 }
 
 void TextButton::SetPosition(const sf::Vector2f& pos) {
-    std::cout << "setting position" << std::endl;
     RectangleComponent::SetPosition(pos);
     sf::FloatRect textBounds = text.getLocalBounds();
     float textPosX = pos.x + (this->rect.getSize().x - textBounds.width) / 2.0f;

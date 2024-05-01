@@ -21,13 +21,12 @@ DominanceStudySimulator::DominanceStudySimulator(std::shared_ptr<Context> &conte
     : context(context), simulation_data(simulation_data),
       camera(sf::Vector2f(simulation_data.world.width/2, simulation_data.world.height/2), camera_width, camera_height),
       interface_manager(std::make_shared<InterfaceManager>()),
-      output_file_path("output/" + sim_file_name_without_extension +  + "_output.txt"),
+      output_file_path("output/" + sim_file_name_without_extension + "_output.txt"),
       current_distrubution_nr(starting_distributin_nr) {
 
     // Create the output directory if it doesn't exist
     if (!std::filesystem::exists("output/"))
         std::filesystem::create_directory("output/");
-    std::ofstream file(output_file_path);
 
     // set all language_keys to 0 and 1
     SetLanguageKeysToOneAndZero();
@@ -51,7 +50,16 @@ void DominanceStudySimulator::Init() {
 
     // Calculate Distribution and setup boids spanwed for each Spawner
     SetupCurrentDistribution(current_distrubution_nr);
+}
 
+void DominanceStudySimulator::ShowDisplayDisabledMessage() {
+    std::cout << "Disabling Display " << std::endl;
+    context->window->clear(sf::Color::Black);
+    sf::Text text("Display disabled (Press SPACE to enable)", *ResourceManager::GetFont("arial")); // Create the text object
+    text.setPosition(10, 10); // Set position of the text
+    text.setFillColor(sf::Color::White); // Set color of the text
+    context->window->draw(text); // Draw the text onto the window
+    context->window->display();
 }
 
 void DominanceStudySimulator::ProcessInput() {
@@ -85,6 +93,13 @@ void DominanceStudySimulator::ProcessInput() {
         if (IsKeyPressedOnce(sf::Keyboard::Key::Left)) {
             current_simulation.reset(nullptr);
             SetupCurrentDistribution(current_distrubution_nr - 1);
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::Space)) {
+            display_simulation = !display_simulation;
+            if (display_simulation == false) {
+                ShowDisplayDisabledMessage();
+            }
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
@@ -158,7 +173,7 @@ void DominanceStudySimulator::Update(sf::Time deltaTime) {
             distribution[boid->language_key]++;
         }
 
-        if ( distribution[0] == 0 || distribution[1] == 0 || current_simulation->total_simulation_time >= simulation_data.config->SECONDS_PER_RUN) {
+        if ( distribution[0] == 0 || distribution[1] == 0 || current_simulation->total_simulation_time >= simulation_data.config->TIME_STEPS_PER_RUN) {
             // Log the necessary data about the simulations outcome
             int dominating_language_key = -1;
             if (distribution[0] == 0) {
@@ -171,10 +186,15 @@ void DominanceStudySimulator::Update(sf::Time deltaTime) {
             std::array final_distribution = {distribution[0], distribution[1]};
             run_final_distributions.push_back(final_distribution);
 
-            run_times.push_back(std::min(static_cast<double>(current_simulation->total_simulation_time), static_cast<double>(simulation_data.config->SECONDS_PER_RUN)));
+            run_times.push_back(std::min(static_cast<double>(current_simulation->total_simulation_time), static_cast<double>(simulation_data.config->TIME_STEPS_PER_RUN)));
 
-            std::cout << "logging data " << current_distrubution_nr << ": " << current_initial_distribution[0] << ", " << current_initial_distribution[1] << std::endl;
-            std::cout << current_simulation->total_simulation_time << std::endl;
+            // Get current system time
+            std::time_t current_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            std::tm* time_info = std::localtime(&current_time);
+
+            // Print the time in the format HH:MM:SS
+            std::cout << "["<<std::put_time(time_info, "%H:%M:%S") << "] Run Complete! Dominating Language: " << dominating_language_key
+                      << ", Simulated time steps: " << current_simulation->total_simulation_time << std::endl;
 
             // Stop current simulation
             current_simulation.reset(nullptr);
@@ -209,12 +229,14 @@ void DominanceStudySimulator::Pause() {
 }
 
 void DominanceStudySimulator::Draw() {
-    context->window->clear(sf::Color::Black);
-    if (current_simulation) {
-        current_simulation->DrawWorldAndBoids();
+    if (display_simulation) {
+        context->window->clear(sf::Color::Black);
+        if (current_simulation) {
+            current_simulation->DrawWorldAndBoids();
+        }
+        interface_manager->DrawComponents(context->window.get());
+        context->window->display();
     }
-    interface_manager->DrawComponents(context->window.get());
-    context->window->display();
 }
 
 void DominanceStudySimulator::Start() {
@@ -288,7 +310,6 @@ void DominanceStudySimulator::LogDataToFile(const std::string& file_path,
                                             const std::vector<std::array<int, 2>>& run_final_distributions) {
 
     std::ofstream logfile(file_path, std::ios::app); // Open file in append mode
-    std::cout << file_path << std::endl;
     if (!logfile.is_open()) {
         std::cerr << "Error opening file!" << std::endl;
         return;
@@ -320,6 +341,8 @@ void DominanceStudySimulator::LogDataToFile(const std::string& file_path,
 
     logfile << "\n";
     logfile.close();
+
+    std::cout << "Saved Output to:" << file_path << std::endl;
 }
 
 

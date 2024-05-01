@@ -7,6 +7,7 @@
 
 #include <future>
 #include <memory>
+#include <set>
 
 #include <Eigen/Dense>
 #include <SFML/Graphics.hpp>
@@ -82,18 +83,23 @@ public:
     KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
             int language_key);
 
-    void UpdateAcceleration(const std::vector<KeyBoid *> &nearby_boids, World &world);
+    // No write functions for multi threading.
+    std::pair<int, float> GetUpdatedLanguageAndSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+                                                            const std::vector<KeyBoid *> &interacting_boids,
+                                                            sf::Time delta_time) const;
+    Eigen::Vector2f GetUpdatedAcceleration(const std::vector<KeyBoid *> &interacting_boids) const;
+
+    // Single thread functions
+    void UpdateAcceleration(const std::vector<KeyBoid *> &interacting_boids);
     Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<KeyBoid*> &nearby_boids) const;
-    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<KeyBoid*>& nearby_boids) const;
+    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<KeyBoid*>& interacting_boids) const;
     Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& nearby_boids) const;
-    void CalcLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+    void UpdateLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
                                   const std::vector<KeyBoid *> &interacting_boids,
                                   sf::Time delta_time);
 
-
-    void UpdateColor(LanguageManager &languageManager);
-    void UpdateLanguage(LanguageManager &language_manager);
-
+    void UpdateColor();
+    void UpdateLanguage();
 
     void SetLanguageKey(int key);
     void SetLanguageSatisfaction(float value);
@@ -102,23 +108,50 @@ public:
 
 class VectorBoid : public Boid {
 public:
+    Eigen::VectorXi language_vector;
+    float language_influence;
+    float age = 0;
+
     VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
-            Eigen::VectorXi language, float language_influence,
+            Eigen::VectorXi language_vector, float language_influence,
             float perception_radius,
             float interaction_radius,
             float separation_radius,
             float collision_radius);
 
-    Eigen::VectorXi language_vector;
-    float language_influence;
+    VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+               Eigen::VectorXi language_vector, float language_influence);
 
-    void UpdateAcceleration(const std::vector<VectorBoid*>& nearby_boids, World& world);
-    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<VectorBoid*>& nearby_boids, Eigen::VectorXf language_similarities) const;
-    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<VectorBoid*>& nearby_boids) const;
-    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<VectorBoid*>& nearby_boids, const Eigen::VectorXf& language_similarities) const;
+    Eigen::VectorXf CalcLanguageDistances(const std::vector<VectorBoid*> &boids) const;
+    Eigen::VectorXf CalcLanguageDistances(const std::vector<std::shared_ptr<VectorBoid>> &boids) const;
+    float CalcBehaviourModifier(float language_distance) const;
 
-    void UpdateLanguage(const std::vector<VectorBoid*>& nearby_boids, sf::Time delta_time);
-    Eigen::VectorXf CalcLanguageSimilarities(const std::vector<VectorBoid *> &boids) const;
+    // Acceleration
+    void UpdateAcceleration(const std::vector<VectorBoid *> &interacting_boids, const Eigen::VectorXf &language_distances);
+    Eigen::Vector2f GetUpdatedAcceleration(const std::vector<VectorBoid *> &nearby_boids, const Eigen::VectorXf &language_distances) const;
+    Eigen::Vector2f CalcAvoidanceAcceleration(const std::vector<VectorBoid*>& interacting_boids, Eigen::VectorXf language_distances) const;
+    Eigen::Vector2f CalcSeparationAcceleration(const std::vector<VectorBoid*>& interacting_boids) const;
+    Eigen::Vector2f CalcCoherenceAlignmentAcceleration(const std::vector<VectorBoid*>& interacting_boids, const Eigen::VectorXf& language_similarities) const;
+
+    // Language
+    void UpdateLanguageFeatures(const std::vector<VectorBoid *> &interacting_boids,
+                                const Eigen::VectorXf& language_distances,
+                                const std::vector<VectorBoid *> &perceived_boids,
+                                sf::Time delta_time);
+    std::set<int> GetUpdatedLanguageFeatures(const std::vector<VectorBoid *> &interacting_boids,
+                                         const Eigen::VectorXf &language_distances,
+                                         const std::vector<VectorBoid*> &perceived_boids,
+                                         sf::Time delta_time);
+    void SwitchLanguageFeatures(const std::set<int> & features);
+    int CalcMutatedLanguageFeature(sf::Time delta_time) const;
+    std::set<int> CalcAdoptedLanguageFeatures(const std::vector<VectorBoid *> &interacting_boids, const Eigen::VectorXf &language_distances, const std::vector<
+                                              VectorBoid *> &perceived_boids, sf::Time delta_time);
+
+    // Population dynamics
+    void UpdateAge(sf::Time delta_time);
+    Eigen::VectorXi GetMostCommonLanguage(const std::vector<VectorBoid *> &boids) const;
+
+    Eigen::Vector2f GetOffspringPos(World& world);
 };
 
 #endif //THESIS_BOID_H

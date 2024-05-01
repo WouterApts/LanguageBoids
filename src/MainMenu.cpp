@@ -18,28 +18,33 @@ MainMenu::MainMenu(std::shared_ptr<Context>& context) : context(context) {
 
     interface_manager = std::make_shared<InterfaceManager>();
     auto& window = this->context->window;
-    float start_menu_width = window->getSize().x/2;
-    float start_menu_height = window->getSize().y/2;
+    float start_menu_width = window->getSize().x/3;
+    float start_menu_height = window->getSize().y/3;
     float pos_x = window->getSize().x/2 - start_menu_width/2;
     float pos_y = window->getSize().y/2 - start_menu_height/2;
     start_menu_interface = std::make_shared<Panel>(sf::Vector2f(pos_x, pos_y), sf::Vector2f(start_menu_width, start_menu_height));
 
+    std::shared_ptr<TextField> title_text_fld = std::make_shared<TextField>(sf::Vector2f(0,0), 70, "LANGUAGE BOIDS", *ResourceManager::GetFont("oswald"), sf::Color::White);
+    title_text_fld->setPosition(window->getSize().x/2 - title_text_fld->text.getGlobalBounds().width/2, pos_y - 100);
+
     std::string editor_btn_str = "EDITOR";
-    std::shared_ptr<InterfaceComponent> editor_btn = std::make_shared<TextButton>([&]() {StartEditor();}, editor_btn_str, sf::Vector2f(0,0), sf::Vector2f(start_menu_width/3, start_menu_height/6), 20.f);
+    std::shared_ptr<InterfaceComponent> editor_btn = std::make_shared<TextButton>([&]() {StartEditor();}, editor_btn_str, sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
+    editor_btn->Activate();
 
     std::string simulation_btn_str = "LOAD SIMULATION";
     std::shared_ptr<InterfaceComponent> simulator_btn = std::make_shared<TextButton>([&]() {StartSimulation();}, simulation_btn_str,
-                                                                                     sf::Vector2f(0,0), sf::Vector2f(start_menu_width/3, start_menu_height/6), 20.f);
+                                                                                     sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
 
-    start_menu_interface->AddComponentWithRelativePos(editor_btn, sf::Vector2f(start_menu_width*1/3, start_menu_height*1/4));
-    start_menu_interface->AddComponentWithRelativePos(simulator_btn, sf::Vector2f(start_menu_width*1/3, start_menu_height*2/4));
+    start_menu_interface->AddComponentWithRelativePos(editor_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*1/4));
+    start_menu_interface->AddComponentWithRelativePos(simulator_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*2/4));
     start_menu_interface->Activate();
 
     interface_manager->AddComponent(start_menu_interface);
+    interface_manager->AddComponent(title_text_fld);
 }
 
 void MainMenu::StartEditor() {
-    auto world = World{6000, 3000};
+    auto world = World{4000, 2000};
     auto configuration = std::make_shared<SimulationConfig>();
     auto simulation_data = SimulationData(world, configuration);
     auto editor = std::make_unique<Editor>(context, simulation_data, 1600, 900);
@@ -65,7 +70,7 @@ void MainMenu::StartSimulation() {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
             auto simulation_file_name = ExtractFileName(file_name);
             auto simulation = std::make_unique<DominanceStudySimulator>(context, simulation_data, simulation_file_name, 1600, 900);
-            simulation->fast_analysis = true;
+            //simulation->fast_analysis = true;
             context->state_manager->AddState(std::move(simulation));
         }
     } else {

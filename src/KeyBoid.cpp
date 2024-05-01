@@ -20,8 +20,60 @@ KeyBoid::KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, 
       language_key(language_key), language_satisfaction(1.f) {
 }
 
-void KeyBoid::CalcLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
-                                       const std::vector<KeyBoid *> &interacting_boids,
+std::pair<int, float> KeyBoid::GetUpdatedLanguageAndSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
+                                              const std::vector<KeyBoid *> &interacting_boids,
+                                              sf::Time delta_time) const {
+    // Calculate language status based on the boids languages within the perception range.
+    std::map<int, float> language_status;
+    for (auto& boid : perceived_boids) {
+        language_status[boid->language_key] += 1;
+    }
+
+    // Calculate the proportion of language speakers based on boids within the interaction range.
+    std::map<int, float> language_count;
+    for(auto& boid : interacting_boids) {
+        language_count[boid->language_key] += 1;
+    }
+
+    // Calculate the language influence as (s * x^a)
+    std::map<int, float> language_influence;
+    float total_influence_val = 0.f;
+    for (auto& count : language_count) {
+        int key = count.first;
+        float influence = std::pow(count.second / static_cast<float>(interacting_boids.size()), config->a_COEFFICIENT) *
+                          (language_status[key] / static_cast<float>(perceived_boids.size()));
+        total_influence_val += influence;
+        language_influence[key] = influence;
+    }
+
+    // Based on the language influence, sample r to check whether influence of current language increases or decreases.
+    float satisfaction = 0;
+    if (float r = GetRandomFloatBetween(0, total_influence_val); r <= language_influence[this->language_key]) {
+        // Increase current language satisfaction
+        satisfaction = this->language_satisfaction + config->INFLUENCE_RATE * delta_time.asSeconds();
+    } else {
+        // Decrease current language satisfaction
+        satisfaction = this->language_satisfaction - config->INFLUENCE_RATE * delta_time.asSeconds();
+    }
+
+    // change language if current influence goes below zero
+    int language = this->language_key;
+    if (this->language_satisfaction <= 0) {
+        satisfaction = 1;
+        float max_influence = -1.0f;
+        // Get language with maximum influence
+        for (const auto&[key, influence] : language_influence) {
+            if (influence > max_influence) {
+                language = key;
+                max_influence = influence;
+            }
+        }
+    }
+    return {language, satisfaction};
+}
+
+void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *>& perceived_boids,
+                                       const std::vector<KeyBoid *>& interacting_boids,
                                        sf::Time delta_time) {
 
     // Calculate language status based on the boids languages within the perception range.
@@ -69,11 +121,10 @@ void KeyBoid::CalcLanguageSatisfaction(const std::vector<KeyBoid *> &perceived_b
     }
 }
 
-void KeyBoid::UpdateLanguage(LanguageManager& language_manager) {
+void KeyBoid::UpdateLanguage() {
     if (updated_language_key != -1) {
         SetLanguageKey(updated_language_key);
         SetLanguageSatisfaction(1.f);
-        UpdateColor(language_manager);
 
         //Reset new_language_key
         updated_language_key = -1;
@@ -84,21 +135,22 @@ void KeyBoid::SetLanguageSatisfaction(float value) {
     this->language_satisfaction = std::min(1.f, value);
 }
 
-void KeyBoid::UpdateAcceleration(const std::vector<KeyBoid *>& nearby_boids, World& world) {
+Eigen::Vector2f KeyBoid::GetUpdatedAcceleration(const std::vector<KeyBoid*>& interacting_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
-    if (!nearby_boids.empty()) {
+    if (!interacting_boids.empty()) {
         //Coherence & Alignment
-        acceleration += CalcCoherenceAlignmentAcceleration(nearby_boids);
+        acceleration += CalcCoherenceAlignmentAcceleration(interacting_boids);
         //Avoidance
-        acceleration += CalcAvoidanceAcceleration(nearby_boids);
+        acceleration += CalcAvoidanceAcceleration(interacting_boids);
         //Separation
-        acceleration += CalcSeparationAcceleration(nearby_boids);
+        acceleration += CalcSeparationAcceleration(interacting_boids);
     }
+    return acceleration;
+}
 
-    // Avoid World borders
-    // acceleration = acceleration + AvoidBorders(world.width, world.height);
-
+void KeyBoid::UpdateAcceleration(const std::vector<KeyBoid *>& interacting_boids) {
+    Eigen::Vector2f acceleration = GetUpdatedAcceleration(interacting_boids);
     SetAcceleration(acceleration);
 }
 
@@ -119,7 +171,12 @@ Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ke
         }
     }
 
-    if (similar_boids > 0) {
+    // Account for own position and velocity.
+    // avg_pos += this->pos;
+    // avg_vel += this->vel;
+    // similar_boids += 1;
+
+    if (similar_boids > 1) {
         avg_pos = avg_pos / similar_boids;
         avg_vel = avg_vel / similar_boids;
 
@@ -136,13 +193,13 @@ Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ke
 }
 
 
-Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>& nearby_boids) const {
+Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>& interacting_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     float squared_separation_radius = separation_radius * separation_radius;
 
-    for (auto & nearby_boid : nearby_boids) {
-        Eigen::Vector2f pos_difference = nearby_boid->pos - this->pos;
+    for (auto & boid : interacting_boids) {
+        Eigen::Vector2f pos_difference = boid->pos - this->pos;
         float squared_distance = pos_difference.squaredNorm();
         if (squared_distance <= squared_separation_radius) {
             float strength = std::pow((squared_separation_radius - squared_distance) / squared_separation_radius, 2);
@@ -172,8 +229,9 @@ Eigen::Vector2f KeyBoid::CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& 
 
 void KeyBoid::SetLanguageKey(int key) {
     this->language_key = key;
+    UpdateColor();
 }
 
-void KeyBoid::UpdateColor(LanguageManager& languageManager) {
+void KeyBoid::UpdateColor() {
     this->sprite.setColor(LanguageManager::GetLanguageColor(language_key));
 }

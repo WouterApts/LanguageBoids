@@ -18,7 +18,8 @@ Application::Application() : context(std::make_shared<Context>()){
 }
 
 void Application::Run() {
-
+    std::cout << "Language Boids: Agent-based Language Dynamics Simulator" << std::endl;
+    std::cout << "Developed by Wouter Apts" << std::endl;
     InitializeRescources();
 
     // Start MainMenu State
@@ -56,4 +57,5 @@ void Application::InitializeRescources() {
 
     // Fonts
     ResourceManager::LoadFont("arial", "fonts/arial.ttf");
+    ResourceManager::LoadFont("oswald", "fonts/oswald.ttf");
 }

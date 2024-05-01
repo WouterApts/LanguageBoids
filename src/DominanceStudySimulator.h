@@ -37,6 +37,7 @@ public:
     std::shared_ptr<EscapeStateInterface> escape_interface;
     std::shared_ptr<InterfaceManager> interface_manager;
     std::map<int, bool> one_sided_outcome_found;
+    bool display_simulation = true;
 
     DominanceStudySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string sim_file_name_without_extension,
                             float camera_width, float camera_height, int starting_distribution_nr = 0);
@@ -46,6 +47,9 @@ public:
                               run_final_distributions);
 
     void Init() override;
+
+    void ShowDisplayDisabledMessage();
+
     void ProcessInput() override;
 
     void SetupCurrentDistribution(int number);

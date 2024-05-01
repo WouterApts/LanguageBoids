@@ -37,19 +37,45 @@ public:
 
     // Draw methods
     void DrawBoidSelectionCircle();
+
     void CreateWorldBorderLines();
 };
 
 class VectorSimulator : public Simulator {
 public:
+
+    struct UpdatedBoidValues {
+        std::map<VectorBoid*, Eigen::Vector2f> acceleration_values;
+        std::map<VectorBoid*, std::set<int>> language_features;
+        std::map<VectorBoid*, float> age_values;
+        std::map<VectorBoid*, bool> marked_for_death;
+        std::map<VectorBoid*, Eigen::VectorXi> most_common_language;
+    };
+
     SpatialGrid<VectorBoid> spatial_boid_grid;
     std::vector<std::shared_ptr<VectorBoid>> boids;
+    std::vector<std::shared_ptr<VectorBoidSpawner>> boid_spawners;
 
-    VectorSimulator(std::shared_ptr<Context> &context, World &world, float camera_width, float camera_height);
+    // Multi-Threading
+    std::mutex mtx;
+    const size_t num_threads;
+
+    VectorSimulator(std::shared_ptr<Context>& context, VectorSimulationData& simulation_data, float camera_width, float camera_height);
 
     void Init() override;
+
+    UpdatedBoidValues UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<VectorBoid>> &boids,
+                                                    sf::Time delta_time) const;
+
     void Update(sf::Time delta_time) override;
+
+    void UpdateBoidsStepTwo(sf::Time delta_time);
+
     void ProcessInput() override;
+
+    void DrawWorldAndBoids();
+
+    void DrawSpawners() const;
 
     void Draw() override;
     void Start() override;
@@ -62,9 +88,20 @@ public:
 
 class KeySimulator : public Simulator {
 public:
-    std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
+
+    struct UpdatedBoidValues {
+        std::map<KeyBoid*, Eigen::Vector2f> acceleration_values;
+        std::map<KeyBoid*, std::pair<int, float>> language_and_satisfaction_values;
+    };
+
     SpatialGrid<KeyBoid> spatial_boid_grid;
     std::vector<std::shared_ptr<KeyBoid>> boids;
+    std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
+
+    // Multi-Threading
+    std::mutex mtx;
+    const size_t num_threads;
+    std::vector<std::vector<std::shared_ptr<KeyBoid>>> boid_chunks;
 
     // KeyAnalyser analyser;
     LanguageManager language_manager;
@@ -75,7 +112,16 @@ public:
     KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
 
     void Init() override;
+
+    void DivideBoidChunks();
+
+    UpdatedBoidValues UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<KeyBoid> > &boids,
+                                                                  sf::Time delta_time) const;
+
+    void UpdateBoidsStepOne(const std::vector<std::shared_ptr<KeyBoid>> &boids, sf::Time delta_time) const;
+    void UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>> &boids, sf::Time delta_time);
     void Update(sf::Time delta_time) override;
+
     void ProcessInput() override;
 
     void DrawWorldAndBoids();
@@ -86,7 +132,6 @@ public:
     void Pause() override;
 
     void AddBoid(const std::shared_ptr<KeyBoid> &boid);
-
 
 };
 

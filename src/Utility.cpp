@@ -43,6 +43,14 @@ float GetRandomFloatBetween(float min, float max) {
     return dis(gen);
 }
 
+/*  Random generators */
+int GetRandomIntBetween(int min, int max) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(min, max);
+    return dis(gen);
+}
+
 
 void PrintFPS(sf::Time delta_time) {
     static auto fps_timer = sf::Time::Zero;
@@ -61,6 +69,17 @@ void DisplayMessage(InterfaceManager interface_manager, sf::Vector2f pos, const 
     auto text_fld = std::make_shared<TextField>(pos, text_size, message, *ResourceManager::GetFont("arial"), text_color);
 
     interface_manager.AddComponent(text_fld);
+}
+
+
+// Function to calculate the gradient color between green and red based on distance
+sf::Color CalculateGradientColor(float distance) {
+    // Map the distance from 0 to 1 to the range of green to red
+    float r = std::max(0.f, std::min(1.f, distance)); // Clamp distance between 0 and 1
+    float g = 1.f - r;
+
+    // Interpolate between green (0, 255, 0) and red (255, 0, 0) based on distance
+    return sf::Color(static_cast<sf::Uint8>(r * 255), static_cast<sf::Uint8>(g * 255), 0);
 }
 
 

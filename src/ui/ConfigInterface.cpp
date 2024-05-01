@@ -63,8 +63,8 @@ ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_ma
     std::shared_ptr<InterfaceComponent> distribution_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Distributions", *ResourceManager::GetFont("arial"), sf::Color::Black);
     auto total_boids_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->TOTAL_BOIDS = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.TOTAL_BOIDS);
     std::shared_ptr<InterfaceComponent> total_boids_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Boids Total", *ResourceManager::GetFont("arial"), sf::Color::Black);
-    auto seconds_per_run_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->SECONDS_PER_RUN = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.SECONDS_PER_RUN);
-    std::shared_ptr<InterfaceComponent> seconds_per_run_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Seconds/Run", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto seconds_per_run_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->TIME_STEPS_PER_RUN = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.TIME_STEPS_PER_RUN);
+    std::shared_ptr<InterfaceComponent> seconds_per_run_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Time-Steps/Run", *ResourceManager::GetFont("arial"), sf::Color::Black);
 
     study_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size, sf::Color(100,100,100));
     AddComponentWithRelativePos(study_config_interface, active_config_position);

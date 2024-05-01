@@ -38,5 +38,9 @@ public:
     KeySimulationData(World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(std::move(world), config) {};
 };
 
-class VectorSimulationData : public SimulationData {};
+class VectorSimulationData : public SimulationData {
+public:
+    std::vector<std::shared_ptr<VectorBoidSpawner>> boid_spawners;
+    VectorSimulationData(World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(std::move(world), config) {};
+};
 #endif //SIMULATIONDATA_H

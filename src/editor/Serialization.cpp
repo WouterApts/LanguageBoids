@@ -40,7 +40,7 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
         case VectorSimulation:
             file << "VectorSimulation \n"
                  << "LANGUAGE_SIZE: " << data.config->LANGUAGE_SIZE << '\n'
-                 << "MUTATION_RATE: " << data.config->MUTATION_RATE << '\n';
+                 << "MUTATION_RATE: " << data.config->MUTATION_PROBABILITY << '\n';
             break;
         case DominanceStudy:
             file << "DominanceStudy \n"
@@ -48,7 +48,7 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
                  << "INFLUENCE_RATE: " << data.config->INFLUENCE_RATE << '\n'
                  << "TOTAL_BOIDS: " << data.config->TOTAL_BOIDS << '\n'
                  << "RUNS_PER_DISTRIBUTION: " << data.config->RUNS_PER_DISTRIBUTION << '\n'
-                 << "SECONDS_PER_RUN: " << data.config->SECONDS_PER_RUN << '\n'
+                 << "SECONDS_PER_RUN: " << data.config->TIME_STEPS_PER_RUN << '\n'
                  << "DISTRIBUTIONS: " << data.config->DISTRIBUTIONS << '\n';
             break;
     }
@@ -66,7 +66,8 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
          << "BOID_COLLISION_RADIUS: " << data.config->BOID_COLLISION_RADIUS << '\n'
          << "RESTITUTION_COEFFICIENT: " << data.config->RESTITUTION_COEFFICIENT << '\n'
          << "LANGUAGE_LOG_INTERVAL: " << data.config->LANGUAGE_LOG_INTERVAL << '\n'
-         << "POSITION_LOG_INTERVAL: " << data.config->POSITION_LOG_INTERVAL << '\n';
+         << "POSITION_LOG_INTERVAL: " << data.config->POSITION_LOG_INTERVAL << '\n'
+         << "MULTI_THREADING_ON: " << data.config->MULTI_THREADING << '\n';
 
     // Write the world width and height
     file << "Size: " << data.world.width << " , " << data.world.height << "\n";
@@ -141,7 +142,7 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
         } else if (prefix == "TOTAL_BOIDS:") {
             data.config->TOTAL_BOIDS = static_cast<int>(value);
         } else if (prefix == "SECONDS_PER_RUN:") {
-            data.config->SECONDS_PER_RUN = static_cast<int>(value);
+            data.config->TIME_STEPS_PER_RUN = static_cast<int>(value);
         } else if (prefix == "COHERENCE_FACTOR:") {
             data.config->COHERENCE_FACTOR = value;
         } else if (prefix == "ALIGNMENT_FACTOR:") {
@@ -168,6 +169,8 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             data.config->LANGUAGE_LOG_INTERVAL = static_cast<int>(value);
         } else if (prefix == "POSITION_LOG_INTERVAL:") {
             data.config->POSITION_LOG_INTERVAL = static_cast<int>(value);
+        } else if (prefix == "MULTI_THREADING_ON:") {
+            data.config->MULTI_THREADING = static_cast<int>(value);
         } else {
             break;
         }
@@ -175,7 +178,6 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
 
     // Parse World Size
     std::stringstream ss(line);
-    std::cout << line << std::endl;
     std::string prefix;
     char delimiter;
     ss >> prefix >> data.world.width >> delimiter >> data.world.height;

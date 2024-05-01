@@ -23,8 +23,8 @@ public:
 
     SimulationData simulation_data;
 
-    std::vector<int> grid_spacings = {0, 50, 100, 200, 500};
-    int selected_grid_spacing = 2;
+    std::vector<int> grid_spacings = {0, 20, 50, 100, 200, 500};
+    int selected_grid_spacing = 3;
     int grid_spacing = grid_spacings[selected_grid_spacing];
     sf::Vector2f tool_pos{};
 
