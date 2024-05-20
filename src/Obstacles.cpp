@@ -50,7 +50,7 @@ std::optional<Eigen::Vector2f> LineObstacle::CalcCollisionNormal(Eigen::Vector2f
 
     // Check if the projection of the boid's position onto the line segment falls within the segment
     if (CA.dot(AB) > 0 && CB.dot(-AB) > 0) {
-        // Calculate the shortest distance from the boid to the line (line segment)
+        // Calculate the shortest distance from the boid to the line segment
         min_distance_to_line = area / length;
         collision_normal << -AB.y(), AB.x();
 

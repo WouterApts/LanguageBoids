@@ -42,7 +42,7 @@ Boid::Boid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const 
     sprite.setTexture(*p_texture);
     sprite.setOrigin(p_texture->getSize().x/2.0f, p_texture->getSize().y/2.0f);
     sprite.setPosition(this->pos.x(), this->pos.y());
-    sprite.setColor(sf::Color(255, 0, 0));
+    sprite.setColor(sf::Color::Yellow);
 
 }
 

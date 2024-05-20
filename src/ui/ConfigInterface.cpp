@@ -13,7 +13,7 @@
 ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_manager, sf::Vector2f pos, Editor& editor)
     : Panel(pos, {800, 600}, sf::Color(125,125,125)), simulation_data(editor.simulation_data), editor(editor) {
 
-    auto default_config = SimulationConfig();
+    auto default_config = *editor.simulation_data.config;
     float fld_w = 100;
     float fld_h = 30;
 
@@ -37,7 +37,7 @@ ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_ma
     // Key Simulation Configuration Interface:
     auto a_coefficient_fld = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->a_COEFFICIENT = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.a_COEFFICIENT);
     std::shared_ptr<InterfaceComponent> a_coefficient_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "a Coefficient", *ResourceManager::GetFont("arial"), sf::Color::Black);
-    auto influence_fld = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->INFLUENCE_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.INFLUENCE_RATE);
+    auto influence_fld = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->CONVERSION_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.CONVERSION_RATE);
     std::shared_ptr<InterfaceComponent> influence_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Influence Rate", *ResourceManager::GetFont("arial"), sf::Color::Black);
 
     key_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size, sf::Color(100,100,100));
@@ -55,7 +55,7 @@ ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_ma
     //Dominance Study Configuration Interface:
     auto a_coefficient_fld_2 = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->a_COEFFICIENT = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.a_COEFFICIENT);
     std::shared_ptr<InterfaceComponent> a_coefficient_text_2 = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "a Coefficient", *ResourceManager::GetFont("arial"), sf::Color::Black);
-    auto influence_fld_2 = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->INFLUENCE_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.INFLUENCE_RATE);
+    auto influence_fld_2 = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->CONVERSION_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.CONVERSION_RATE);
     std::shared_ptr<InterfaceComponent> influence_text_2 = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Influence Rate", *ResourceManager::GetFont("arial"), sf::Color::Black);
     auto runs_per_distribution_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->RUNS_PER_DISTRIBUTION = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 3, default_config.RUNS_PER_DISTRIBUTION);
     std::shared_ptr<InterfaceComponent> runs_per_distribution_text = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Runs/Distribution", *ResourceManager::GetFont("arial"), sf::Color::Black);
@@ -82,6 +82,7 @@ ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_ma
     study_config_interface->AddComponentWithRelativePos(seconds_per_run_text, {2*(fld_w + 170) + (fld_w + 10), 20 + fld_h});
     study_config_interface->Deactivate();
 
+    this->SwitchTo(editor.simulation_data.type);
     this->InterfaceComponent::Deactivate();
 }
 
@@ -205,22 +206,22 @@ void ConfigInterface::SwitchTo(SimulationType type) {
 
         // Select Eraser tool to avoid incompatibilities with the boid tool
         editor.tool_selector->SelectTool(EraserT);
+    }
 
     // Activate selected interface
-        simulation_data.type = type;
-        switch (simulation_data.type) {
-            case KeySimulation:
-                active_config_interface = key_config_interface;
-                break;
-            case VectorSimulation:
-                active_config_interface = vector_config_interface;
-                break;
-            case DominanceStudy:
-                active_config_interface = study_config_interface;
-                break;
-            default:
-                break;
-        }
-        active_config_interface->Activate();
+    simulation_data.type = type;
+    switch (simulation_data.type) {
+        case KeySimulation:
+            active_config_interface = key_config_interface;
+        break;
+        case VectorSimulation:
+            active_config_interface = vector_config_interface;
+        break;
+        case DominanceStudy:
+            active_config_interface = study_config_interface;
+        break;
+        default:
+            break;
     }
+    active_config_interface->Activate();
 }

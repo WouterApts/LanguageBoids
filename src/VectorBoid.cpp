@@ -2,10 +2,12 @@
 // Created by wouter on 28-2-2024.
 //
 
+#include <iostream>
 #include <random>
 #include <set>
 
 #include "boid.h"
+#include "World.h"
 #include "Utility.h"
 
 VectorBoid::VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
@@ -79,9 +81,9 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
     }
 
     // account for own velocity and position (with modifier 1, logically)
-    // avg_pos += this->pos;
-    // avg_vel += this->vel;
-    // total_modifier += 1;
+    avg_pos += this->pos;
+    avg_vel += this->vel;
+    total_modifier += 1;
 
     // normalize all modifier weights by deviding with total_modifier weight.
     if (total_modifier > 0) {
@@ -93,7 +95,7 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
         acceleration = pos_difference.normalized() * config->COHERENCE_FACTOR * max_speed;
 
         // ALIGNMENT
-        Eigen::Vector2f vel_difference = (avg_vel - this->vel);
+        Eigen::Vector2f vel_difference = avg_vel - this->vel;
         acceleration += vel_difference.normalized() * config->ALIGNMENT_FACTOR * max_speed;
     }
 
@@ -168,7 +170,7 @@ int VectorBoid::CalcMutatedLanguageFeature(sf::Time delta_time) const {
     auto r = GetRandomFloatBetween(0,1);
     int f_index = -1;
     if (r < config->MUTATION_RATE * delta_time.asSeconds()) {
-        f_index = GetRandomIntBetween(0, config->LANGUAGE_SIZE);
+        f_index = GetRandomIntBetween(0, config->LANGUAGE_SIZE - 1);
     }
     return f_index;
 }
@@ -190,17 +192,18 @@ std::set<int> VectorBoid::CalcAdoptedLanguageFeatures(const std::vector<VectorBo
     for (Eigen::Index i = 0; i < num_boids; ++i) {
 
         auto boid = interacting_boids[i];
+        constexpr int beta = 5;
         float interaction_probability = config->MIN_INTERACTION_RATE
-                                          + (1-config->MIN_INTERACTION_RATE) * std::pow(10, language_distances(i));
+                                          + (1-config->MIN_INTERACTION_RATE) * std::pow(10, - beta*language_distances(i));
         // Interaction probability check per boid
         auto r = GetRandomFloatBetween(0,1);
         if (r < interaction_probability * delta_time.asSeconds()) {
             // Choose a random feature of the boid that's being interacted with,
-            int f_index = GetRandomIntBetween(0, config->LANGUAGE_SIZE);
+            int f_index = GetRandomIntBetween(0, config->LANGUAGE_SIZE - 1);
             if (this->language_vector(f_index) != boid->language_vector(f_index)) {
                 // Calculate the number of times the feature variant occures in the perceived area
-                int f_variant_occurences = CalcFeatureVariantOccurences(boid->language_vector[f_index], f_index, perceived_boids);
-                float p = config->MIN_ADOPTION_RATE + f_variant_occurences/perceived_boids.size();
+                int f_variant_occurences = CalcFeatureVariantOccurences(boid->language_vector(f_index), f_index, perceived_boids);
+                float p = config->MIN_ADOPTION_RATE +  std::pow(f_variant_occurences/perceived_boids.size(), -0.5);
                 float adoption_probability = std::min(1.f, p);
 
                 // Feature Adoption probability check
@@ -219,13 +222,15 @@ std::set<int> VectorBoid::GetUpdatedLanguageFeatures(const std::vector<VectorBoi
                                                      const Eigen::VectorXf &language_distances,
                                                      const std::vector<VectorBoid *> &perceived_boids,
                                                      sf::Time delta_time) {
-    // Get adopted features
-    std::set<int> updated_features = CalcAdoptedLanguageFeatures(interacting_boids, language_distances, perceived_boids, delta_time);
 
-    // Get mutated feature
-    int mutated_feauture = CalcMutatedLanguageFeature(delta_time);
-    if (mutated_feauture != -1) updated_features.insert(mutated_feauture);
-
+    std::set<int> updated_features;
+    if (age <= config->BOID_LIFE_STEPS / 2) {
+        // Get adopted features
+        updated_features = CalcAdoptedLanguageFeatures(interacting_boids, language_distances, perceived_boids, delta_time);
+        // Get mutated feature
+        int mutated_feauture = CalcMutatedLanguageFeature(delta_time);
+        if (mutated_feauture != -1) updated_features.insert(mutated_feauture);
+    }
     return updated_features;
 }
 
@@ -241,15 +246,18 @@ void VectorBoid::UpdateAge(sf::Time delta_time) {
 
 Eigen::VectorXi VectorBoid::GetMostCommonLanguage(const std::vector<VectorBoid *> &boids) const {
 
-    std::map<Eigen::VectorXi, int, matrix_hash<Eigen::VectorXi>> language_counts;
+    std::unordered_map<Eigen::VectorXi, int, vectorXiHash, vectorXiEqual> language_counts;
 
     // Count occurrences of each language vector
     for (auto& boid : boids) {
         language_counts[boid->language_vector] += 1;
+        // if ((boid->pos - this->pos).norm() <= boid->separation_radius) {
+        //     language_counts[boid->language_vector] += 1;
+        // }
     }
 
     // Add own language
-    language_counts[this->language_vector]++;
+    language_counts[this->language_vector] += 1;
 
     // Find the language vector with the highest count
     Eigen::VectorXi most_common_language;
@@ -263,10 +271,10 @@ Eigen::VectorXi VectorBoid::GetMostCommonLanguage(const std::vector<VectorBoid *
     return most_common_language;
 }
 
-Eigen::Vector2f VectorBoid::GetOffspringPos(World &world) {
+Eigen::Vector2f VectorBoid::GetOffspringPos(const World& world) {
 
     float angle = GetRandomFloatBetween(0, 2*std::numbers::pi);
-    float length = GetRandomFloatBetween(0, this->interaction_radius);
+    float length = GetRandomFloatBetween(0, this->collision_radius);
     float x = this->pos.x() + std::cos(angle) * length;
     float y = this->pos.y() + std::sin(angle) * length;
 

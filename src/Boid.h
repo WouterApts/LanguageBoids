@@ -13,10 +13,10 @@
 #include <SFML/Graphics.hpp>
 
 #include "Obstacles.h"
-#include "World.h"
 #include "LanguageManager.h"
 #include "SimulationConfig.h"
-#include "Terrain.h"
+
+struct World;
 
 class Boid {
 private:
@@ -71,6 +71,7 @@ public:
     int language_key;
     float language_satisfaction;
     int updated_language_key = -1;
+    std::shared_ptr<std::map<int, float>> language_status_map;
 
     KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
             const std::shared_ptr<SimulationConfig> &config,
@@ -103,6 +104,8 @@ public:
 
     void SetLanguageKey(int key);
     void SetLanguageSatisfaction(float value);
+
+    void SetLanguageStatusMap(const std::shared_ptr<std::map<int, float>> &language_status_map);
 };
 
 
@@ -151,7 +154,7 @@ public:
     void UpdateAge(sf::Time delta_time);
     Eigen::VectorXi GetMostCommonLanguage(const std::vector<VectorBoid *> &boids) const;
 
-    Eigen::Vector2f GetOffspringPos(World& world);
+    Eigen::Vector2f GetOffspringPos(const World& world);
 };
 
 #endif //THESIS_BOID_H

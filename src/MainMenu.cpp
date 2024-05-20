@@ -9,46 +9,17 @@
 #include "Application.h"
 #include "DominanceStudySimulator.h"
 #include "Simulator.h"
+#include "Utility.h"
 #include "editor/Editor.h"
 #include "editor/Serialization.h"
 #include "ui/components/Button.h"
 #include "ui/components/Panel.h"
 
-MainMenu::MainMenu(std::shared_ptr<Context>& context) : context(context) {
+MainMenu::MainMenu(std::shared_ptr<Context>& context) : context(context) {}
 
-    interface_manager = std::make_shared<InterfaceManager>();
-    auto& window = this->context->window;
-    float start_menu_width = window->getSize().x/3;
-    float start_menu_height = window->getSize().y/3;
-    float pos_x = window->getSize().x/2 - start_menu_width/2;
-    float pos_y = window->getSize().y/2 - start_menu_height/2;
-    start_menu_interface = std::make_shared<Panel>(sf::Vector2f(pos_x, pos_y), sf::Vector2f(start_menu_width, start_menu_height));
-
-    std::shared_ptr<TextField> title_text_fld = std::make_shared<TextField>(sf::Vector2f(0,0), 70, "LANGUAGE BOIDS", *ResourceManager::GetFont("oswald"), sf::Color::White);
-    title_text_fld->setPosition(window->getSize().x/2 - title_text_fld->text.getGlobalBounds().width/2, pos_y - 100);
-
-    std::string editor_btn_str = "EDITOR";
-    std::shared_ptr<InterfaceComponent> editor_btn = std::make_shared<TextButton>([&]() {StartEditor();}, editor_btn_str, sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
-    editor_btn->Activate();
-
-    std::string simulation_btn_str = "LOAD SIMULATION";
-    std::shared_ptr<InterfaceComponent> simulator_btn = std::make_shared<TextButton>([&]() {StartSimulation();}, simulation_btn_str,
-                                                                                     sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
-
-    start_menu_interface->AddComponentWithRelativePos(editor_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*1/4));
-    start_menu_interface->AddComponentWithRelativePos(simulator_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*2/4));
-    start_menu_interface->Activate();
-
-    interface_manager->AddComponent(start_menu_interface);
-    interface_manager->AddComponent(title_text_fld);
-}
-
-void MainMenu::StartEditor() {
-    auto world = World{4000, 2000};
-    auto configuration = std::make_shared<SimulationConfig>();
-    auto simulation_data = SimulationData(world, configuration);
-    auto editor = std::make_unique<Editor>(context, simulation_data, 1600, 900);
-    context->state_manager->AddState(std::move(editor));
+void MainMenu::OpenEditorMenu() {
+    auto editor_menu = std::make_unique<EditorMenu>(context);
+    context->state_manager->AddState(std::move(editor_menu));
 }
 
 void MainMenu::StartSimulation() {
@@ -95,6 +66,31 @@ std::string MainMenu::ExtractFileName(const std::string& filename) {
 }
 
 void MainMenu::Init() {
+    interface_manager = std::make_shared<InterfaceManager>();
+    auto& window = this->context->window;
+    float start_menu_width = window->getSize().x/3;
+    float start_menu_height = window->getSize().y/3;
+    float pos_x = window->getSize().x/2 - start_menu_width/2;
+    float pos_y = window->getSize().y/2 - start_menu_height/2;
+    start_menu_interface = std::make_shared<Panel>(sf::Vector2f(pos_x, pos_y), sf::Vector2f(start_menu_width, start_menu_height));
+
+    std::shared_ptr<TextField> title_text_fld = std::make_shared<TextField>(sf::Vector2f(0,0), 70, "LANGUAGE BOIDS", *ResourceManager::GetFont("oswald"), sf::Color::White);
+    title_text_fld->setPosition(window->getSize().x/2 - title_text_fld->text.getGlobalBounds().width/2, pos_y - 150);
+
+    std::string editor_btn_str = "EDITOR";
+    auto editor_btn = std::make_shared<TextButton>([&]() {OpenEditorMenu();}, editor_btn_str, sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
+    editor_btn->Activate();
+
+    std::string simulation_btn_str = "LOAD SIMULATION";
+    auto simulator_btn = std::make_shared<TextButton>([&]() {StartSimulation();}, simulation_btn_str,
+                                                      sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
+
+    start_menu_interface->AddComponentWithRelativePos(editor_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*1/4));
+    start_menu_interface->AddComponentWithRelativePos(simulator_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*2/4));
+    start_menu_interface->Activate();
+
+    interface_manager->AddComponent(start_menu_interface);
+    interface_manager->AddComponent(title_text_fld);
 }
 
 void MainMenu::ProcessInput() {
@@ -137,7 +133,7 @@ void MainMenu::Start() {
 
 
 KeySimulationData MainMenu::load_key_simulation_data(std::optional<SimulationData> loaded_data) {
-    auto simulation_data = KeySimulationData(loaded_data->world, loaded_data->config);
+    auto simulation_data = KeySimulationData(loaded_data->type, loaded_data->world, loaded_data->config);
     // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
     std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
                    [](const std::shared_ptr<BoidSpawner>& spawner) {
@@ -147,7 +143,7 @@ KeySimulationData MainMenu::load_key_simulation_data(std::optional<SimulationDat
 }
 
 VectorSimulationData MainMenu::load_vector_simulation_data(std::optional<SimulationData> loaded_data) {
-    auto simulation_data = VectorSimulationData(loaded_data->world, loaded_data->config);
+    auto simulation_data = VectorSimulationData(loaded_data->type, loaded_data->world, loaded_data->config);
     // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
     std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
                    [](const std::shared_ptr<BoidSpawner>& spawner) {
@@ -155,3 +151,108 @@ VectorSimulationData MainMenu::load_vector_simulation_data(std::optional<Simulat
                    });
     return simulation_data;
 }
+
+
+EditorMenu::EditorMenu(std::shared_ptr<Context>& context) : context(context) {}
+
+void EditorMenu::Init() {
+    interface_manager = std::make_shared<InterfaceManager>();
+    auto& window = this->context->window;
+    float start_menu_width = window->getSize().x/3;
+    float start_menu_height = window->getSize().y/3;
+    float pos_x = window->getSize().x/2 - start_menu_width/2;
+    float pos_y = window->getSize().y/2 - start_menu_height/2;
+    editor_menu_interface = std::make_shared<Panel>(sf::Vector2f(pos_x, pos_y), sf::Vector2f(start_menu_width, start_menu_height));
+
+    std::shared_ptr<TextField> title_text_fld = std::make_shared<TextField>(sf::Vector2f(0,0), 70, "LANGUAGE BOIDS", *ResourceManager::GetFont("oswald"), sf::Color::White);
+    title_text_fld->setPosition(window->getSize().x/2 - title_text_fld->text.getGlobalBounds().width/2, pos_y - 150);
+    std::shared_ptr<TextField> editor_text_fld = std::make_shared<TextField>(sf::Vector2f(0,0), 35, " - EDITOR -", *ResourceManager::GetFont("oswald"), sf::Color::White);
+    editor_text_fld->setPosition(window->getSize().x/2 - editor_text_fld->text.getGlobalBounds().width/2, pos_y - 75);
+
+    std::string editor_new_txt = "CREATE NEW";
+    std::shared_ptr<InterfaceComponent> editor_new_btn = std::make_shared<TextButton>([&]() {StartEditorNew();}, editor_new_txt, sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
+    editor_new_btn->Activate();
+
+    std::string editor_from_file_txt = "EDIT EXISTING";
+    std::shared_ptr<InterfaceComponent> editor_from_file_btn = std::make_shared<TextButton>([&]() {StartEditorFromFile();}, editor_from_file_txt,
+                                                                                     sf::Vector2f(0,0), sf::Vector2f(start_menu_width/2, start_menu_height/6), 20.f);
+
+    editor_menu_interface->AddComponentWithRelativePos(editor_new_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*1/4));
+    editor_menu_interface->AddComponentWithRelativePos(editor_from_file_btn, sf::Vector2f(start_menu_width*1/4, start_menu_height*2/4));
+    editor_menu_interface->Activate();
+
+    interface_manager->AddComponent(editor_menu_interface);
+    interface_manager->AddComponent(title_text_fld);
+    interface_manager->AddComponent(editor_text_fld);
+}
+
+void EditorMenu::ProcessInput() {
+
+    sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
+    sf::Event event{};
+    while(context->window->pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            context->window->close();
+        }
+
+        auto mouse_interface_pos = context->window->mapPixelToCoords(mouse_pos, context->window->getDefaultView());
+        interface_manager->OnMouseEnter(mouse_interface_pos);
+        interface_manager->OnMouseLeave(mouse_interface_pos);
+
+        if (event.type == sf::Event::MouseButtonPressed) {
+            if (event.mouseButton.button == sf::Mouse::Left) {
+                // Check if interfaces are clicked.
+                interface_manager->OnLeftClick(mouse_interface_pos);
+            }
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
+            context->state_manager->PopState();
+        }
+    }
+}
+
+void EditorMenu::Update(sf::Time deltaTime) {
+}
+
+void EditorMenu::Draw() {
+    context->window->clear(sf::Color::Black);
+
+    interface_manager->DrawComponents(context->window.get());
+
+    context->window->display();
+}
+
+void EditorMenu::Pause() {
+}
+
+void EditorMenu::Start() {
+}
+
+void EditorMenu::StartEditorNew() {
+    auto world = World{4000, 2000};
+    auto configuration = std::make_shared<SimulationConfig>();
+    auto simulation_data = SimulationData(KeySimulation, world, configuration);
+    auto editor = std::make_unique<Editor>(context, simulation_data, 1600, 900);
+    context->state_manager->AddState(std::move(editor), true);
+}
+
+void EditorMenu::StartEditorFromFile() {
+    std::string file_name = serialization::GetFileNameThroughLoadDialog();
+
+    if (file_name.empty()) {
+        std::cerr << "Error: Empty file name! " << std::endl;
+        return;
+    }
+
+    if (auto loaded_data = serialization::LoadSimulationDataFromFile(file_name)) {
+        SimulationData simulation_data = MainMenu::load_key_simulation_data(loaded_data);
+        auto editor = std::make_unique<Editor>(context, simulation_data, 1600, 900);
+        context->state_manager->AddState(std::move(editor), true);
+
+    } else {
+        std::cerr << "Error: Something wrong, cannot open file! " << std::endl;
+        return;
+    }
+}
+

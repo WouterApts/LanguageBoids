@@ -35,7 +35,7 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
         case KeySimulation:
             file << "KeySimulation \n"
                  << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
-                 << "INFLUENCE_RATE: " << data.config->INFLUENCE_RATE << '\n';
+                 << "INFLUENCE_RATE: " << data.config->CONVERSION_RATE << '\n';
             break;
         case VectorSimulation:
             file << "VectorSimulation \n"
@@ -48,7 +48,7 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
         case DominanceStudy:
             file << "DominanceStudy \n"
                  << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
-                 << "INFLUENCE_RATE: " << data.config->INFLUENCE_RATE << '\n'
+                 << "INFLUENCE_RATE: " << data.config->CONVERSION_RATE << '\n'
                  << "TOTAL_BOIDS: " << data.config->TOTAL_BOIDS << '\n'
                  << "RUNS_PER_DISTRIBUTION: " << data.config->RUNS_PER_DISTRIBUTION << '\n'
                  << "SECONDS_PER_RUN: " << data.config->TIME_STEPS_PER_RUN << '\n'
@@ -138,7 +138,7 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
         if (prefix == "a_COEFFICIENT:") {
             data.config->a_COEFFICIENT = value;
         } else if (prefix == "INFLUENCE_RATE:") {
-            data.config->INFLUENCE_RATE = value;
+            data.config->CONVERSION_RATE = value;
         // Dominance Study
         } else if (prefix == "RUNS_PER_DISTRIBUTION:") {
             data.config->RUNS_PER_DISTRIBUTION = static_cast<int>(value);

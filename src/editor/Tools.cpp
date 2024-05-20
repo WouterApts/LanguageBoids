@@ -141,7 +141,7 @@ void TerrainTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation
         building = true;
     } else {
         if ((Eigen::Vector2f(tool_pos.x, tool_pos.y) - vertices[0]).norm() < 10) {
-            simulation_data.world.terrains.emplace_back(std::make_shared<Terrain>(vertices, friction_modifier, struggle_modifier, min_speed, max_speed));
+            simulation_data.world.terrains.emplace_back(std::make_shared<Terrain>(vertices, friction_modifier, language_status_modifier, min_speed, max_speed));
             building = false;
             vertices.clear();
         } else {

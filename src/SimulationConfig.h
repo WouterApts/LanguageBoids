@@ -27,14 +27,15 @@ struct SimulationConfig {
 
     // Language Key Simulation
     float a_COEFFICIENT = 1.3f;
-    float INFLUENCE_RATE = 1.f;
+    float CONVERSION_RATE = 1.f;
 
     // Language Vector Simulation
-    int LANGUAGE_SIZE = 32;
-    float MUTATION_RATE = 0.001f;
+    int LANGUAGE_SIZE = 50;
+    float MUTATION_RATE = 0.01f;
     float MIN_INTERACTION_RATE = 0.25f;
-    int MIN_ADOPTION_RATE = 0.25f;
+    float MIN_ADOPTION_RATE = 0.25f;
     int BOID_LIFE_STEPS = 100;
+    int CARRYING_CAPACITY = 2000;
 
     // Language Dominance Simulation
     int TIME_STEPS_PER_RUN = 5000;

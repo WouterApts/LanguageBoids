@@ -25,7 +25,7 @@ public:
     std::shared_ptr<SimulationConfig> config;
     std::vector<std::shared_ptr<BoidSpawner>> boid_spawners;
 
-    SimulationData(World world, const std::shared_ptr<SimulationConfig>& config) : world(std::move(world)), config(config) {};
+    SimulationData(SimulationType type, World world, const std::shared_ptr<SimulationConfig>& config) : type(type), world(std::move(world)), config(config) {};
     SimulationData() {
         world = World();
         config = std::make_shared<SimulationConfig>();
@@ -35,12 +35,12 @@ public:
 class KeySimulationData : public SimulationData {
 public:
     std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
-    KeySimulationData(World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(std::move(world), config) {};
+    KeySimulationData(SimulationType type, World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(type, std::move(world), config) {};
 };
 
 class VectorSimulationData : public SimulationData {
 public:
     std::vector<std::shared_ptr<VectorBoidSpawner>> boid_spawners;
-    VectorSimulationData(World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(std::move(world), config) {};
+    VectorSimulationData(SimulationType type, World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(type, std::move(world), config) {};
 };
 #endif //SIMULATIONDATA_H

@@ -48,14 +48,25 @@ public:
     struct UpdatedBoidValues {
         std::map<VectorBoid*, Eigen::Vector2f> acceleration_values;
         std::map<VectorBoid*, std::set<int>> language_features;
-        std::map<VectorBoid*, float> age_values;
         std::map<VectorBoid*, bool> marked_for_death;
         std::map<VectorBoid*, Eigen::VectorXi> most_common_language;
     };
 
+    struct BoidValues {
+        BoidValues() = default;
+        Eigen::Vector2f acceleration_value;
+        std::set<int> language_features;
+        bool marked_for_death = false;
+        Eigen::VectorXi most_common_language;
+    };
+
+    using BoidValueMap = std::map<VectorBoid*, std::shared_ptr<BoidValues>>;
+
     SpatialGrid<VectorBoid> spatial_boid_grid;
     std::vector<std::shared_ptr<VectorBoid>> boids;
     std::vector<std::shared_ptr<VectorBoidSpawner>> boid_spawners;
+    int total_boids = 0;
+    sf::Text total_boids_display_text;
 
     // Multi-Threading
     std::mutex mtx;
@@ -69,15 +80,13 @@ public:
     void Update(sf::Time delta_time) override;
     void MultiThreadUpdate(sf::Time delta_time);
 
-    VectorSimulator::UpdatedBoidValues MultiThreadUpdateStepOne(int start_index, int end_index, sf::Time delta_time) const;
+    BoidValueMap MultiThreadUpdateStepOne(int start_index, int end_index, sf::Time delta_time) const;
+    void RemoveDeadBoidsAndAddOffspring(std::map<VectorBoid *, std::shared_ptr<BoidValues>> updated_boid_values
+    );
 
     void MultiThreadUpdateStepTwo(int start_index, int end_index, sf::Time delta_time);
 
     void UpdateBoidsStepTwo(sf::Time delta_time);
-
-
-    void MultiThreadUpdateTEMP(sf::Time delta_time);
-
     void ProcessInput() override;
 
     void DrawWorldAndBoids();
@@ -110,6 +119,7 @@ public:
 
     // KeyAnalyser analyser;
     LanguageManager language_manager;
+    std::shared_ptr<std::map<int, float>> default_languages_status_map;
 
     KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
 

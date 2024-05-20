@@ -115,7 +115,7 @@ void IntInputField::OnKeyBoardEnter(sf::Uint32 unicode) {
 
 
 FloatInputField::FloatInputField(InterfaceManager& interface_manager, std::function<void(float)> callback, sf::Vector2f pos, sf::Vector2f size, int character_limit, float default_value)
-    : InputField(interface_manager, pos, size, character_limit, std::format("{:.1f}", default_value)), callback(std::move(callback)), value(default_value) {
+    : InputField(interface_manager, pos, size, character_limit, std::format("{:.2f}", default_value)), callback(std::move(callback)), value(default_value) {
 }
 
 void FloatInputField::OnKeyBoardEnter(sf::Uint32 unicode) {

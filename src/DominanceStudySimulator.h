@@ -56,7 +56,7 @@ public:
 
     void SetNextDistribution();
 
-    void Update(sf::Time deltaTime) override;
+    void Update(sf::Time delta_time) override;
     void Pause() override;
     void Draw() override;
     void Start() override;

@@ -4,11 +4,13 @@
 
 #ifndef UTILITY_H
 #define UTILITY_H
+#include <iostream>
 #include <string>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Time.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <Eigen/Dense>
 
 class InterfaceManager;
 
@@ -24,22 +26,20 @@ void DisplayMessage(InterfaceManager interface_manager, sf::Vector2f pos, const 
 // Function to calculate the gradient color between green and red based on distance
 sf::Color CalculateGradientColor(float distance);
 
-// Hash function for Eigen matrix and vector.
-// The code is from `hash_combine` function of the Boost library. See
-// http://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine .
-template<typename T>
-struct matrix_hash {
-    std::size_t operator()(T const& matrix) const {
-        size_t seed = 0;
-        for (size_t i = 0; i < matrix.size(); ++i) {
-            auto elem = *(matrix.data() + i);
-            seed ^= std::hash<typename T::Scalar>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+struct vectorXiHash {
+    std::size_t operator()(const Eigen::VectorXi& v) const {
+        std::size_t seed = 0;
+        for (int i = 0; i < v.size(); ++i) {
+            seed ^= std::hash<int>()(v(i)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;
     }
+};
 
-    bool operator()(const T& lhs, const T& rhs) const {
-        return lhs.isApprox(rhs); // Or any other suitable comparison method
+// Comparison function for Eigen::VectorXi
+struct vectorXiEqual {
+    bool operator()(const Eigen::VectorXi& a, const Eigen::VectorXi& b) const {
+        return a.isApprox(b);
     }
 };
 

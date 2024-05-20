@@ -41,7 +41,7 @@ std::pair<int, float> KeyBoid::GetUpdatedLanguageAndSatisfaction(const std::vect
     for (auto& count : language_count) {
         int key = count.first;
         float influence = std::pow(count.second / static_cast<float>(interacting_boids.size()), config->a_COEFFICIENT) *
-                          (language_status[key] / static_cast<float>(perceived_boids.size()));
+                          (language_status[key] * language_status_map->at(key) / static_cast<float>(perceived_boids.size()));
         total_influence_val += influence;
         language_influence[key] = influence;
     }
@@ -50,10 +50,10 @@ std::pair<int, float> KeyBoid::GetUpdatedLanguageAndSatisfaction(const std::vect
     float satisfaction = 0;
     if (float r = GetRandomFloatBetween(0, total_influence_val); r <= language_influence[this->language_key]) {
         // Increase current language satisfaction
-        satisfaction = this->language_satisfaction + config->INFLUENCE_RATE * delta_time.asSeconds();
+        satisfaction = this->language_satisfaction + config->CONVERSION_RATE * delta_time.asSeconds();
     } else {
         // Decrease current language satisfaction
-        satisfaction = this->language_satisfaction - config->INFLUENCE_RATE * delta_time.asSeconds();
+        satisfaction = this->language_satisfaction - config->CONVERSION_RATE * delta_time.asSeconds();
     }
 
     // change language if current influence goes below zero
@@ -94,7 +94,7 @@ void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *>& perceived
     for (auto& language : language_proportion) {
         int key = language.first;
         float influence = std::pow(language.second / static_cast<float>(interacting_boids.size()), config->a_COEFFICIENT) *
-                          (language_status[key] / static_cast<float>(perceived_boids.size()));
+                          (language_status[key] * language_status_map->at(key) / static_cast<float>(perceived_boids.size()));
         total_influence_val += influence;
         language_influence[key] = influence;
     }
@@ -102,10 +102,10 @@ void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *>& perceived
     // Based on the language influence, sample r to check whether influence of current language increases or decreases.
     if (float r = GetRandomFloatBetween(0, total_influence_val); r <= language_influence[this->language_key]) {
         // Increase current language satisfaction
-        SetLanguageSatisfaction(this->language_satisfaction + config->INFLUENCE_RATE * delta_time.asSeconds());
+        SetLanguageSatisfaction(this->language_satisfaction + config->CONVERSION_RATE * delta_time.asSeconds());
     } else {
         // Decrease current language satisfaction
-        SetLanguageSatisfaction(this->language_satisfaction - config->INFLUENCE_RATE * delta_time.asSeconds());
+        SetLanguageSatisfaction(this->language_satisfaction - config->CONVERSION_RATE * delta_time.asSeconds());
     }
 
     // change language if current influence goes below zero
@@ -133,6 +133,10 @@ void KeyBoid::UpdateLanguage() {
 
 void KeyBoid::SetLanguageSatisfaction(float value) {
     this->language_satisfaction = std::min(1.f, value);
+}
+
+void KeyBoid::SetLanguageStatusMap(const std::shared_ptr<std::map<int, float>> &language_status_map) {
+    this->language_status_map = language_status_map;
 }
 
 Eigen::Vector2f KeyBoid::GetUpdatedAcceleration(const std::vector<KeyBoid*>& interacting_boids) const {
@@ -170,11 +174,6 @@ Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ke
             similar_boids++;
         }
     }
-
-    // Account for own position and velocity.
-    // avg_pos += this->pos;
-    // avg_vel += this->vel;
-    // similar_boids += 1;
 
     if (similar_boids > 1) {
         avg_pos = avg_pos / similar_boids;

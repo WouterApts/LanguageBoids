@@ -136,8 +136,8 @@ void DominanceStudySimulator::SetNextDistribution() {
     SetupCurrentDistribution(current_distrubution_nr + 1);
 }
 
-void DominanceStudySimulator::Update(sf::Time deltaTime) {
-    if (deltaTime < sf::seconds(1/30.f)) { deltaTime = sf::seconds(1/30.f); }
+void DominanceStudySimulator::Update(sf::Time delta_time) {
+    if (delta_time < sf::seconds(1/30.f)) { delta_time = sf::seconds(1/30.f); }
 
     if (current_distrubution_nr >= simulation_data.config->DISTRIBUTIONS) {
         escape_interface->Activate();
@@ -161,7 +161,7 @@ void DominanceStudySimulator::Update(sf::Time deltaTime) {
     }
     else {
         //Update Simulation
-        current_simulation->Update(deltaTime);
+        current_simulation->Update(delta_time);
 
         // Update Interface
         study_interface->simulation_time_fld->text.setString("Simulation Time: " + std::to_string(current_simulation->total_simulation_time));

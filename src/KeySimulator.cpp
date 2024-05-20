@@ -18,16 +18,20 @@ KeySimulator::KeySimulator(std::shared_ptr<Context>& context, KeySimulationData&
       boid_spawners(simulation_data.boid_spawners),
       num_threads(std::thread::hardware_concurrency()),
       spatial_boid_grid(SpatialGrid<KeyBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS)))
-     //analyser(world, 100, boids, language_manager)
 {
     std::map<int, int> languages;
+    std::map<int, float> default_languages_status_map;
     for (auto &spawner: boid_spawners) {
         languages[spawner->language_key] += 1;
+        default_languages_status_map[spawner->language_key] = 1;  // Create default status map (all languages are perceived equaly by default)
     }
-    int number_of_languages = static_cast<int>(languages.size());
-    language_manager = LanguageManager(number_of_languages);
-    //analyser = KeyAnalyser(world, 100, boids, language_manager);
-
+    language_manager = LanguageManager(static_cast<int>(languages.size()));
+    this->default_languages_status_map = std::make_shared<std::map<int, float>>(default_languages_status_map);
+    
+    for (auto& terrain : world.terrains) {
+        // Initialize status maps for different terrain zones (possibly increasing/decreasing a language's base status)
+        terrain->InitLanguageStatusMap(default_languages_status_map);
+    }
 }
 
 void KeySimulator::Init() {
@@ -53,9 +57,10 @@ void KeySimulator::Init() {
 
     for (auto& boid : boids) {
         boid->UpdateColor();
+        boid->SetLanguageStatusMap(default_languages_status_map);
     }
 
-    // Divide boids into chunks
+    // Divide boids into chunks for multi-threading
     if (config->MULTI_THREADING) {
         DivideBoidChunks();
     }
@@ -110,11 +115,15 @@ void KeySimulator::UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>
         bool in_terrain = false;
         for (auto& terrain : world.terrains) {
             if (terrain->IsPointInside(boid->pos)) {
-                terrain->ApplyEffects(boid.get());
+                terrain->ApplyMovementEffects(boid.get());
+                terrain->ApplyLanguageStatusEffects(boid.get());
                 in_terrain = true;
             }
         }
-        if (!in_terrain) boid->SetDefaultMinMaxSpeed();
+        if (!in_terrain) {
+            boid->SetDefaultMinMaxSpeed();
+            boid->SetLanguageStatusMap(default_languages_status_map);
+        }
 
         //Update boids velocity (Also checking Collisions)
         boid->UpdateVelocity(world.obstacles, delta_time);
@@ -124,7 +133,6 @@ void KeySimulator::UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>
         spatial_boid_grid.UpdateObj(boid);
 
         //Update boids language
-        //TODO Split MultiThread and SingleThread updates!
         boid->UpdateLanguage();
 
         //Update boids sprite

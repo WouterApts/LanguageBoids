@@ -67,8 +67,8 @@ public:
     bool building = false;
     std::vector<Eigen::Vector2f> vertices;
     float friction_modifier = 1;
-    float struggle_modifier = 1;
-    int min_speed = 75;
+    std::pair<int, float> language_status_modifier = {-1, 1};
+    int min_speed = 50;
     int max_speed = 100;
 
     void Reset() override;
