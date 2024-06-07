@@ -13,7 +13,7 @@ public:
 
     std::shared_ptr<TextField> run_fld;
     std::shared_ptr<TextField> simulation_time_fld;
-    std::shared_ptr<TextField> distribution_fld;
+    std::shared_ptr<TextField> fraction_fld;
 
     StudyInterface(sf::Vector2f pos);
 };

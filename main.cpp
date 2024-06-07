@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "Application.h"
-#include "editor/Serialization.h"
+#include "src/Serialization.h"
 
 int main() {
 

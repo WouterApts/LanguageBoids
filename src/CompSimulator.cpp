@@ -11,13 +11,13 @@
 #include "LanguageManager.h"
 #include "Simulator.h"
 #include "Utility.h"
-#include "editor/Serialization.h"
+#include "Serialization.h"
 
-KeySimulator::KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height)
+CompSimulator::CompSimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height)
     : Simulator(context, simulation_data.config, simulation_data.world, camera_width, camera_height),
       boid_spawners(simulation_data.boid_spawners),
       num_threads(std::thread::hardware_concurrency()),
-      spatial_boid_grid(SpatialGrid<KeyBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS)))
+      spatial_boid_grid(SpatialGrid<CompBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS)))
 {
     std::map<int, int> languages;
     std::map<int, float> default_languages_status_map;
@@ -32,12 +32,16 @@ KeySimulator::KeySimulator(std::shared_ptr<Context>& context, KeySimulationData&
         // Initialize status maps for different terrain zones (possibly increasing/decreasing a language's base status)
         terrain->InitLanguageStatusMap(default_languages_status_map);
     }
+
+    // Setup analysis logging if enebled
+    if (config->LANGUAGE_LOG_INTERVAL > 0 || config->POSITION_LOG_INTERVAL > 0) {
+        analyser = std::make_unique<CompAnalyser>(boids);
+        analyser->SetBPLTimeInterval(sf::seconds(config->LANGUAGE_LOG_INTERVAL));
+        analyser->SetPPLTimeInterval(sf::seconds(config->POSITION_LOG_INTERVAL));
+    }
 }
 
-void KeySimulator::Init() {
-    // Setup analysis logging
-    //analyser.SetBPLTimeInterval(sf::seconds(1.f));
-    //analyser.SetLPCTimeInterval(sf::seconds(5.f));
+void CompSimulator::Init() {
 
     // Setup world borders
     CreateWorldBorderLines();
@@ -66,7 +70,7 @@ void KeySimulator::Init() {
     }
 }
 
-void KeySimulator::DivideBoidChunks() {
+void CompSimulator::DivideBoidChunks() {
     // Split the boids vector into chunks for each thread
     boid_chunks.resize(num_threads);
     for (size_t i = 0; i < boids.size(); ++i) {
@@ -74,13 +78,13 @@ void KeySimulator::DivideBoidChunks() {
     }
 }
 
-KeySimulator::UpdatedBoidValues KeySimulator::UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<KeyBoid> > &boids, sf::Time delta_time) const {
+CompSimulator::UpdatedBoidValues CompSimulator::UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<CompBoid> > &boids, sf::Time delta_time) const {
 
     UpdatedBoidValues updated_boid_values;
     for (const auto& boid : boids) {
         //Get boids in perception radius:
-        std::vector<KeyBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid);
-        std::vector<KeyBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid);
+        std::vector<CompBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid);
+        std::vector<CompBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid);
 
         //Update boids acceleration
         updated_boid_values.acceleration_values[boid.get()] = boid->GetUpdatedAcceleration(interacting_boids);
@@ -93,12 +97,12 @@ KeySimulator::UpdatedBoidValues KeySimulator::UpdateBoidsStepOneMultithread(cons
     return updated_boid_values;
 }
 
-void KeySimulator::UpdateBoidsStepOne(const std::vector<std::shared_ptr<KeyBoid>>& boids, sf::Time delta_time) const {
+void CompSimulator::UpdateBoidsStepOne(const std::vector<std::shared_ptr<CompBoid>>& boids, sf::Time delta_time) const {
     for (const auto& boid : boids) {
 
         //Get boids in perception radius:
-        std::vector<KeyBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid);
-        std::vector<KeyBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid);
+        std::vector<CompBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid);
+        std::vector<CompBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid);
 
         //Update boids acceleration
         boid->UpdateAcceleration(interacting_boids);
@@ -108,7 +112,7 @@ void KeySimulator::UpdateBoidsStepOne(const std::vector<std::shared_ptr<KeyBoid>
     }
 }
 
-void KeySimulator::UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>>& boids, sf::Time delta_time) {
+void CompSimulator::UpdateBoidsStepTwo(const std::vector<std::shared_ptr<CompBoid>>& boids, sf::Time delta_time) {
     for (const auto& boid : boids) {
 
         //Update boid behaviour based on terrain effects
@@ -133,6 +137,7 @@ void KeySimulator::UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>
         spatial_boid_grid.UpdateObj(boid);
 
         //Update boids language
+        //TODO: split multi-thread and single thread, this function is useless in multi (updated_language_key is always -1)
         boid->UpdateLanguage();
 
         //Update boids sprite
@@ -142,7 +147,11 @@ void KeySimulator::UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>
 
 // Log metrics based on interval settings
 //analyser.LogAllMetrics(delta_time);
-void KeySimulator::Update(sf::Time delta_time) {
+void CompSimulator::Update(sf::Time delta_time) {
+
+    if (speed_up_sumlation) {
+        if (delta_time < sf::seconds(1/30.f)) { delta_time = sf::seconds(1/30.f); }
+    }
 
     if (config->MULTI_THREADING) {
         std::vector<std::future<UpdatedBoidValues>> future_pool;
@@ -189,11 +198,14 @@ void KeySimulator::Update(sf::Time delta_time) {
     // Update boids position, language, and sprite sequentially
     UpdateBoidsStepTwo(boids, delta_time);
 
+    // Log analysis data if analysing is enabled
+    if (analyser) analyser->LogAllMetrics(delta_time);
+
     // Increment simulation time
     total_simulation_time += delta_time.asSeconds();
 }
 
-void KeySimulator::ProcessInput() {
+void CompSimulator::ProcessInput() {
 
     sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
     sf::Event event{};
@@ -226,13 +238,18 @@ void KeySimulator::ProcessInput() {
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::G)) {
-            std::cout << "Visual Spatial Grid:" << !spatial_boid_grid.is_visible << std::endl;
             spatial_boid_grid.is_visible = !spatial_boid_grid.is_visible;
+            std::cout << "Visual Spatial Grid: " << spatial_boid_grid.is_visible << std::endl;
+        }
+
+        if (IsKeyPressedOnce(sf::Keyboard::Space)) {
+            speed_up_sumlation = !speed_up_sumlation;
+            std::cout << "Speed up Simulation: " << speed_up_sumlation << std::endl;
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::F5)) {
-            //analyser.SaveBoidPerLanguageToCSV("bpl_output.csv");
-            //analyser.SaveLanguagesPerCellToCSV("lpc_output.csv");
+            analyser->SaveBoidPerLanguageToCSV("language_output.csv");
+            analyser->SavePositionPerLanguageCSV("positions_output.csv");
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
@@ -242,7 +259,7 @@ void KeySimulator::ProcessInput() {
     camera.Drag(mouse_pos);
 };
 
-void KeySimulator::DrawWorldAndBoids() {
+void CompSimulator::DrawWorldAndBoids() {
     // Set camera view
     context->window->setView(camera.view);
 
@@ -271,7 +288,7 @@ void KeySimulator::DrawWorldAndBoids() {
     context->window->setView(context->window->getDefaultView());
 }
 
-void KeySimulator::DrawSpawners() const {
+void CompSimulator::DrawSpawners() const {
     // Set camera view
     context->window->setView(camera.view);
 
@@ -284,21 +301,21 @@ void KeySimulator::DrawSpawners() const {
     context->window->setView(context->window->getDefaultView());
 }
 
-void KeySimulator::Draw() {
+void CompSimulator::Draw() {
     context->window->clear(sf::Color::Black);
     DrawWorldAndBoids();
     context->window->display();
 }
 
-void KeySimulator::Start() {
+void CompSimulator::Start() {
 
 }
 
-void KeySimulator::Pause() {
+void CompSimulator::Pause() {
 
 }
 
-void KeySimulator::AddBoid(const std::shared_ptr<KeyBoid> &boid) {
+void CompSimulator::AddBoid(const std::shared_ptr<CompBoid> &boid) {
     boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (the 'boids' vector)
     spatial_boid_grid.AddObj(boid);
 }

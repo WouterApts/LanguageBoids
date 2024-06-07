@@ -13,14 +13,14 @@
 #include "World.h"
 
 enum SimulationType {
-    KeySimulation,
-    VectorSimulation,
-    DominanceStudy
+    CompSimulation,
+    EvoSimulation,
+    CompStudy
 };
 
 class SimulationData {
 public:
-    SimulationType type = KeySimulation;
+    SimulationType type = CompSimulation;
     World world;
     std::shared_ptr<SimulationConfig> config;
     std::vector<std::shared_ptr<BoidSpawner>> boid_spawners;
@@ -34,13 +34,13 @@ public:
 
 class KeySimulationData : public SimulationData {
 public:
-    std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
+    std::vector<std::shared_ptr<CompBoidSpawner>> boid_spawners;
     KeySimulationData(SimulationType type, World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(type, std::move(world), config) {};
 };
 
 class VectorSimulationData : public SimulationData {
 public:
-    std::vector<std::shared_ptr<VectorBoidSpawner>> boid_spawners;
+    std::vector<std::shared_ptr<EvoBoidSpawner>> boid_spawners;
     VectorSimulationData(SimulationType type, World world, const std::shared_ptr<SimulationConfig> &config) :  SimulationData(type, std::move(world), config) {};
 };
 #endif //SIMULATIONDATA_H

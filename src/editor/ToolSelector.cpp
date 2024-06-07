@@ -22,24 +22,24 @@ ToolSelector::ToolSelector(SimulationData& simulation_data)
 
 void ToolSelector::SelectTool(Tools tool) {
     if (tool == BoidCircleT) {
-        if (simulation_data.type == KeySimulation) {
+        if (simulation_data.type == CompSimulation) {
             selected_tool = KeyBoidCircleT;
         }
-        else if (simulation_data.type == VectorSimulation) {
+        else if (simulation_data.type == EvoSimulation) {
             selected_tool = VectorBoidCircleT;
         }
-        else if (simulation_data.type == DominanceStudy) {
+        else if (simulation_data.type == CompStudy) {
             selected_tool = StudyBoidCircleT;
         }
     }
     else if (tool == BoidRectangleT) {
-        if (simulation_data.type == KeySimulation) {
+        if (simulation_data.type == CompSimulation) {
             selected_tool = KeyBoidRectangleT;
         }
-        else if (simulation_data.type == VectorSimulation) {
+        else if (simulation_data.type == EvoSimulation) {
             selected_tool = VectorBoidRectangleT;
         }
-        else if (simulation_data.type == DominanceStudy) {
+        else if (simulation_data.type == CompStudy) {
             selected_tool = StudyBoidRectangleT;
         }
     }

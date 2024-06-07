@@ -10,12 +10,13 @@
 #include "Boid.h"
 #include "State.h"
 #include "Camera.h"
-#include "analysis/KeyAnalyser.h"
+#include "analysis/CompAnalyser.h"
 #include "LanguageManager.h"
 #include "Obstacles.h"
 #include "SimulationData.h"
 #include "SpatialGrid.tpp"
 #include "Application.h"
+#include "analysis/EvoAnalyser.h"
 
 class Simulator : public State {
 public:
@@ -42,14 +43,14 @@ public:
     void CreateWorldBorderLines();
 };
 
-class VectorSimulator : public Simulator {
+class EvoSimulator : public Simulator {
 public:
 
     struct UpdatedBoidValues {
-        std::map<VectorBoid*, Eigen::Vector2f> acceleration_values;
-        std::map<VectorBoid*, std::set<int>> language_features;
-        std::map<VectorBoid*, bool> marked_for_death;
-        std::map<VectorBoid*, Eigen::VectorXi> most_common_language;
+        std::map<EvoBoid*, Eigen::Vector2f> acceleration_values;
+        std::map<EvoBoid*, std::set<int>> language_features;
+        std::map<EvoBoid*, bool> marked_for_death;
+        std::map<EvoBoid*, Eigen::VectorXi> most_common_language;
     };
 
     struct BoidValues {
@@ -60,31 +61,33 @@ public:
         Eigen::VectorXi most_common_language;
     };
 
-    using BoidValueMap = std::map<VectorBoid*, std::shared_ptr<BoidValues>>;
+    using BoidValueMap = std::map<EvoBoid*, std::shared_ptr<BoidValues>>;
 
-    SpatialGrid<VectorBoid> spatial_boid_grid;
-    std::vector<std::shared_ptr<VectorBoid>> boids;
-    std::vector<std::shared_ptr<VectorBoidSpawner>> boid_spawners;
-    int total_boids = 0;
-    sf::Text total_boids_display_text;
+    SpatialGrid<EvoBoid> spatial_boid_grid;
+    std::vector<std::shared_ptr<EvoBoid>> boids;
+    std::vector<std::shared_ptr<EvoBoidSpawner>> boid_spawners;
+    sf::Text selected_boid_language_display;
+
+    //Analysis
+    std::shared_ptr<EvoAnalyser> analyser;
+    std::string output_file_path;
 
     // Multi-Threading
     std::mutex mtx;
     const size_t num_threads;
 
-    VectorSimulator(std::shared_ptr<Context>& context, VectorSimulationData& simulation_data, float camera_width, float camera_height);
+    EvoSimulator(std::shared_ptr<Context>& context, VectorSimulationData& simulation_data, std::string simulation_name,
+                 float camera_width, float camera_height);
 
     void Init() override;
-    void AddBoid(const std::shared_ptr<VectorBoid> &boid);
+    void AddBoid(const std::shared_ptr<EvoBoid> &boid);
 
     void Update(sf::Time delta_time) override;
     void MultiThreadUpdate(sf::Time delta_time);
 
     BoidValueMap MultiThreadUpdateStepOne(int start_index, int end_index, sf::Time delta_time) const;
-    void RemoveDeadBoidsAndAddOffspring(std::map<VectorBoid *, std::shared_ptr<BoidValues>> updated_boid_values
+    void RemoveDeadBoidsAndAddOffspring(std::map<EvoBoid *, std::shared_ptr<BoidValues>> updated_boid_values
     );
-
-    void MultiThreadUpdateStepTwo(int start_index, int end_index, sf::Time delta_time);
 
     void UpdateBoidsStepTwo(sf::Time delta_time);
     void ProcessInput() override;
@@ -100,38 +103,43 @@ public:
 };
 
 
-class KeySimulator : public Simulator {
+class CompSimulator : public Simulator {
 public:
 
     struct UpdatedBoidValues {
-        std::map<KeyBoid*, Eigen::Vector2f> acceleration_values;
-        std::map<KeyBoid*, std::pair<int, float>> language_and_satisfaction_values;
+        std::map<CompBoid*, Eigen::Vector2f> acceleration_values;
+        std::map<CompBoid*, std::pair<int, float>> language_and_satisfaction_values;
     };
 
-    SpatialGrid<KeyBoid> spatial_boid_grid;
-    std::vector<std::shared_ptr<KeyBoid>> boids;
-    std::vector<std::shared_ptr<KeyBoidSpawner>> boid_spawners;
+    SpatialGrid<CompBoid> spatial_boid_grid;
+    std::vector<std::shared_ptr<CompBoid>> boids;
+    std::vector<std::shared_ptr<CompBoidSpawner>> boid_spawners;
 
     // Multi-Threading
     std::mutex mtx;
     const size_t num_threads;
-    std::vector<std::vector<std::shared_ptr<KeyBoid>>> boid_chunks;
+    std::vector<std::vector<std::shared_ptr<CompBoid>>> boid_chunks;
 
-    // KeyAnalyser analyser;
+    // analysis
+    std::unique_ptr<CompAnalyser> analyser;
+    bool speed_up_sumlation = false;
+
+    // Language dyanmics
     LanguageManager language_manager;
     std::shared_ptr<std::map<int, float>> default_languages_status_map;
 
-    KeySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
+
+    CompSimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
 
     void Init() override;
 
     void DivideBoidChunks();
 
-    UpdatedBoidValues UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<KeyBoid> > &boids,
+    UpdatedBoidValues UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<CompBoid> > &boids,
                                                                   sf::Time delta_time) const;
 
-    void UpdateBoidsStepOne(const std::vector<std::shared_ptr<KeyBoid>> &boids, sf::Time delta_time) const;
-    void UpdateBoidsStepTwo(const std::vector<std::shared_ptr<KeyBoid>> &boids, sf::Time delta_time);
+    void UpdateBoidsStepOne(const std::vector<std::shared_ptr<CompBoid>> &boids, sf::Time delta_time) const;
+    void UpdateBoidsStepTwo(const std::vector<std::shared_ptr<CompBoid>> &boids, sf::Time delta_time);
     void Update(sf::Time delta_time) override;
 
     void ProcessInput() override;
@@ -143,7 +151,7 @@ public:
     void Start() override;
     void Pause() override;
 
-    void AddBoid(const std::shared_ptr<KeyBoid> &boid);
+    void AddBoid(const std::shared_ptr<CompBoid> &boid);
 
 };
 

@@ -26,7 +26,7 @@ public:
 
     std::string ToString() const;
 
-    void ApplyLanguageStatusEffects(KeyBoid *boid) const;
+    void ApplyLanguageStatusEffects(CompBoid *boid) const;
 
     void InitLanguageStatusMap(const std::map<int, float> &map);
 

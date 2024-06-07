@@ -11,7 +11,7 @@
 #include "Terrain.h"
 
 
-class KeyBoidSpawner;
+class CompBoidSpawner;
 
 struct World {
     float width;

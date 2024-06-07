@@ -7,11 +7,11 @@
 #include <iostream>
 #include <SFML/Window/Event.hpp>
 #include "Application.h"
-#include "DominanceStudySimulator.h"
+#include "CompStudySimulator.h"
 #include "Simulator.h"
 #include "Utility.h"
 #include "editor/Editor.h"
-#include "editor/Serialization.h"
+#include "Serialization.h"
 #include "ui/components/Button.h"
 #include "ui/components/Panel.h"
 
@@ -32,20 +32,20 @@ void MainMenu::StartSimulation() {
     }
 
     if (auto loaded_data = serialization::LoadSimulationDataFromFile(file_name)) {
-        if (loaded_data->type == KeySimulation) {
+        auto simulation_name = ExtractFileName(file_name);
+        if (loaded_data->type == CompSimulation) {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
-            auto simulation = std::make_unique<KeySimulator>(context, simulation_data, 1600, 900);
+            auto simulation = std::make_unique<CompSimulator>(context, simulation_data, 1600, 900);
             context->state_manager->AddState(std::move(simulation));
-        }else if (loaded_data->type == VectorSimulation) {
+        }else if (loaded_data->type == EvoSimulation) {
             VectorSimulationData simulation_data = load_vector_simulation_data(loaded_data);
             auto simulation_file_name = ExtractFileName(file_name);
-            auto simulation = std::make_unique<VectorSimulator>(context, simulation_data, 1600, 900);
+            auto simulation = std::make_unique<EvoSimulator>(context, simulation_data, simulation_name, 1600, 900);
             context->state_manager->AddState(std::move(simulation));
         }
-        else if (loaded_data->type == DominanceStudy) {
+        else if (loaded_data->type == CompStudy) {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
-            auto simulation_file_name = ExtractFileName(file_name);
-            auto simulation = std::make_unique<DominanceStudySimulator>(context, simulation_data, simulation_file_name, 1600, 900);
+            auto simulation = std::make_unique<CompStudySimulator>(context, simulation_data, simulation_name, 1600, 900);
             //simulation->fast_analysis = true; //Skip testing distributions once a completely dominant one has been found.
             context->state_manager->AddState(std::move(simulation));
         }
@@ -137,7 +137,7 @@ KeySimulationData MainMenu::load_key_simulation_data(std::optional<SimulationDat
     // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
     std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
                    [](const std::shared_ptr<BoidSpawner>& spawner) {
-                       return std::dynamic_pointer_cast<KeyBoidSpawner>(spawner);
+                       return std::dynamic_pointer_cast<CompBoidSpawner>(spawner);
                    });
     return simulation_data;
 }
@@ -147,7 +147,7 @@ VectorSimulationData MainMenu::load_vector_simulation_data(std::optional<Simulat
     // Cast each BoidSpawner pointer to KeyBoidSpawner pointer
     std::transform(loaded_data->boid_spawners.begin(), loaded_data->boid_spawners.end(), std::back_inserter(simulation_data.boid_spawners),
                    [](const std::shared_ptr<BoidSpawner>& spawner) {
-                       return std::dynamic_pointer_cast<VectorBoidSpawner>(spawner);
+                       return std::dynamic_pointer_cast<EvoBoidSpawner>(spawner);
                    });
     return simulation_data;
 }
@@ -232,7 +232,7 @@ void EditorMenu::Start() {
 void EditorMenu::StartEditorNew() {
     auto world = World{4000, 2000};
     auto configuration = std::make_shared<SimulationConfig>();
-    auto simulation_data = SimulationData(KeySimulation, world, configuration);
+    auto simulation_data = SimulationData(CompSimulation, world, configuration);
     auto editor = std::make_unique<Editor>(context, simulation_data, 1600, 900);
     context->state_manager->AddState(std::move(editor), true);
 }

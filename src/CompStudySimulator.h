@@ -13,23 +13,23 @@
 #include "ui/StudyInterface.h"
 
 
-class DominanceStudySimulator : public State {
+class CompStudySimulator : public State {
 public:
     std::shared_ptr<Context> context;
     Camera camera;
     KeySimulationData simulation_data;
     std::map<int, int> spawners_per_language;
 
-    std::unique_ptr<KeySimulator> current_simulation;
+    std::unique_ptr<CompSimulator> current_simulation;
     int current_run_nr = 0;
     int current_distrubution_nr = 0;
-    std::map<int, int> current_initial_distribution;
+    std::map<int, int> current_initial_fraction;
     bool fast_analysis = false;
 
     //Data logging
     std::vector<int> run_outcomes;
     std::vector<double> run_times;
-    std::vector<std::array<int, 2>> run_final_distributions;
+    std::vector<std::array<int, 2>> run_final_fraction;
     std::string output_file_path;
 
     // Interface
@@ -39,12 +39,12 @@ public:
     std::map<int, bool> one_sided_outcome_found;
     bool display_simulation = true;
 
-    DominanceStudySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string sim_file_name_without_extension,
-                            float camera_width, float camera_height, int starting_distribution_nr = 0);
+    CompStudySimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string simulation_name,
+                       float camera_width, float camera_height, int starting_distribution_nr = 0);
 
-    static void LogDataToFile(const std::string &file_path, int distribution_nr, std::map<int, int> current_initial_distribution, const std::vector<
+    static void LogDataToFile(const std::string &file_path, int fraction_nr, std::map<int, int> current_initial_fraction, const std::vector<
                               int> &run_outcomes, const std::vector<double> &run_times, const std::vector<std::array<int, 2>> &
-                              run_final_distributions);
+                              run_final_fractions);
 
     void Init() override;
 
@@ -52,16 +52,16 @@ public:
 
     void ProcessInput() override;
 
-    void SetupCurrentDistribution(int number);
+    void SetupCurrentFraction(int number);
 
-    void SetNextDistribution();
+    void SetNextInitalFraction();
 
     void Update(sf::Time delta_time) override;
     void Pause() override;
     void Draw() override;
     void Start() override;
 
-    void CalcInitialDistribitionValues();
+    void CalcInitialFractionValues();
     void SetBoidsSpawnedPerSpawner();
     void SetLanguageKeysToOneAndZero();
 };
@@ -75,7 +75,7 @@ public:
     std::shared_ptr<Context> context;
     std::shared_ptr<InterfaceManager> interface_manager;
 
-    std::unique_ptr<KeySimulator> simulation_preview;
+    std::unique_ptr<CompSimulator> simulation_preview;
 
     DominanceStudyPreview(const std::shared_ptr<Context>& context, KeySimulationData  simulation_data, float camera_width, float camera_height);
 

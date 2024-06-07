@@ -8,7 +8,7 @@
 
 #include "BoidSpawners.h"
 #include "ResourceManager.h"
-#include "Serialization.h"
+#include "../Serialization.h"
 #include "ToolSelector.h"
 #include "Utility.h"
 #include "ui/components/Button.h"

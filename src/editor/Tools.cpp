@@ -244,7 +244,7 @@ void KeyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simu
         auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         float radius = (center_pos - world_pos).norm();
         if (radius >= 1) {
-            auto spawner = std::make_shared<KeyBoidCircularSpawner>(boid_count, language_key, center_pos, radius);
+            auto spawner = std::make_shared<CompBoidCircularSpawner>(boid_count, language_key, center_pos, radius);
             simulation_data.boid_spawners.push_back(spawner);
         }
     }
@@ -283,7 +283,7 @@ void KeyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & s
             height = -height;
         }
         if (width >= 1 && height >= 1) {
-            auto spawner = std::make_shared<KeyBoidRectangularSpawner>(boid_count, language_key, pos, width, height);
+            auto spawner = std::make_shared<CompBoidRectangularSpawner>(boid_count, language_key, pos, width, height);
             simulation_data.boid_spawners.push_back(spawner);
         }
     }
@@ -309,7 +309,7 @@ void StudyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & si
         auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         float radius = (center_pos - world_pos).norm();
         if (radius >= 1) {
-            auto spawner = std::make_shared<KeyBoidCircularSpawner>(0, language_key, center_pos, radius);
+            auto spawner = std::make_shared<CompBoidCircularSpawner>(0, language_key, center_pos, radius);
             simulation_data.boid_spawners.push_back(spawner);
         }
     }
@@ -336,7 +336,7 @@ void StudyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData &
             height = -height;
         }
         if (width >= 1 && height >= 1) {
-            auto spawner = std::make_shared<KeyBoidRectangularSpawner>(0, language_key, pos, width, height);
+            auto spawner = std::make_shared<CompBoidRectangularSpawner>(0, language_key, pos, width, height);
             simulation_data.boid_spawners.push_back(spawner);
         }
     }
@@ -356,7 +356,7 @@ void VectorBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & s
         auto world_pos =  Eigen::Vector2f(tool_pos.x, tool_pos.y);
         float radius = (center_pos - world_pos).norm();
         if (radius >= 1) {
-            auto spawner = std::make_shared<VectorBoidCircularSpawner>(boid_count, language_seed, feature_bias, center_pos, radius);
+            auto spawner = std::make_shared<EvoBoidCircularSpawner>(boid_count, language_seed, feature_bias, center_pos, radius);
             simulation_data.boid_spawners.push_back(spawner);
         }
     }
@@ -395,7 +395,7 @@ void VectorBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData 
             height = -height;
         }
         if (width >= 1 && height >= 1) {
-            auto spawner = std::make_shared<VectorBoidRectangularSpawner>(boid_count, language_seed, feature_bias, pos, width, height);
+            auto spawner = std::make_shared<EvoBoidRectangularSpawner>(boid_count, language_seed, feature_bias, pos, width, height);
             simulation_data.boid_spawners.push_back(spawner);
         }
     }

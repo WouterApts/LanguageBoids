@@ -32,32 +32,34 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
     // Write the simulation type and simulation specific config:
     file << "Simulation-Type: ";
     switch (data.type) {
-        case KeySimulation:
-            file << "KeySimulation \n"
+        case CompSimulation:
+            file << "CompetitionSimulation \n"
                  << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
                  << "INFLUENCE_RATE: " << data.config->CONVERSION_RATE << '\n';
             break;
-        case VectorSimulation:
-            file << "VectorSimulation \n"
+        case EvoSimulation:
+            file << "EvolutionSimulation \n"
                  << "LANGUAGE_SIZE: " << data.config->LANGUAGE_SIZE << '\n'
                  << "MUTATION_RATE: " << data.config->MUTATION_RATE << '\n'
                  << "MINIMUM_INTERACTION_RATE: " << data.config->MIN_INTERACTION_RATE << '\n'
                  << "MINIMUM_ADOPTION_RATE: " << data.config->MIN_ADOPTION_RATE << '\n'
-                 << "BOID_LIFE_STEPS: " << data.config->BOID_LIFE_STEPS << '\n';
+                 << "BOID_LIFE_STEPS: " << data.config->BOID_LIFE_STEPS << '\n'
+                 << "BETA: " << data.config->BETA << '\n'
+                 << "KAPPA: " << data.config->KAPPA << '\n';
             break;
-        case DominanceStudy:
-            file << "DominanceStudy \n"
+        case CompStudy:
+            file << "CompetitionStudy \n"
                  << "a_COEFFICIENT: " << data.config->a_COEFFICIENT << '\n'
                  << "INFLUENCE_RATE: " << data.config->CONVERSION_RATE << '\n'
                  << "TOTAL_BOIDS: " << data.config->TOTAL_BOIDS << '\n'
-                 << "RUNS_PER_DISTRIBUTION: " << data.config->RUNS_PER_DISTRIBUTION << '\n'
+                 << "RUNS_PER_FRACTION: " << data.config->RUNS_PER_FRACTION << '\n'
                  << "SECONDS_PER_RUN: " << data.config->TIME_STEPS_PER_RUN << '\n'
-                 << "DISTRIBUTIONS: " << data.config->DISTRIBUTIONS << '\n';
+                 << "FRACTIONS: " << data.config->FRACTIONS << '\n';
             break;
     }
 
     // Write the rest of the Simulation Config:
-    file << "COHERENCE_FACTOR: " << data.config->COHERENCE_FACTOR << '\n'
+    file << "COHERENCE_FACTOR: " << data.config->COHESION_FACTOR << '\n'
          << "ALIGNMENT_FACTOR: " << data.config->ALIGNMENT_FACTOR << '\n'
          << "SEPARATION_FACTOR: " << data.config->SEPARATION_FACTOR << '\n'
          << "AVOIDANCE_FACTOR: " << data.config->AVOIDANCE_FACTOR << '\n'
@@ -114,12 +116,12 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
         std::stringstream ss(line);
         std::string prefix;
         ss >> prefix >> str_type;
-        if (str_type == "KeySimulation") {
-            data.type = KeySimulation;
-        } else if (str_type == "VectorSimulation") {
-            data.type = VectorSimulation;
-        } else if (str_type == "DominanceStudy") {
-            data.type = DominanceStudy;
+        if (str_type == "CompetitionSimulation") {
+            data.type = CompSimulation;
+        } else if (str_type == "EvolutionSimulation") {
+            data.type = EvoSimulation;
+        } else if (str_type == "CompetitionStudy") {
+            data.type = CompStudy;
         } else {
             std::cerr << "Error: Unknown simulation type. \nUnable to load from file: " << filename << std::endl;
             return std::nullopt;
@@ -127,28 +129,29 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
     }
 
     // Parse Configuration
-    int n_max_parameters = 42069;
+    int n_max_parameters = 100;
     for (int i = 0; i < n_max_parameters; ++i) {
         std::getline(file, line);
         std::stringstream ss(line);
         std::string prefix;
         float value;
         ss >> prefix >> value;
-        // Key Simulation
+
+        // Competition Simulation and Competition Study
         if (prefix == "a_COEFFICIENT:") {
             data.config->a_COEFFICIENT = value;
         } else if (prefix == "INFLUENCE_RATE:") {
             data.config->CONVERSION_RATE = value;
-        // Dominance Study
-        } else if (prefix == "RUNS_PER_DISTRIBUTION:") {
-            data.config->RUNS_PER_DISTRIBUTION = static_cast<int>(value);
-        } else if (prefix == "DISTRIBUTIONS:") {
-            data.config->DISTRIBUTIONS = static_cast<int>(value);
+        // Competition Study
+        } else if (prefix == "RUNS_PER_FRACTION:") {
+            data.config->RUNS_PER_FRACTION = static_cast<int>(value);
+        } else if (prefix == "FRACTIONS:") {
+            data.config->FRACTIONS = static_cast<int>(value);
         } else if (prefix == "TOTAL_BOIDS:") {
             data.config->TOTAL_BOIDS = static_cast<int>(value);
         } else if (prefix == "SECONDS_PER_RUN:") {
             data.config->TIME_STEPS_PER_RUN = static_cast<int>(value);
-        // Vector Simulation
+        // Evolution Simulation
         } else if (prefix == "LANGUAGE_SIZE:") {
             data.config->LANGUAGE_SIZE = static_cast<int>(value);
         } else if (prefix == "MUTATION_RATE:") {
@@ -159,9 +162,13 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             data.config->MIN_ADOPTION_RATE = value;
         } else if (prefix == "BOID_LIFE_STEPS:") {
             data.config->BOID_LIFE_STEPS = static_cast<int>(value);
+        } else if (prefix == "BETA:") {
+            data.config->BETA = value;
+        } else if (prefix == "KAPPA:") {
+            data.config->KAPPA = value;
         // Default Flocking Parameters
         } else if (prefix == "COHERENCE_FACTOR:") {
-            data.config->COHERENCE_FACTOR = value;
+            data.config->COHESION_FACTOR = value;
         } else if (prefix == "ALIGNMENT_FACTOR:") {
             data.config->ALIGNMENT_FACTOR = value;
         } else if (prefix == "SEPARATION_FACTOR:") {
@@ -221,18 +228,23 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             if (terrain != nullptr) {
                 data.world.terrains.push_back(terrain);
             }
-        } else if (line.compare(0, 22, "KeyBoidCircularSpawner") == 0) {
-            auto spawner = KeyBoidCircularSpawner::FromString(line);
+        } else if (line.compare(0, 23, "CompBoidCircularSpawner") == 0) {
+            auto spawner = CompBoidCircularSpawner::FromString(line);
             if (spawner != nullptr) {
                 data.boid_spawners.push_back(spawner);
             }
-        } else if (line.compare(0, 25, "KeyBoidRectangularSpawner") == 0) {
-            auto spawner = KeyBoidRectangularSpawner::FromString(line);
+        } else if (line.compare(0, 26, "CompBoidRectangularSpawner") == 0) {
+            auto spawner = CompBoidRectangularSpawner::FromString(line);
             if (spawner != nullptr) {
                 data.boid_spawners.push_back(spawner);
             }
-        } else if (line.compare(0, 25, "VectorBoidCircularSpawner") == 0) {
-            auto spawner = VectorBoidCircularSpawner::FromString(line);
+        } else if (line.compare(0, 22, "EvoBoidCircularSpawner") == 0) {
+            auto spawner = EvoBoidCircularSpawner::FromString(line);
+            if (spawner != nullptr) {
+                data.boid_spawners.push_back(spawner);
+            }
+        } else if (line.compare(0, 25, "EvoBoidRectangularSpawner") == 0) {
+            auto spawner = EvoBoidCircularSpawner::FromString(line);
             if (spawner != nullptr) {
                 data.boid_spawners.push_back(spawner);
             }

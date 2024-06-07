@@ -86,6 +86,6 @@ void Simulator::CreateWorldBorderLines() {
 }
 
 // This explicit instantiation informs the compiler to generate the code for the template function for the below specified template arguments, making it available for linking.
-template void Simulator::ProcessBoidSelection<KeyBoid>(const Context*, sf::Vector2i&, SpatialGrid<KeyBoid>&);
-template void Simulator::ProcessBoidSelection<VectorBoid>(const Context*, sf::Vector2i&, SpatialGrid<VectorBoid>&);
+template void Simulator::ProcessBoidSelection<CompBoid>(const Context*, sf::Vector2i&, SpatialGrid<CompBoid>&);
+template void Simulator::ProcessBoidSelection<EvoBoid>(const Context*, sf::Vector2i&, SpatialGrid<EvoBoid>&);
 

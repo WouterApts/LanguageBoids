@@ -40,7 +40,9 @@ FetchContent_Declare(SFML
         GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(Thesis_run main.cpp ${SOURCE_FILES_FULL} ${HEADER_FILES_FULL})
+add_executable(Thesis_run main.cpp ${SOURCE_FILES_FULL} ${HEADER_FILES_FULL}
+        src/analysis/EvoAnalyser.cpp
+        src/analysis/EvoAnalyser.h)
 
 target_link_libraries(Thesis_run PRIVATE sfml-system sfml-window sfml-graphics sfml-audio)
 target_compile_features(Thesis_run PRIVATE cxx_std_17)

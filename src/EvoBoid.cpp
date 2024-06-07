@@ -10,19 +10,19 @@
 #include "World.h"
 #include "Utility.h"
 
-VectorBoid::VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+EvoBoid::EvoBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
                  Eigen::VectorXi language_vector, float language_influence, float perception_radius,
                  float interaction_radius, float avoidance_radius, float collision_radius)
     : Boid(std::move(pos), std::move(vel), std::move(acc), config, perception_radius, interaction_radius, avoidance_radius, collision_radius),
       language_vector(std::move(language_vector)), language_influence(language_influence) {}
 
-VectorBoid::VectorBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
+EvoBoid::EvoBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc,
     const std::shared_ptr<SimulationConfig> &config, Eigen::VectorXi language_vector, float language_influence)
     : Boid(std::move(pos), std::move(vel), std::move(acc), config),
       language_vector(std::move(language_vector)), language_influence(language_influence) {}
 
 
-Eigen::Vector2f VectorBoid::GetUpdatedAcceleration(const std::vector<VectorBoid*> &interacting_boids, const Eigen::VectorXf& language_distances) const {
+Eigen::Vector2f EvoBoid::GetUpdatedAcceleration(const std::vector<EvoBoid*> &interacting_boids, const Eigen::VectorXf& language_distances) const {
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (!interacting_boids.empty()) {
         //Coherence & Alignment
@@ -35,20 +35,20 @@ Eigen::Vector2f VectorBoid::GetUpdatedAcceleration(const std::vector<VectorBoid*
     return acceleration;
 }
 
-void VectorBoid::UpdateAcceleration(const std::vector<VectorBoid*>& interacting_boids, const Eigen::VectorXf& language_distances) {
+void EvoBoid::UpdateAcceleration(const std::vector<EvoBoid*>& interacting_boids, const Eigen::VectorXf& language_distances) {
     Eigen::Vector2f acceleration = GetUpdatedAcceleration(interacting_boids, language_distances);
     SetAcceleration(acceleration);
 }
 
-void VectorBoid::UpdateLanguageFeatures(const std::vector<VectorBoid *> &interacting_boids,
+void EvoBoid::UpdateLanguageFeatures(const std::vector<EvoBoid *> &interacting_boids,
                                         const Eigen::VectorXf& language_distances,
-                                        const std::vector<VectorBoid *> &perceived_boids,
+                                        const std::vector<EvoBoid *> &perceived_boids,
                                         sf::Time delta_time) {
     auto features = GetUpdatedLanguageFeatures(interacting_boids, language_distances, perceived_boids, delta_time);
     SwitchLanguageFeatures(features);
 }
 
-float VectorBoid::CalcBehaviourModifier(const float language_distance) const {
+float EvoBoid::CalcBehaviourModifier(const float language_distance) const {
     float behaviour_modifier;
     float n = (language_distance - 0.5f)*2;
     if (language_distance >= 0.5) {
@@ -59,7 +59,7 @@ float VectorBoid::CalcBehaviourModifier(const float language_distance) const {
     return behaviour_modifier;
 }
 
-Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector<VectorBoid*> &interacting_boids,
+Eigen::Vector2f EvoBoid::CalcCoherenceAlignmentAcceleration(const std::vector<EvoBoid*> &interacting_boids,
                                                                const Eigen::VectorXf &language_distances) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
@@ -92,7 +92,7 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
 
         // COHERENCE
         Eigen::Vector2f pos_difference = avg_pos - this->pos;
-        acceleration = pos_difference.normalized() * config->COHERENCE_FACTOR * max_speed;
+        acceleration = pos_difference.normalized() * config->COHESION_FACTOR * max_speed;
 
         // ALIGNMENT
         Eigen::Vector2f vel_difference = avg_vel - this->vel;
@@ -103,7 +103,7 @@ Eigen::Vector2f VectorBoid::CalcCoherenceAlignmentAcceleration(const std::vector
 }
 
 
-Eigen::Vector2f VectorBoid::CalcSeparationAcceleration(const std::vector<VectorBoid*>& interacting_boids) const {
+Eigen::Vector2f EvoBoid::CalcSeparationAcceleration(const std::vector<EvoBoid*>& interacting_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     float squared_separation_radius = separation_radius * separation_radius;
@@ -120,7 +120,7 @@ Eigen::Vector2f VectorBoid::CalcSeparationAcceleration(const std::vector<VectorB
     return acceleration;
 }
 
-Eigen::Vector2f VectorBoid::CalcAvoidanceAcceleration(const std::vector<VectorBoid*>& interacting_boids, Eigen::VectorXf language_distances) const {
+Eigen::Vector2f EvoBoid::CalcAvoidanceAcceleration(const std::vector<EvoBoid*>& interacting_boids, Eigen::VectorXf language_distances) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     const float squared_interaction_radius = interaction_radius * interaction_radius;
@@ -129,17 +129,16 @@ Eigen::Vector2f VectorBoid::CalcAvoidanceAcceleration(const std::vector<VectorBo
         const float& language_distance = language_distances(i);
         if (language_distance > 0.5) {
             float modifier = CalcBehaviourModifier(language_distance);
-            Eigen::Vector2f pos_difference = (interacting_boids[i]->pos - this->pos) * modifier;
+            Eigen::Vector2f pos_difference = (interacting_boids[i]->pos - this->pos);
             float squared_distance = pos_difference.squaredNorm();
-            float strength = std::pow((squared_interaction_radius - squared_distance) / squared_interaction_radius, 2);
-            acceleration -= pos_difference.normalized() * max_speed * config->AVOIDANCE_FACTOR * (strength);
+            acceleration -= pos_difference.normalized() * max_speed * modifier * config->AVOIDANCE_FACTOR;
         }
     }
     return acceleration;
 }
 
 // Use Manhattan distance to calculate distance between vectors.
-Eigen::VectorXf VectorBoid::CalcLanguageDistances(const std::vector<VectorBoid*> &boids) const {
+Eigen::VectorXf EvoBoid::CalcLanguageDistances(const std::vector<EvoBoid*> &boids) const {
     const size_t num_boids = boids.size();
     Eigen::VectorXf distances(num_boids);
 
@@ -153,7 +152,7 @@ Eigen::VectorXf VectorBoid::CalcLanguageDistances(const std::vector<VectorBoid*>
 }
 
 // Use Manhattan distance to calculate distance between vectors.
-Eigen::VectorXf VectorBoid::CalcLanguageDistances(const std::vector<std::shared_ptr<VectorBoid>> &boids) const {
+Eigen::VectorXf EvoBoid::CalcLanguageDistances(const std::vector<std::shared_ptr<EvoBoid>> &boids) const {
     const size_t num_boids = boids.size();
     Eigen::VectorXf distances(num_boids);
 
@@ -166,7 +165,7 @@ Eigen::VectorXf VectorBoid::CalcLanguageDistances(const std::vector<std::shared_
     return distances;
 }
 
-int VectorBoid::CalcMutatedLanguageFeature(sf::Time delta_time) const {
+int EvoBoid::CalcMutatedLanguageFeature(sf::Time delta_time) const {
     auto r = GetRandomFloatBetween(0,1);
     int f_index = -1;
     if (r < config->MUTATION_RATE * delta_time.asSeconds()) {
@@ -175,7 +174,7 @@ int VectorBoid::CalcMutatedLanguageFeature(sf::Time delta_time) const {
     return f_index;
 }
 
-int CalcFeatureVariantOccurences(int variant, int feature_index, const std::vector<VectorBoid*> &perceived_boids) {
+int CalcFeatureVariantOccurences(int variant, int feature_index, const std::vector<EvoBoid*> &perceived_boids) {
     int occurences = 0;
     for (auto& boid : perceived_boids) {
         if (boid->language_vector(feature_index) == variant) occurences += 1;
@@ -183,16 +182,19 @@ int CalcFeatureVariantOccurences(int variant, int feature_index, const std::vect
     return occurences;
 }
 
-std::set<int> VectorBoid::CalcAdoptedLanguageFeatures(const std::vector<VectorBoid *> &interacting_boids,
+std::set<int> EvoBoid::CalcAdoptedLanguageFeatures(const std::vector<EvoBoid *> &interacting_boids,
                                                       const Eigen::VectorXf& language_distances,
-                                                      const std::vector<VectorBoid *> &perceived_boids,
+                                                      const std::vector<EvoBoid *> &perceived_boids,
                                                       sf::Time delta_time) {
     std::set<int> adopted_features;
     int num_boids = interacting_boids.size();
-    for (Eigen::Index i = 0; i < num_boids; ++i) {
-
+    if (num_boids > 0) {
+    int i = GetRandomIntBetween(0, num_boids-1);
         auto boid = interacting_boids[i];
-        constexpr int beta = 5;
+
+        float beta = config->BETA;
+        float kappa = config->KAPPA;
+
         float interaction_probability = config->MIN_INTERACTION_RATE
                                           + (1-config->MIN_INTERACTION_RATE) * std::pow(10, - beta*language_distances(i));
         // Interaction probability check per boid
@@ -203,7 +205,7 @@ std::set<int> VectorBoid::CalcAdoptedLanguageFeatures(const std::vector<VectorBo
             if (this->language_vector(f_index) != boid->language_vector(f_index)) {
                 // Calculate the number of times the feature variant occures in the perceived area
                 int f_variant_occurences = CalcFeatureVariantOccurences(boid->language_vector(f_index), f_index, perceived_boids);
-                float p = config->MIN_ADOPTION_RATE +  std::pow(f_variant_occurences/perceived_boids.size(), -0.5);
+                float p = config->MIN_ADOPTION_RATE + std::pow(f_variant_occurences/perceived_boids.size(), kappa-1);
                 float adoption_probability = std::min(1.f, p);
 
                 // Feature Adoption probability check
@@ -218,9 +220,9 @@ std::set<int> VectorBoid::CalcAdoptedLanguageFeatures(const std::vector<VectorBo
     return adopted_features;
 }
 
-std::set<int> VectorBoid::GetUpdatedLanguageFeatures(const std::vector<VectorBoid *> &interacting_boids,
+std::set<int> EvoBoid::GetUpdatedLanguageFeatures(const std::vector<EvoBoid *> &interacting_boids,
                                                      const Eigen::VectorXf &language_distances,
-                                                     const std::vector<VectorBoid *> &perceived_boids,
+                                                     const std::vector<EvoBoid *> &perceived_boids,
                                                      sf::Time delta_time) {
 
     std::set<int> updated_features;
@@ -234,26 +236,23 @@ std::set<int> VectorBoid::GetUpdatedLanguageFeatures(const std::vector<VectorBoi
     return updated_features;
 }
 
-void VectorBoid::SwitchLanguageFeatures(const std::set<int> &features) {
+void EvoBoid::SwitchLanguageFeatures(const std::set<int> &features) {
     for (int f_index : features) {
         language_vector(f_index) = !language_vector(f_index);
     }
 }
 
-void VectorBoid::UpdateAge(sf::Time delta_time) {
+void EvoBoid::UpdateAge(sf::Time delta_time) {
     age += delta_time.asSeconds();
 }
 
-Eigen::VectorXi VectorBoid::GetMostCommonLanguage(const std::vector<VectorBoid *> &boids) const {
+Eigen::VectorXi EvoBoid::GetMostCommonLanguage(const std::vector<EvoBoid *> &boids) const {
 
     std::unordered_map<Eigen::VectorXi, int, vectorXiHash, vectorXiEqual> language_counts;
 
     // Count occurrences of each language vector
     for (auto& boid : boids) {
         language_counts[boid->language_vector] += 1;
-        // if ((boid->pos - this->pos).norm() <= boid->separation_radius) {
-        //     language_counts[boid->language_vector] += 1;
-        // }
     }
 
     // Add own language
@@ -271,7 +270,7 @@ Eigen::VectorXi VectorBoid::GetMostCommonLanguage(const std::vector<VectorBoid *
     return most_common_language;
 }
 
-Eigen::Vector2f VectorBoid::GetOffspringPos(const World& world) {
+Eigen::Vector2f EvoBoid::GetOffspringPos(const World& world) {
 
     float angle = GetRandomFloatBetween(0, 2*std::numbers::pi);
     float length = GetRandomFloatBetween(0, this->collision_radius);

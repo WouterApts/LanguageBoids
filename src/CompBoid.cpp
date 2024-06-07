@@ -8,20 +8,20 @@
 #include "Boid.h"
 #include "Utility.h"
 
-KeyBoid::KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+CompBoid::CompBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
                  int language_key, float perception_radius, float interaction_radius, float separation_radius, float collision_radius)
     : Boid(std::move(pos), std::move(vel), std::move(acc), config, perception_radius, interaction_radius, separation_radius, collision_radius),
       language_key(language_key), language_satisfaction(1.f) {
 }
 
-KeyBoid::KeyBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
+CompBoid::CompBoid(Eigen::Vector2f pos, Eigen::Vector2f vel, Eigen::Vector2f acc, const std::shared_ptr<SimulationConfig> &config,
                  int language_key)
     : Boid(std::move(pos), std::move(vel), std::move(acc), config),
       language_key(language_key), language_satisfaction(1.f) {
 }
 
-std::pair<int, float> KeyBoid::GetUpdatedLanguageAndSatisfaction(const std::vector<KeyBoid *> &perceived_boids,
-                                              const std::vector<KeyBoid *> &interacting_boids,
+std::pair<int, float> CompBoid::GetUpdatedLanguageAndSatisfaction(const std::vector<CompBoid *> &perceived_boids,
+                                              const std::vector<CompBoid *> &interacting_boids,
                                               sf::Time delta_time) const {
     // Calculate language status based on the boids languages within the perception range.
     std::map<int, float> language_status;
@@ -48,22 +48,32 @@ std::pair<int, float> KeyBoid::GetUpdatedLanguageAndSatisfaction(const std::vect
 
     // Based on the language influence, sample r to check whether influence of current language increases or decreases.
     float satisfaction = 0;
-    if (float r = GetRandomFloatBetween(0, total_influence_val); r <= language_influence[this->language_key]) {
-        // Increase current language satisfaction
-        satisfaction = this->language_satisfaction + config->CONVERSION_RATE * delta_time.asSeconds();
-    } else {
-        // Decrease current language satisfaction
-        satisfaction = this->language_satisfaction - config->CONVERSION_RATE * delta_time.asSeconds();
-    }
+     if (float r = GetRandomFloatBetween(0, total_influence_val); r <= language_influence[this->language_key]) {
+         // Increase current language satisfaction
+         satisfaction = this->language_satisfaction + config->CONVERSION_RATE * delta_time.asSeconds();
+     } else {
+         // Decrease current language satisfaction
+         satisfaction = this->language_satisfaction - config->CONVERSION_RATE * delta_time.asSeconds();
+     }
 
-    // change language if current influence goes below zero
+    // float satisfaction = this->language_satisfaction;
+    // for (const auto& [key, influence] : language_influence) {
+    //     if (key == this->language_key) {
+    //         satisfaction += influence * config->CONVERSION_RATE * delta_time.asSeconds();
+    //     } else {
+    //         satisfaction -= influence * config->CONVERSION_RATE * delta_time.asSeconds();
+    //     }
+    // }
+
+
+    // change language if current satisfaction goes below zero
     int language = this->language_key;
     if (this->language_satisfaction <= 0) {
         satisfaction = 1;
         float max_influence = -1.0f;
         // Get language with maximum influence
         for (const auto&[key, influence] : language_influence) {
-            if (influence > max_influence) {
+            if (influence > max_influence && key != this->language_key) {
                 language = key;
                 max_influence = influence;
             }
@@ -72,8 +82,8 @@ std::pair<int, float> KeyBoid::GetUpdatedLanguageAndSatisfaction(const std::vect
     return {language, satisfaction};
 }
 
-void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *>& perceived_boids,
-                                       const std::vector<KeyBoid *>& interacting_boids,
+void CompBoid::UpdateLanguageSatisfaction(const std::vector<CompBoid *>& perceived_boids,
+                                       const std::vector<CompBoid *>& interacting_boids,
                                        sf::Time delta_time) {
 
     // Calculate language status based on the boids languages within the perception range.
@@ -121,7 +131,7 @@ void KeyBoid::UpdateLanguageSatisfaction(const std::vector<KeyBoid *>& perceived
     }
 }
 
-void KeyBoid::UpdateLanguage() {
+void CompBoid::UpdateLanguage() {
     if (updated_language_key != -1) {
         SetLanguageKey(updated_language_key);
         SetLanguageSatisfaction(1.f);
@@ -131,15 +141,15 @@ void KeyBoid::UpdateLanguage() {
     }
 }
 
-void KeyBoid::SetLanguageSatisfaction(float value) {
+void CompBoid::SetLanguageSatisfaction(float value) {
     this->language_satisfaction = std::min(1.f, value);
 }
 
-void KeyBoid::SetLanguageStatusMap(const std::shared_ptr<std::map<int, float>> &language_status_map) {
+void CompBoid::SetLanguageStatusMap(const std::shared_ptr<std::map<int, float>> &language_status_map) {
     this->language_status_map = language_status_map;
 }
 
-Eigen::Vector2f KeyBoid::GetUpdatedAcceleration(const std::vector<KeyBoid*>& interacting_boids) const {
+Eigen::Vector2f CompBoid::GetUpdatedAcceleration(const std::vector<CompBoid*>& interacting_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     if (!interacting_boids.empty()) {
@@ -153,13 +163,13 @@ Eigen::Vector2f KeyBoid::GetUpdatedAcceleration(const std::vector<KeyBoid*>& int
     return acceleration;
 }
 
-void KeyBoid::UpdateAcceleration(const std::vector<KeyBoid *>& interacting_boids) {
+void CompBoid::UpdateAcceleration(const std::vector<CompBoid *>& interacting_boids) {
     Eigen::Vector2f acceleration = GetUpdatedAcceleration(interacting_boids);
     SetAcceleration(acceleration);
 }
 
 
-Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<KeyBoid*> &nearby_boids) const {
+Eigen::Vector2f CompBoid::CalcCoherenceAlignmentAcceleration(const std::vector<CompBoid*> &nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     float similar_boids = 0;
@@ -181,7 +191,7 @@ Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ke
 
         // COHERENCE
         Eigen::Vector2f pos_difference = avg_pos - this->pos;
-        acceleration = pos_difference.normalized() * config->COHERENCE_FACTOR * max_speed;
+        acceleration = pos_difference.normalized() * config->COHESION_FACTOR * max_speed;
 
         // ALIGNMENT
         Eigen::Vector2f vel_difference = (avg_vel - this->vel);
@@ -192,7 +202,7 @@ Eigen::Vector2f KeyBoid::CalcCoherenceAlignmentAcceleration(const std::vector<Ke
 }
 
 
-Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>& interacting_boids) const {
+Eigen::Vector2f CompBoid::CalcSeparationAcceleration(const std::vector<CompBoid*>& interacting_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     float squared_separation_radius = separation_radius * separation_radius;
@@ -210,7 +220,7 @@ Eigen::Vector2f KeyBoid::CalcSeparationAcceleration(const std::vector<KeyBoid*>&
 }
 
 
-Eigen::Vector2f KeyBoid::CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& nearby_boids) const {
+Eigen::Vector2f CompBoid::CalcAvoidanceAcceleration(const std::vector<CompBoid*>& nearby_boids) const {
 
     Eigen::Vector2f acceleration = Eigen::Vector2f::Zero();
     const float squared_interaction_radius = interaction_radius * interaction_radius;
@@ -226,11 +236,11 @@ Eigen::Vector2f KeyBoid::CalcAvoidanceAcceleration(const std::vector<KeyBoid*>& 
     return acceleration;
 }
 
-void KeyBoid::SetLanguageKey(int key) {
+void CompBoid::SetLanguageKey(int key) {
     this->language_key = key;
     UpdateColor();
 }
 
-void KeyBoid::UpdateColor() {
+void CompBoid::UpdateColor() {
     this->sprite.setColor(LanguageManager::GetLanguageColor(language_key));
 }

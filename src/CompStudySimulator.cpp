@@ -2,7 +2,7 @@
 // Created by wouter on 5-4-2024.
 //
 
-#include "DominanceStudySimulator.h"
+#include "CompStudySimulator.h"
 
 #include <format>
 #include <filesystem>
@@ -16,13 +16,14 @@
 #include "ui/StudyInterface.h"
 
 
-DominanceStudySimulator::DominanceStudySimulator(std::shared_ptr<Context> &context, KeySimulationData &simulation_data,
-                                                 std::string sim_file_name_without_extension, float camera_width, float camera_height, int starting_distributin_nr)
+CompStudySimulator::CompStudySimulator(std::shared_ptr<Context> &context, KeySimulationData &simulation_data,
+                                       std::string simulation_name,
+                                       float camera_width, float camera_height, int starting_fraction_nr)
     : context(context), simulation_data(simulation_data),
       camera(sf::Vector2f(simulation_data.world.width/2, simulation_data.world.height/2), camera_width, camera_height),
       interface_manager(std::make_shared<InterfaceManager>()),
-      output_file_path("output/" + sim_file_name_without_extension + "_output.txt"),
-      current_distrubution_nr(starting_distributin_nr) {
+      output_file_path("output/" + simulation_name + "_output.txt"),
+      current_distrubution_nr(starting_fraction_nr) {
 
     // Create the output directory if it doesn't exist
     if (!std::filesystem::exists("output/"))
@@ -37,7 +38,7 @@ DominanceStudySimulator::DominanceStudySimulator(std::shared_ptr<Context> &conte
     }
 }
 
-void DominanceStudySimulator::Init() {
+void CompStudySimulator::Init() {
 
     // Initialize Interface
     auto escape_interface_pos = sf::Vector2f(context->window->getSize().x/2 - 200, context->window->getSize().y/2 - 100);
@@ -48,11 +49,11 @@ void DominanceStudySimulator::Init() {
     study_interface = std::make_shared<StudyInterface>(sf::Vector2f(20, 20));
     interface_manager->AddComponent(study_interface);
 
-    // Calculate Distribution and setup boids spanwed for each Spawner
-    SetupCurrentDistribution(current_distrubution_nr);
+    // Calculate Population Fraction to test, and number of boids spawned for each Spawner.
+    SetupCurrentFraction(current_distrubution_nr);
 }
 
-void DominanceStudySimulator::ShowDisplayDisabledMessage() {
+void CompStudySimulator::ShowDisplayDisabledMessage() {
     std::cout << "Disabling Display " << std::endl;
     context->window->clear(sf::Color::Black);
     sf::Text text("Display disabled (Press SPACE to enable)", *ResourceManager::GetFont("arial")); // Create the text object
@@ -62,7 +63,7 @@ void DominanceStudySimulator::ShowDisplayDisabledMessage() {
     context->window->display();
 }
 
-void DominanceStudySimulator::ProcessInput() {
+void CompStudySimulator::ProcessInput() {
     // if (current_simulation) {
     //     current_simulation->ProcessInput();
     // }
@@ -87,12 +88,12 @@ void DominanceStudySimulator::ProcessInput() {
 
         if (IsKeyPressedOnce(sf::Keyboard::Key::Right)) {
             current_simulation.reset(nullptr);
-            SetupCurrentDistribution(current_distrubution_nr + 1);
+            SetupCurrentFraction(current_distrubution_nr + 1);
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::Key::Left)) {
             current_simulation.reset(nullptr);
-            SetupCurrentDistribution(current_distrubution_nr - 1);
+            SetupCurrentFraction(current_distrubution_nr - 1);
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::Space)) {
@@ -108,9 +109,9 @@ void DominanceStudySimulator::ProcessInput() {
     }
 }
 
-void DominanceStudySimulator::SetupCurrentDistribution(int number) {
-    current_distrubution_nr = std::min(simulation_data.config->DISTRIBUTIONS, std::max(number, 0));
-    CalcInitialDistribitionValues();
+void CompStudySimulator::SetupCurrentFraction(int number) {
+    current_distrubution_nr = std::min(simulation_data.config->FRACTIONS, std::max(number, 0));
+    CalcInitialFractionValues();
     SetBoidsSpawnedPerSpawner();
 
     // Reset run number to 0
@@ -118,45 +119,45 @@ void DominanceStudySimulator::SetupCurrentDistribution(int number) {
 
     // Reset Data vectors
     run_outcomes.clear();
-    run_final_distributions.clear();
+    run_final_fraction.clear();
     run_times.clear();
 }
 
-void DominanceStudySimulator::SetNextDistribution() {
+void CompStudySimulator::SetNextInitalFraction() {
     if (fast_analysis) {
         // End simulation (Skip to last number) if a one-sided outcome has been found for both languages.
         if (one_sided_outcome_found[0] && one_sided_outcome_found[1]) {
-            current_distrubution_nr = simulation_data.config->DISTRIBUTIONS;
+            current_distrubution_nr = simulation_data.config->FRACTIONS;
         }
-        //Skip distrubutions of which the outcome is already known due to the outcome of previous (less unequal) distributions.
+        //Skip distrubutions of which the outcome is already known due to the outcome of previous (less unequal) initial population fractions.
         else if ((current_distrubution_nr%2 == 1 && one_sided_outcome_found[0]) || (current_distrubution_nr%2 == 0 && one_sided_outcome_found[1])) {
             current_distrubution_nr++;
         }
     }
-    SetupCurrentDistribution(current_distrubution_nr + 1);
+    SetupCurrentFraction(current_distrubution_nr + 1);
 }
 
-void DominanceStudySimulator::Update(sf::Time delta_time) {
+void CompStudySimulator::Update(sf::Time delta_time) {
     if (delta_time < sf::seconds(1/30.f)) { delta_time = sf::seconds(1/30.f); }
 
-    if (current_distrubution_nr >= simulation_data.config->DISTRIBUTIONS) {
+    if (current_distrubution_nr >= simulation_data.config->FRACTIONS) {
         escape_interface->Activate();
         study_interface->Deactivate();
     }
 
     //Check if simulation is running.
     else if (!current_simulation) {
-        // Start new run of current distribution
-        current_simulation = std::make_unique<KeySimulator>(context, simulation_data, camera.default_width, camera.default_height);
+        // Start new run of current inital population fraction
+        current_simulation = std::make_unique<CompSimulator>(context, simulation_data, camera.default_width, camera.default_height);
         current_simulation->camera = camera;
         current_simulation->Init();
 
-        std::string distributionString = std::format("Distribution: {}/{} ({}, {})", current_distrubution_nr, simulation_data.config->DISTRIBUTIONS,
-                                                      current_initial_distribution[0], current_initial_distribution[1]);
-        study_interface->distribution_fld->text.setString(distributionString);
+        std::string fractionString = std::format("Fraction: {} of {} ({}, {})", current_distrubution_nr + 1, simulation_data.config->FRACTIONS,
+                                                      current_initial_fraction[0], current_initial_fraction[1]);
+        study_interface->fraction_fld->text.setString(fractionString);
 
         // Update run number text
-        std::string runNumberString = std::format("Run: {}/{}", current_run_nr, simulation_data.config->RUNS_PER_DISTRIBUTION);
+        std::string runNumberString = std::format("Run: {} of {}", current_run_nr + 1, simulation_data.config->RUNS_PER_FRACTION);
         study_interface->run_fld->text.setString(runNumberString);
     }
     else {
@@ -167,24 +168,24 @@ void DominanceStudySimulator::Update(sf::Time delta_time) {
         study_interface->simulation_time_fld->text.setString("Simulation Time: " + std::to_string(current_simulation->total_simulation_time));
 
         // Check terminating conditions
-        std::map<int, int> distribution = {{0, 0},
+        std::map<int, int> fraction = {{0, 0},
                                            {1, 0}};
         for (auto& boid : current_simulation->boids) {
-            distribution[boid->language_key]++;
+            fraction[boid->language_key]++;
         }
 
-        if ( distribution[0] == 0 || distribution[1] == 0 || current_simulation->total_simulation_time >= simulation_data.config->TIME_STEPS_PER_RUN) {
+        if ( fraction[0] == 0 || fraction[1] == 0 || current_simulation->total_simulation_time >= simulation_data.config->TIME_STEPS_PER_RUN) {
             // Log the necessary data about the simulations outcome
             int dominating_language_key = -1;
-            if (distribution[0] == 0) {
+            if (fraction[0] == 0) {
                 dominating_language_key = 1;
-            } else if (distribution[1] == 0) {
+            } else if (fraction[1] == 0) {
                 dominating_language_key = 0;
             }
             run_outcomes.push_back(dominating_language_key);
 
-            std::array final_distribution = {distribution[0], distribution[1]};
-            run_final_distributions.push_back(final_distribution);
+            std::array final_fraction = {fraction[0], fraction[1]};
+            run_final_fraction.push_back(final_fraction);
 
             run_times.push_back(std::min(static_cast<double>(current_simulation->total_simulation_time), static_cast<double>(simulation_data.config->TIME_STEPS_PER_RUN)));
 
@@ -200,35 +201,35 @@ void DominanceStudySimulator::Update(sf::Time delta_time) {
             current_simulation.reset(nullptr);
             current_run_nr++;
 
-            // Check if all runs for this distribution have been simulated
-            if (current_run_nr >= simulation_data.config->RUNS_PER_DISTRIBUTION) {
+            // Check if all runs for this fraction have been simulated
+            if (current_run_nr >= simulation_data.config->RUNS_PER_FRACTION) {
 
-                // Check if the current initial distrubution had a one-sided dominant outcome.
+                // Check if the current initial fraction had a one-sided dominant outcome.
                 if (current_distrubution_nr != 0 && !run_outcomes.empty()) {
                     if (std::ranges::adjacent_find(run_outcomes, std::not_equal_to<>()) == run_outcomes.end() )
                     {
                         auto language_key = run_outcomes[0];
                         one_sided_outcome_found[language_key] = true;
-                        std::cout << "one-sided dominant distribution found for language: " << language_key << std::endl;
+                        std::cout << "one-sided dominanance found for language: " << language_key << std::endl;
                     }
                 }
 
                 // Log analysis data to the output file
-                LogDataToFile(output_file_path, current_distrubution_nr, current_initial_distribution, run_outcomes, run_times, run_final_distributions);
+                LogDataToFile(output_file_path, current_distrubution_nr, current_initial_fraction, run_outcomes, run_times, run_final_fraction);
 
-                // Go to next initial distribution
-                if (current_distrubution_nr < simulation_data.config->DISTRIBUTIONS) {
-                    SetNextDistribution();
+                // Go to next initial fraction
+                if (current_distrubution_nr < simulation_data.config->FRACTIONS) {
+                    SetNextInitalFraction();
                 }
             }
         }
     }
 }
 
-void DominanceStudySimulator::Pause() {
+void CompStudySimulator::Pause() {
 }
 
-void DominanceStudySimulator::Draw() {
+void CompStudySimulator::Draw() {
     if (display_simulation) {
         context->window->clear(sf::Color::Black);
         if (current_simulation) {
@@ -239,17 +240,17 @@ void DominanceStudySimulator::Draw() {
     }
 }
 
-void DominanceStudySimulator::Start() {
+void CompStudySimulator::Start() {
 }
 
-void DominanceStudySimulator::SetBoidsSpawnedPerSpawner() {
+void CompStudySimulator::SetBoidsSpawnedPerSpawner() {
 
     int a[2] = {1,1};
     int b[2] = {1,1};;
 
     for (auto& spawner : simulation_data.boid_spawners) {
         int d = spawners_per_language[spawner->language_key];
-        int n = current_initial_distribution[spawner->language_key];
+        int n = current_initial_fraction[spawner->language_key];
         int q = n / d;
         int r = n % d;
         int c = d - r;
@@ -264,27 +265,27 @@ void DominanceStudySimulator::SetBoidsSpawnedPerSpawner() {
     }
 }
 
-void DominanceStudySimulator::CalcInitialDistribitionValues() {
+void CompStudySimulator::CalcInitialFractionValues() {
     auto total = static_cast<double>(simulation_data.config->TOTAL_BOIDS);
-    auto distributions = static_cast<double>(simulation_data.config->DISTRIBUTIONS);
+    auto fraction = static_cast<double>(simulation_data.config->FRACTIONS);
     // zero (both languages have an equal starting population)
     if (current_distrubution_nr == 0) {
-        current_initial_distribution[0] = total/2;
-        current_initial_distribution[1] = total - current_initial_distribution[0];
+        current_initial_fraction[0] = total/2;
+        current_initial_fraction[1] = total - current_initial_fraction[0];
     }
     // odd (language 1 is in the majority)
     else if (current_distrubution_nr % 2) {
-        current_initial_distribution[1] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/distributions);
-        current_initial_distribution[0] = total - current_initial_distribution[1];
+        current_initial_fraction[1] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/fraction);
+        current_initial_fraction[0] = total - current_initial_fraction[1];
     }
     // even (language 0 is in the majority)
     else {
-        current_initial_distribution[0] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/distributions);
-        current_initial_distribution[1] = total - current_initial_distribution[0];
+        current_initial_fraction[0] = std::min(total, total/2 + total * std::ceil(static_cast<float>(current_distrubution_nr)/2.f)/fraction);
+        current_initial_fraction[1] = total - current_initial_fraction[0];
     }
 }
 
-void DominanceStudySimulator::SetLanguageKeysToOneAndZero() {
+void CompStudySimulator::SetLanguageKeysToOneAndZero() {
     std::set<int> keys;
     for (auto& spawner : simulation_data.boid_spawners) {
         keys.insert(spawner->language_key);
@@ -302,12 +303,12 @@ void DominanceStudySimulator::SetLanguageKeysToOneAndZero() {
     }
 }
 
-void DominanceStudySimulator::LogDataToFile(const std::string& file_path,
-                                            int distribution_nr,
-                                            std::map<int, int> current_initial_distribution,
+void CompStudySimulator::LogDataToFile(const std::string& file_path,
+                                            int fraction_nr,
+                                            std::map<int, int> current_initial_fraction,
                                             const std::vector<int>& run_outcomes,
                                             const std::vector<double>& run_times,
-                                            const std::vector<std::array<int, 2>>& run_final_distributions) {
+                                            const std::vector<std::array<int, 2>>& run_final_fractions) {
 
     std::ofstream logfile(file_path, std::ios::app); // Open file in append mode
     if (!logfile.is_open()) {
@@ -316,7 +317,7 @@ void DominanceStudySimulator::LogDataToFile(const std::string& file_path,
     }
 
     // Write data to file
-    logfile << "Distribution-Number: " << distribution_nr << ", Distribution: (" << current_initial_distribution[0] << ", " << current_initial_distribution[1] << ")\n";
+    logfile << "Fraction-Number: " << fraction_nr << ", Fraction: (" << current_initial_fraction[0] << ", " << current_initial_fraction[1] << ")\n";
 
     logfile << "Outcome: [";
     for (int i = 0; i < run_outcomes.size(); ++i) {
@@ -332,10 +333,10 @@ void DominanceStudySimulator::LogDataToFile(const std::string& file_path,
     }
     logfile << "]\n";
 
-    logfile << "Final-Distribution: [";
-    for (int i = 0; i < run_final_distributions.size(); ++i) {
-        logfile << "(" << run_final_distributions[i][0] << ", " << run_final_distributions[i][1] << ")";
-        if (i < run_final_distributions.size() - 1) logfile << ", ";
+    logfile << "Final-Fraction: [";
+    for (int i = 0; i < run_final_fractions.size(); ++i) {
+        logfile << "(" << run_final_fractions[i][0] << ", " << run_final_fractions[i][1] << ")";
+        if (i < run_final_fractions.size() - 1) logfile << ", ";
     }
     logfile << "]\n";
 
@@ -355,7 +356,7 @@ DominanceStudyPreview::DominanceStudyPreview(const std::shared_ptr<Context> &con
       context(context),
       simulation_data(std::move(simulation_data)){
 
-    simulation_preview = std::make_unique<KeySimulator>(this->context, this->simulation_data, camera_width, camera_height);
+    simulation_preview = std::make_unique<CompSimulator>(this->context, this->simulation_data, camera_width, camera_height);
 
     // Set camera viewport to take up 3/4 of the screens height, for displaying a preview of the simultion world.
     simulation_preview->camera.view.setViewport(sf::FloatRect(0.f, 0.25f, 1.f, 0.75f));

@@ -14,7 +14,7 @@ set(HEADER_FILES
         Terrain.h
         ResourceManager.h
         TimedEvent.h
-        DominanceStudySimulator.h
+        CompStudySimulator.h
         BoidSpawners.h
         MainMenu.h
         SimulationData.h
@@ -23,9 +23,9 @@ set(HEADER_FILES
         editor/Editor.h
         editor/Tools.h
         editor/ToolSelector.h
-        editor/Serialization.h
+        Serialization.h
 
-        analysis/KeyAnalyser.h
+        analysis/CompAnalyser.h
 
         ui/components/Button.h
         ui/components/Panel.h
@@ -53,23 +53,23 @@ set(SOURCE_FILES
         Camera.cpp
         Obstacles.cpp
         Utility.cpp
-        VectorSimulator.cpp
-        KeySimulator.cpp
-        KeyBoid.cpp
-        VectorBoid.cpp
+        EvoSimulator.cpp
+        CompSimulator.cpp
+        CompBoid.cpp
+        EvoBoid.cpp
         LanguageManager.cpp
         Terrain.cpp
         ResourceManager.cpp
         BoidSpawners.cpp
         MainMenu.cpp
-        DominanceStudySimulator.cpp
+        CompStudySimulator.cpp
 
-        analysis/KeyAnalyser.cpp
+        analysis/CompAnalyser.cpp
 
         editor/Editor.cpp
         editor/Tools.cpp
         editor/ToolSelector.cpp
-        editor/Serialization.cpp
+        Serialization.cpp
 
         ui/components/Button.cpp
         ui/components/Panel.cpp

@@ -58,9 +58,9 @@ bool RectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
 //----------------------------------//
 //         KEY BOID SPAWNERS        //
 //----------------------------------//
-KeyBoidSpawner::KeyBoidSpawner(int boids_spawned, int language_key) : boids_spawned(boids_spawned), language_key(language_key) {}
+CompBoidSpawner::CompBoidSpawner(int boids_spawned, int language_key) : boids_spawned(boids_spawned), language_key(language_key) {}
 
-void KeyBoidSpawner::SetTextString() {
+void CompBoidSpawner::SetTextString() {
     sf::Color color = LanguageManager::GetLanguageColor(language_key);
     sf::Font& font = *ResourceManager::GetFont("arial");
     text.setString(std::to_string(boids_spawned));
@@ -68,8 +68,8 @@ void KeyBoidSpawner::SetTextString() {
     text.setFont(font);
 }
 
-KeyBoidCircularSpawner::KeyBoidCircularSpawner(int boids_spawned, int language_key, Eigen::Vector2f center_pos, float radius)
-    : KeyBoidSpawner(boids_spawned, language_key), CircularSpawner(std::move(center_pos), radius) {
+CompBoidCircularSpawner::CompBoidCircularSpawner(int boids_spawned, int language_key, Eigen::Vector2f center_pos, float radius)
+    : CompBoidSpawner(boids_spawned, language_key), CircularSpawner(std::move(center_pos), radius) {
 
     SetTextString();
 
@@ -85,10 +85,10 @@ KeyBoidCircularSpawner::KeyBoidCircularSpawner(int boids_spawned, int language_k
     circle.setFillColor(color);
 }
 
-void KeyBoidCircularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<KeyBoid>>& boids) {
+void CompBoidCircularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<CompBoid>>& boids) {
     for (int i = 0; i < boids_spawned; ++i) {
         auto spawn_point = CalcRandomPointInSpawnZone(world, config->BOID_COLLISION_RADIUS);
-        auto new_boid = std::make_shared<KeyBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config, language_key);
+        auto new_boid = std::make_shared<CompBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config, language_key);
         boids.emplace_back(std::move(new_boid));
     }
 }
@@ -97,20 +97,20 @@ bool CircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
     return (center_pos - pos).norm() < this->radius + radius;
 }
 
-void KeyBoidCircularSpawner::Draw(sf::RenderWindow *window) const {
+void CompBoidCircularSpawner::Draw(sf::RenderWindow *window) const {
     window->draw(circle);
     if (boids_spawned > 0) {
         window->draw(text);
     }
 }
 
-bool KeyBoidCircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
+bool CompBoidCircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
     return CircularSpawner::IsInside(pos, radius);
 }
 
-std::string KeyBoidCircularSpawner::ToString() {
+std::string CompBoidCircularSpawner::ToString() {
     std::stringstream ss;
-    ss << "KeyBoidCircularSpawner: "
+    ss << "CompBoidCircularSpawner: "
        << "Center: " << center_pos.x() << " , " << center_pos.y() << " "
        << "Radius: " << radius << " "
        << "Boids: " << boids_spawned << " "
@@ -118,7 +118,7 @@ std::string KeyBoidCircularSpawner::ToString() {
     return ss.str();
 }
 
-std::shared_ptr<KeyBoidCircularSpawner> KeyBoidCircularSpawner::FromString(const std::string& str) {
+std::shared_ptr<CompBoidCircularSpawner> CompBoidCircularSpawner::FromString(const std::string& str) {
     std::istringstream iss(str);
     std::string type;
     std::string delimiter;
@@ -132,12 +132,12 @@ std::shared_ptr<KeyBoidCircularSpawner> KeyBoidCircularSpawner::FromString(const
                 std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
                 return nullptr;
               }
-    return std::make_shared<KeyBoidCircularSpawner>(boids_spawned, language_key, center, radius);
+    return std::make_shared<CompBoidCircularSpawner>(boids_spawned, language_key, center, radius);
 }
 
 
-KeyBoidRectangularSpawner::KeyBoidRectangularSpawner(int boids_spawned, int language_key, Eigen::Vector2f pos, float width, float height)
-    : KeyBoidSpawner(boids_spawned, language_key), RectangularSpawner(pos, width, height) {
+CompBoidRectangularSpawner::CompBoidRectangularSpawner(int boids_spawned, int language_key, Eigen::Vector2f pos, float width, float height)
+    : CompBoidSpawner(boids_spawned, language_key), RectangularSpawner(pos, width, height) {
 
     SetTextString();
 
@@ -153,28 +153,28 @@ KeyBoidRectangularSpawner::KeyBoidRectangularSpawner(int boids_spawned, int lang
     rect.setFillColor(color);
 }
 
-void KeyBoidRectangularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<KeyBoid>>& boids) {
+void CompBoidRectangularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<CompBoid>>& boids) {
     for (int i = 0; i < boids_spawned; ++i) {
         auto spawn_point = CalcRandomPointInSpawnZone(world, config->BOID_COLLISION_RADIUS);
-        auto new_boid = std::make_shared<KeyBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config, language_key);
+        auto new_boid = std::make_shared<CompBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config, language_key);
         boids.emplace_back(std::move(new_boid));
     }
 }
 
-void KeyBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
+void CompBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
     window->draw(rect);
     if (boids_spawned > 0) {
         window->draw(text);
     }
 }
 
-bool KeyBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
+bool CompBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
     return RectangularSpawner::IsInside(pos, radius);
 }
 
-std::string KeyBoidRectangularSpawner::ToString() {
+std::string CompBoidRectangularSpawner::ToString() {
     std::stringstream ss;
-    ss << "KeyBoidRectangularSpawner: "
+    ss << "CompBoidRectangularSpawner: "
        << "Position: " << pos.x() << " , " << pos.y() << " "
        << "Width: " << width << " "
        << "height: " << height << " "
@@ -183,7 +183,7 @@ std::string KeyBoidRectangularSpawner::ToString() {
     return ss.str();
 }
 
-std::shared_ptr<KeyBoidRectangularSpawner> KeyBoidRectangularSpawner::FromString(const std::string &str) {
+std::shared_ptr<CompBoidRectangularSpawner> CompBoidRectangularSpawner::FromString(const std::string &str) {
     std::istringstream iss(str);
     std::string type;
     std::string delimiter;
@@ -198,16 +198,16 @@ std::shared_ptr<KeyBoidRectangularSpawner> KeyBoidRectangularSpawner::FromString
         std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
         return nullptr;
               }
-    return std::make_shared<KeyBoidRectangularSpawner>(boids_spawned, language_key, pos, width, height);
+    return std::make_shared<CompBoidRectangularSpawner>(boids_spawned, language_key, pos, width, height);
 }
 
 //----------------------------------//
 //       VECTOR BOID SPAWNERS       //
 //----------------------------------//
-VectorBoidSpawner::VectorBoidSpawner(int boids_spawned, int vector_seed, float feature_bias)
+EvoBoidSpawner::EvoBoidSpawner(int boids_spawned, int vector_seed, float feature_bias)
     : boids_spawned(boids_spawned), vector_seed(vector_seed), feature_bias(std::min(feature_bias, 1.f)) {}
 
-void VectorBoidSpawner::SetTextString() {
+void EvoBoidSpawner::SetTextString() {
     sf::Color color = sf::Color::White;
     sf::Font& font = *ResourceManager::GetFont("arial");
     auto text_str = "\n boids: " + std::to_string(boids_spawned) + "\n seed: " + std::to_string(vector_seed) + "\n bias: " + std::to_string(feature_bias).substr(0,3);
@@ -216,8 +216,8 @@ void VectorBoidSpawner::SetTextString() {
     text.setFont(font);
 }
 
-VectorBoidCircularSpawner::VectorBoidCircularSpawner(int boids_spawned, int vector_seed, float feature_bias, Eigen::Vector2f center_pos, float radius)
-    : VectorBoidSpawner(boids_spawned, vector_seed, feature_bias), CircularSpawner(std::move(center_pos), radius) {
+EvoBoidCircularSpawner::EvoBoidCircularSpawner(int boids_spawned, int vector_seed, float feature_bias, Eigen::Vector2f center_pos, float radius)
+    : EvoBoidSpawner(boids_spawned, vector_seed, feature_bias), CircularSpawner(std::move(center_pos), radius) {
 
     SetTextString();
 
@@ -233,7 +233,7 @@ VectorBoidCircularSpawner::VectorBoidCircularSpawner(int boids_spawned, int vect
     circle.setFillColor(color);
 }
 
-Eigen::VectorXi VectorBoidSpawner::GetRandomLanguageVector(const std::shared_ptr<SimulationConfig> &config) const{
+Eigen::VectorXi EvoBoidSpawner::GetRandomLanguageVector(const std::shared_ptr<SimulationConfig> &config) const{
     // Initialize bit-string language vector based on seed
     std::mt19937 rng(vector_seed); // Mersenne Twister random number engine with seed
     std::binomial_distribution<int> distribution(1, feature_bias);
@@ -244,32 +244,32 @@ Eigen::VectorXi VectorBoidSpawner::GetRandomLanguageVector(const std::shared_ptr
     return language_vector;
 }
 
-void VectorBoidCircularSpawner::AddBoids(const World &world, const std::shared_ptr<SimulationConfig> &config,
-                                         std::vector<std::shared_ptr<VectorBoid>> &boids) {
+void EvoBoidCircularSpawner::AddBoids(const World &world, const std::shared_ptr<SimulationConfig> &config,
+                                         std::vector<std::shared_ptr<EvoBoid>> &boids) {
 
     Eigen::VectorXi language_vector = GetRandomLanguageVector(config);
     for (int i = 0; i < boids_spawned; ++i) {
         auto spawn_point = CalcRandomPointInSpawnZone(world, config->BOID_COLLISION_RADIUS);
-        auto new_boid = std::make_shared<VectorBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config,
+        auto new_boid = std::make_shared<EvoBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config,
                                                      language_vector, 1);
         boids.emplace_back(std::move(new_boid));
     }
 }
 
-void VectorBoidCircularSpawner::Draw(sf::RenderWindow *window) const {
+void EvoBoidCircularSpawner::Draw(sf::RenderWindow *window) const {
     window->draw(circle);
     if (boids_spawned > 0) {
         window->draw(text);
     }
 }
 
-bool VectorBoidCircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
+bool EvoBoidCircularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
     return CircularSpawner::IsInside(pos, radius);
 }
 
-std::string VectorBoidCircularSpawner::ToString() {
+std::string EvoBoidCircularSpawner::ToString() {
     std::stringstream ss;
-    ss << "VectorBoidCircularSpawner: "
+    ss << "EvoBoidCircularSpawner: "
        << "Center: " << center_pos.x() << " , " << center_pos.y() << " "
        << "Radius: " << radius << " "
        << "Boids: " << boids_spawned << " "
@@ -278,7 +278,7 @@ std::string VectorBoidCircularSpawner::ToString() {
     return ss.str();
 }
 
-std::shared_ptr<VectorBoidCircularSpawner> VectorBoidCircularSpawner::FromString(const std::string &str) {
+std::shared_ptr<EvoBoidCircularSpawner> EvoBoidCircularSpawner::FromString(const std::string &str) {
     std::istringstream iss(str);
     std::string type;
     std::string delimiter;
@@ -293,11 +293,11 @@ std::shared_ptr<VectorBoidCircularSpawner> VectorBoidCircularSpawner::FromString
                 std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
                 return nullptr;
               }
-    return std::make_shared<VectorBoidCircularSpawner>(boids_spawned, vector_seed, feature_bias, center, radius);
+    return std::make_shared<EvoBoidCircularSpawner>(boids_spawned, vector_seed, feature_bias, center, radius);
 }
 
-VectorBoidRectangularSpawner::VectorBoidRectangularSpawner(int boids_spawned, int vector_seed, float feature_bias, const Eigen::Vector2f &pos, float width, float height)
-    : VectorBoidSpawner(boids_spawned, vector_seed, feature_bias), RectangularSpawner(pos, width, height) {
+EvoBoidRectangularSpawner::EvoBoidRectangularSpawner(int boids_spawned, int vector_seed, float feature_bias, const Eigen::Vector2f &pos, float width, float height)
+    : EvoBoidSpawner(boids_spawned, vector_seed, feature_bias), RectangularSpawner(pos, width, height) {
 
     SetTextString();
 
@@ -312,28 +312,53 @@ VectorBoidRectangularSpawner::VectorBoidRectangularSpawner(int boids_spawned, in
     rect.setFillColor(color);
 }
 
-void VectorBoidRectangularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<VectorBoid>>& boids) {
+void EvoBoidRectangularSpawner::AddBoids(const World& world, const std::shared_ptr<SimulationConfig>& config, std::vector<std::shared_ptr<EvoBoid>>& boids) {
 
     Eigen::VectorXi language_vector = GetRandomLanguageVector(config);
     for (int i = 0; i < boids_spawned; ++i) {
         auto spawn_point = CalcRandomPointInSpawnZone(world, config->BOID_COLLISION_RADIUS);
-        auto new_boid = std::make_shared<VectorBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config,
+        auto new_boid = std::make_shared<EvoBoid>(spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config,
                                                      language_vector, 1);
         boids.emplace_back(std::move(new_boid));
     }
 }
 
-void VectorBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
-    VectorBoidSpawner::Draw(window);
+void EvoBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
+    EvoBoidSpawner::Draw(window);
 }
 
-bool VectorBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
+bool EvoBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
+    return RectangularSpawner::IsInside(pos, radius);
 }
 
-std::string VectorBoidRectangularSpawner::ToString() {
-    return VectorBoidSpawner::ToString();
+std::string EvoBoidRectangularSpawner::ToString() {
+    std::stringstream ss;
+    ss << "EvoBoidRectangularSpawner: "
+       << "Position: " << pos.x() << " , " << pos.y() << " "
+       << "Width: " << width << " "
+       << "height: " << height << " "
+       << "Boids: " << boids_spawned << " "
+       << "Seed: " << vector_seed << " "
+       << "Bias: " << feature_bias << " ";
+    return ss.str();
 }
 
-std::shared_ptr<VectorBoidCircularSpawner> VectorBoidRectangularSpawner::FromString(const std::string &str) {
+std::shared_ptr<EvoBoidRectangularSpawner> EvoBoidRectangularSpawner::FromString(const std::string &str) {
+    std::istringstream iss(str);
+    std::string type;
+    std::string delimiter;
+    Eigen::Vector2f pos;
+    float width;
+    float height;
+    float feature_bias;
+    int vector_seed;
+    int boids_spawned;
+
+    if (!(iss >> type >> delimiter >> pos.x() >> delimiter >> pos.y() >> delimiter
+              >> width >> delimiter >> height >> delimiter >> boids_spawned >> delimiter >> vector_seed >> delimiter >> feature_bias)) {
+        std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
+        return nullptr;
+              }
+    return std::make_shared<EvoBoidRectangularSpawner>(boids_spawned, vector_seed, feature_bias, pos, width, height);
 }
 

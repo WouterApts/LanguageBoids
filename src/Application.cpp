@@ -9,7 +9,7 @@
 #include "ResourceManager.h"
 #include "Utility.h"
 #include "editor/Editor.h"
-#include "editor/Serialization.h"
+#include "Serialization.h"
 
 Application::Application() : context(std::make_shared<Context>()){
     // Create application window

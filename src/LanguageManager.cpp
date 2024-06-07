@@ -12,7 +12,7 @@ std::map<int, sf::Color> LanguageManager::InitLanguageColors() {
     return {
             {0, sf::Color::Red},
             {1, sf::Color::Green},
-            {2, sf::Color::Blue},
+            {2, sf::Color(0, 100, 255)},
             {3, sf::Color::Yellow},
             {4, sf::Color::Cyan},
             {5, sf::Color::Magenta},

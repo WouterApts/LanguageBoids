@@ -11,7 +11,7 @@
 #include "ConfigInterface.h"
 #include "EscapeStateInterface.h"
 #include "editor/Editor.h"
-#include "editor/Serialization.h"
+#include "../Serialization.h"
 
 SettingsInterface::SettingsInterface(std::shared_ptr<InterfaceManager>& interface_manager, std::shared_ptr<Context>& context, Editor& editor, const sf::Vector2f &pos)
     : Panel(pos, sf::Vector2f(190, 70)), interface_manager(interface_manager), editor(editor) {

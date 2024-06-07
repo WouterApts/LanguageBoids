@@ -11,23 +11,24 @@
 #include "Utility.h"
 
 
-VectorSimulator::VectorSimulator(std::shared_ptr<Context>& context, VectorSimulationData& simulation_data, float camera_width, float camera_height)
+
+EvoSimulator::EvoSimulator(std::shared_ptr<Context>& context, VectorSimulationData& simulation_data, std::string simulation_name,
+                           float camera_width, float camera_height)
     : Simulator(context, simulation_data.config, simulation_data.world, camera_width, camera_height),
       boid_spawners(simulation_data.boid_spawners),
       num_threads(std::thread::hardware_concurrency()),
-      spatial_boid_grid(SpatialGrid<VectorBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS))) {
+      spatial_boid_grid(SpatialGrid<EvoBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS))),
+      output_file_path("output/" + simulation_name + "_output.txt") {
 
-    // Create total_boids textdisplay tracker
-    total_boids_display_text.setFont(*ResourceManager::GetFont("arial"));
-    total_boids_display_text.setCharacterSize(24);
-    total_boids_display_text.setFillColor(sf::Color::White);
-    total_boids_display_text.setPosition(10.f, 10.f);
+    // Create text for displaying the language of selecetd boid
+    selected_boid_language_display.setFont(*ResourceManager::GetFont("arial"));
+    selected_boid_language_display.setCharacterSize(20);
+    selected_boid_language_display.setFillColor(sf::Color::White);
+    selected_boid_language_display.setPosition(10.f, 10.f);
 }
 
 
-void VectorSimulator::Init() {
-    // Setup analysis logging
-
+void EvoSimulator::Init() {
     // Setup world borders
     CreateWorldBorderLines();
 
@@ -43,60 +44,38 @@ void VectorSimulator::Init() {
     for (auto& boid : boids) {
         spatial_boid_grid.AddObj(boid);
     }
+
+    //Create analyser for logging metrics
+    analyser = std::make_shared<EvoAnalyser>(boids);
+    analyser->SetLogTimeInterval(sf::seconds(config->LANGUAGE_LOG_INTERVAL));
 };
 
-
-// VectorSimulator::UpdatedBoidValues VectorSimulator::UpdateBoidsStepOneMultithread(const std::vector<std::shared_ptr<VectorBoid>> &boids, sf::Time delta_time) const {
-//
-//     UpdatedBoidValues updated_boid_values;
-//     for (const auto& boid : boids) {
-//         //Get boids in perception radius:
-//         std::vector<VectorBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boid->interaction_radius, boid);
-//         std::vector<VectorBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boid->perception_radius, boid);
-//         Eigen::VectorXf language_distances = boid->CalcLanguageDistances(interacting_boids);
-//
-//         //Get boids updated acceleration
-//         updated_boid_values.acceleration_values[boid.get()] = boid->GetUpdatedAcceleration(interacting_boids, language_distances);
-//
-//         //Get boids language features that haev to be updated (switched)
-//         //updated_boid_values.language_features[boid.get()] = boid->GetUpdatedLanguageFeatures(interacting_boids, language_distances, perceived_boids, delta_time);
-//
-//         //Get boids updated age
-//         float new_age = boid->age += delta_time.asSeconds();
-//         updated_boid_values.age_values[boid.get()] = new_age;
-//
-//         // If boid is too old, it has a chance of dying
-//         if (new_age >= config->BOID_LIFE_STEPS) {
-//             updated_boid_values.marked_for_death[boid.get()] = true;
-//             float r = GetRandomFloatBetween(0,1);
-//             if (r <= 0.1) {
-//                 // The language of it's offspring is calculated as the most common language in the interaction range:
-//                 updated_boid_values.most_common_language[boid.get()] = boid->GetMostCommonLanguage(interacting_boids);
-//             }
-//         }
-//     }
-//
-//     return updated_boid_values;
-// }
-
-void VectorSimulator::Update(sf::Time delta_time) {
-    if (delta_time < sf::seconds(1/20.f)) { delta_time = sf::seconds(1/20.f); }
+void EvoSimulator::Update(sf::Time delta_time) {
+    if (delta_time < sf::seconds(1 / 30.f)) {
+        delta_time = sf::seconds(1 / 30.f);
+    }
 
     if (config->MULTI_THREADING) {
         MultiThreadUpdate(delta_time);
+    } else {
+        std::cerr << "Evolution Simulator only supported with MULTI_THREADING enabled, for now.";
+        context->state_manager->PopState();
     }
 
     // Update boids color if a boid is selected to compare with.
     if (selected_boid) {
-        Eigen::VectorXf distances = dynamic_cast<VectorBoid*>(selected_boid)->CalcLanguageDistances(boids);
+        Eigen::VectorXf distances = dynamic_cast<EvoBoid*>(selected_boid)->CalcLanguageDistances(boids);
         for (int i = 0; i < boids.size(); ++i) {
             boids[i]->sprite.setColor(CalculateGradientColor(distances[i]));
         }
     }
+
+    // Save metrics
+    analyser->SaveMetricsToCSV(output_file_path, delta_time);
 }
 
-void VectorSimulator::MultiThreadUpdate(sf::Time delta_time) {
-    std::vector<std::future<VectorSimulator::BoidValueMap>> future_pool;
+void EvoSimulator::MultiThreadUpdate(sf::Time delta_time) {
+    std::vector<std::future<EvoSimulator::BoidValueMap>> future_pool;
 
     // Launch threads, each thread handling a chunk of Boids
     int elements_per_chunk = boids.size() / num_threads;
@@ -117,7 +96,7 @@ void VectorSimulator::MultiThreadUpdate(sf::Time delta_time) {
     }
 
     // Wait for all threads to finish
-    std::map<VectorBoid *, std::shared_ptr<BoidValues>> all_values;
+    std::map<EvoBoid *, std::shared_ptr<BoidValues>> all_values;
     for (auto& future : future_pool) {
         auto partion = future.get();
         std::lock_guard<std::mutex> lock(mtx);
@@ -131,34 +110,20 @@ void VectorSimulator::MultiThreadUpdate(sf::Time delta_time) {
         boid->SwitchLanguageFeatures(all_values[boid.get()]->language_features);
     }
 
-
-    // Update velocities, positions and sprites
-    // std::vector<std::future<void>> future_pool_2;
-    // for (size_t i = 0; i < num_threads; ++i) {
-    //     int start_index = start_indices[i];
-    //     int end_index = end_indices[i];
-    //     future_pool_2.emplace_back(std::async(std::launch::async, [=]() {
-    //         MultiThreadUpdateStepTwo(start_index, end_index, delta_time);
-    //     }));
-    // }
-    // for (auto& boid : boids) {
-    //     spatial_boid_grid.UpdateObj(boid);
-    // }
-
     UpdateBoidsStepTwo(delta_time);
 
     //Handle boids life and death cycle
     RemoveDeadBoidsAndAddOffspring(all_values);
 }
 
-VectorSimulator::BoidValueMap VectorSimulator::MultiThreadUpdateStepOne(
+EvoSimulator::BoidValueMap EvoSimulator::MultiThreadUpdateStepOne(
     int start_index, int end_index, sf::Time delta_time) const {
     //UpdatedBoidValues boid_values;
-    VectorSimulator::BoidValueMap UpdatedBoidValuesPerBoid;
+    EvoSimulator::BoidValueMap UpdatedBoidValuesPerBoid;
 
     for (int i = start_index; i < end_index; ++i) {
-        std::vector<VectorBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boids[i]->interaction_radius, boids[i]);
-        std::vector<VectorBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boids[i]->perception_radius, boids[i]);
+        std::vector<EvoBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boids[i]->interaction_radius, boids[i]);
+        std::vector<EvoBoid*> perceived_boids = spatial_boid_grid.ObjRadiusSearch(boids[i]->perception_radius, boids[i]);
         Eigen::VectorXf language_distances = boids[i]->CalcLanguageDistances(interacting_boids);
 
 
@@ -173,7 +138,13 @@ VectorSimulator::BoidValueMap VectorSimulator::MultiThreadUpdateStepOne(
             float r = GetRandomFloatBetween(0,1);
             if (r <= 0.01 * delta_time.asSeconds()) {
                 boidValuesPtr->marked_for_death = true;
-                boidValuesPtr->most_common_language = boids[i]->GetMostCommonLanguage(interacting_boids);
+                //boidValuesPtr->most_common_language = boids[i]->GetMostCommonLanguage(interacting_boids);
+                if (interacting_boids.size() > 0) {
+                    r = GetRandomIntBetween(0,interacting_boids.size()-1);
+                    boidValuesPtr->most_common_language = interacting_boids[r]->language_vector;
+                } else {
+                    boidValuesPtr->most_common_language = boids[i]->language_vector;
+                }
             }
         }
 
@@ -186,35 +157,7 @@ VectorSimulator::BoidValueMap VectorSimulator::MultiThreadUpdateStepOne(
 }
 
 
-void VectorSimulator::MultiThreadUpdateStepTwo(int start_index, int end_index, sf::Time delta_time) {
-
-    for (int i = start_index; i < end_index; ++i) {
-
-        //Update boid behaviour based on terrain effects
-        bool in_terrain = false;
-        for (auto& terrain : world.terrains) {
-            if (terrain->IsPointInside(boids[i]->pos)) {
-                terrain->ApplyMovementEffects(boids[i].get());
-                in_terrain = true;
-            }
-        }
-        if (!in_terrain) boids[i]->SetDefaultMinMaxSpeed();
-
-        //Update boids velocity (Also checking Collisions)
-        boids[i]->UpdateVelocity(world.obstacles, delta_time);
-
-        //Update boids position
-        boids[i]->UpdatePosition(delta_time);
-
-        //Update boid age
-        boids[i]->age += delta_time.asSeconds();
-
-        //Update boids sprite
-        boids[i]->UpdateSprite();
-    }
-}
-
-void VectorSimulator::UpdateBoidsStepTwo(sf::Time delta_time) {
+void EvoSimulator::UpdateBoidsStepTwo(sf::Time delta_time) {
     for (const auto& boid : boids) {
 
         //Update boid behaviour based on terrain effects
@@ -242,7 +185,7 @@ void VectorSimulator::UpdateBoidsStepTwo(sf::Time delta_time) {
     }
 }
 
-void VectorSimulator::ProcessInput() {
+void EvoSimulator::ProcessInput() {
 
     sf::Vector2i mouse_pos = sf::Mouse::getPosition(*context->window);
     sf::Event event{};
@@ -301,7 +244,7 @@ void VectorSimulator::ProcessInput() {
     camera.Drag(mouse_pos);
 };
 
-void VectorSimulator::DrawWorldAndBoids() {
+void EvoSimulator::DrawWorldAndBoids() {
     // Set camera view
     context->window->setView(camera.view);
 
@@ -330,7 +273,7 @@ void VectorSimulator::DrawWorldAndBoids() {
     context->window->setView(context->window->getDefaultView());
 }
 
-void VectorSimulator::DrawSpawners() const {
+void EvoSimulator::DrawSpawners() const {
     // Set camera view
     context->window->setView(camera.view);
 
@@ -343,57 +286,52 @@ void VectorSimulator::DrawSpawners() const {
     context->window->setView(context->window->getDefaultView());
 }
 
-void VectorSimulator::Draw() {
+void EvoSimulator::Draw() {
     context->window->clear(sf::Color::Black);
     DrawWorldAndBoids();
 
-    std::stringstream ss;
-    ss << "Total Boids: " << total_boids;
-    total_boids_display_text.setString(ss.str());
-    context->window->draw(total_boids_display_text);
+    if (selected_boid) {
+        std::stringstream ss;
+        ss << "Boid Language: [" << dynamic_cast<EvoBoid*>(selected_boid)->language_vector.transpose() << "]";
+        selected_boid_language_display.setString(ss.str());
+        context->window->draw(selected_boid_language_display);
+    }
 
     context->window->display();
 }
 
-void VectorSimulator::Start() {
+void EvoSimulator::Start() {
 
 };
 
 
-void VectorSimulator::Pause() {
+void EvoSimulator::Pause() {
 
 };
 
-void VectorSimulator::AddBoid(const std::shared_ptr<VectorBoid> &boid) {
+void EvoSimulator::AddBoid(const std::shared_ptr<EvoBoid> &boid) {
     boids.push_back(boid);           // creates a copy of shared_ptr, assigning an additional owner (boids)
     spatial_boid_grid.AddObj(boid);
 }
 
-void VectorSimulator::RemoveDeadBoidsAndAddOffspring(BoidValueMap updated_boid_values) {
+void EvoSimulator::RemoveDeadBoidsAndAddOffspring(BoidValueMap updated_boid_values) {
 
-    std::vector<std::shared_ptr<VectorBoid>> offspring_boids;
-    total_boids = boids.size();
+    std::vector<std::shared_ptr<EvoBoid>> offspring_boids;
 
     // Iterate through the boids and remove the ones marked for death, while also collecting offsprinf
     for (auto it = boids.begin(); it != boids.end();) {
         auto boidPtr = it->get();
         if (updated_boid_values[boidPtr]->marked_for_death) {
 
-            // Add one or two offspring boids
-            int n_offspring = 1;
-            if (total_boids < config->CARRYING_CAPACITY) n_offspring = 2;
-            for (int n = 0; n < n_offspring; ++n) {
-                auto offspring_spawn_point = boidPtr->GetOffspringPos(world);
-                auto new_boid = std::make_shared<VectorBoid>(offspring_spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config,
-                                                             updated_boid_values[boidPtr]->most_common_language, 1);
-                offspring_boids.emplace_back(std::move(new_boid));
-                total_boids += 1;
-            }
+            // Add one offspring boid
+            auto offspring_spawn_point = boidPtr->GetOffspringPos(world);
+            auto new_boid = std::make_shared<EvoBoid>(offspring_spawn_point, Eigen::Vector2f::Zero(), Eigen::Vector2f::Zero(), config,
+                                                         updated_boid_values[boidPtr]->most_common_language, 1);
+            offspring_boids.emplace_back(std::move(new_boid));
 
             // Remove dead boid
             spatial_boid_grid.RemoveObj(*it);
             it = boids.erase(it);
-            total_boids -= 1;
             if (boidPtr == selected_boid) {
                 selected_boid = nullptr;
                 for (auto& boid : boids) { boid->sprite.setColor(sf::Color::Yellow);}

@@ -39,7 +39,7 @@ void Terrain::ApplyMovementEffects(Boid *boid) const {
     boid->SetMinMaxSpeed(min_speed, max_speed);
 }
 
-void Terrain::ApplyLanguageStatusEffects(KeyBoid *boid) const {
+void Terrain::ApplyLanguageStatusEffects(CompBoid *boid) const {
     boid->SetLanguageStatusMap(language_status_map);
 }
 
@@ -59,9 +59,10 @@ std::string Terrain::ToString() const {
        << "max: " << max_speed << " "
        << "friction: " << friction_modifier << " "
        << "vertices: " << static_cast<int>(vertices.size());
-    for (auto v: vertices) {
-        ss << " " << v.x() << " " << v.y();
-    }
+        for (auto v: vertices) {
+            ss << " " << v.x() << " " << v.y();
+        }
+    ss << " languageMod: " << language_status_modifier.first << " " << language_status_modifier.second;
     return ss.str();
 }
 
@@ -73,13 +74,15 @@ std::shared_ptr<Terrain> Terrain::FromString(const std::string& str) {
     float min_speed;
     float max_speed;
     float friction_modifier;
-    std::pair<int, float> language_status_modifier = {-1, 1};
+    std::pair<int, float> language_status_modifier = {0, 1};
     std::vector<Eigen::Vector2f> vertices;
     if (!(iss >> type >> delimiter >> min_speed >> delimiter >> max_speed >> delimiter
     >> friction_modifier >> delimiter >> n_vertices)) {
         std::cerr << "Error: Invalid LineObstacle string format: " << str << std::endl;
         return nullptr;
     }
+
+    // Parsing vertices
     for (int i = 0; i < n_vertices; ++i) {
         Eigen::Vector2f vertex;
         if (!(iss >> vertex.x() >> vertex.y())) {
@@ -87,6 +90,12 @@ std::shared_ptr<Terrain> Terrain::FromString(const std::string& str) {
             return nullptr;
         }
         vertices.push_back(vertex);
+    }
+
+    // Parsing language_status_modifier
+    if (!(iss >> delimiter >> language_status_modifier.first >> language_status_modifier.second)) {
+        std::cerr << "Error: Invalid language_status_modifiers in Terrain string format: " << str << std::endl;
+        return nullptr;
     }
     return std::make_shared<Terrain>(vertices, friction_modifier, language_status_modifier, min_speed, max_speed);
 }

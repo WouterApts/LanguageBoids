@@ -7,7 +7,7 @@
 
 struct SimulationConfig {
     // Default: Flocking
-    float COHERENCE_FACTOR = 0.5f;
+    float COHESION_FACTOR = 0.5f;
     float ALIGNMENT_FACTOR = 0.05f;
     float SEPARATION_FACTOR = 5.f;
     float AVOIDANCE_FACTOR = 0.5f;
@@ -22,8 +22,8 @@ struct SimulationConfig {
     float RESTITUTION_COEFFICIENT = 1;
 
     // Default: Analysis
-    int LANGUAGE_LOG_INTERVAL = 1;
-    int POSITION_LOG_INTERVAL = 5;
+    int LANGUAGE_LOG_INTERVAL = 0;
+    int POSITION_LOG_INTERVAL = 0;
 
     // Language Key Simulation
     float a_COEFFICIENT = 1.3f;
@@ -35,12 +35,13 @@ struct SimulationConfig {
     float MIN_INTERACTION_RATE = 0.25f;
     float MIN_ADOPTION_RATE = 0.25f;
     int BOID_LIFE_STEPS = 100;
-    int CARRYING_CAPACITY = 2000;
+    float BETA = 5;
+    float KAPPA = 0.5;
 
     // Language Dominance Simulation
     int TIME_STEPS_PER_RUN = 5000;
-    int RUNS_PER_DISTRIBUTION = 50;
-    int DISTRIBUTIONS = 50;
+    int RUNS_PER_FRACTION = 50;
+    int FRACTIONS = 50;
     int TOTAL_BOIDS = 1000;
 
     // Multi-Threading (Experimental)
