@@ -231,11 +231,11 @@ inline void DrawSpawnerRectangle(Eigen::Vector2f start_pos, sf::Vector2f tool_po
 }
 
 //----------------------------------//
-//      KEY BOID SPAWNER TOOLS      //
+//  COMPETITION BOID SPAWNER TOOLS  //
 //----------------------------------//
-KeyBoidCircleTool::KeyBoidCircleTool() = default;
+CompBoidCircleTool::CompBoidCircleTool() = default;
 
-void KeyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
+void CompBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         center_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -250,7 +250,7 @@ void KeyBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simu
     }
 }
 
-void KeyBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void CompBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         auto color = LanguageManager::GetLanguageColor(language_key);
         color.a = 100;
@@ -262,9 +262,9 @@ void KeyBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     }
 }
 
-KeyBoidRectangleTool::KeyBoidRectangleTool() = default;
+CompBoidRectangleTool::CompBoidRectangleTool() = default;
 
-void KeyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
+void CompBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         start_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -289,7 +289,7 @@ void KeyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & s
     }
 }
 
-void KeyBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void CompBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         DrawSpawnerRectangle(start_pos, tool_pos, LanguageManager::GetLanguageColor(language_key), window);
     }
@@ -343,11 +343,11 @@ void StudyBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData &
 }
 
 //----------------------------------//
-//     VECTOR BOID SPAWNER TOOLS    //
+//   EVOLUTION BOID SPAWNER TOOLS   //
 //----------------------------------//
-VectorBoidCircleTool::VectorBoidCircleTool() = default;
+EvoBoidCircleTool::EvoBoidCircleTool() = default;
 
-void VectorBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
+void EvoBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         center_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -362,7 +362,7 @@ void VectorBoidCircleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & s
     }
 }
 
-void VectorBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void EvoBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         auto color = sf::Color::White;
         color.a = 100;
@@ -374,9 +374,9 @@ void VectorBoidCircleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window)
     }
 }
 
-VectorBoidRectangleTool::VectorBoidRectangleTool() = default;
+EvoBoidRectangleTool::EvoBoidRectangleTool() = default;
 
-void VectorBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
+void EvoBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) {
     if (!building) {
         building = true;
         start_pos = Eigen::Vector2f(tool_pos.x, tool_pos.y);
@@ -401,7 +401,7 @@ void VectorBoidRectangleTool::OnLeftClick(sf::Vector2f tool_pos, SimulationData 
     }
 }
 
-void VectorBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
+void EvoBoidRectangleTool::Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) {
     if (building) {
         DrawSpawnerRectangle(start_pos, tool_pos, sf::Color::White, window);
     }

@@ -70,8 +70,7 @@ bool serialization::SaveSimulationDataToFile(const SimulationData& data) {
          << "SEPARATION_RADIUS: " << data.config->SEPARATION_RADIUS << '\n'
          << "BOID_COLLISION_RADIUS: " << data.config->BOID_COLLISION_RADIUS << '\n'
          << "RESTITUTION_COEFFICIENT: " << data.config->RESTITUTION_COEFFICIENT << '\n'
-         << "LANGUAGE_LOG_INTERVAL: " << data.config->LANGUAGE_LOG_INTERVAL << '\n'
-         << "POSITION_LOG_INTERVAL: " << data.config->POSITION_LOG_INTERVAL << '\n'
+         << "ANALYSIS_LOG_INTERVAL: " << data.config->ANALYSIS_LOG_INTERVAL << '\n'
          << "MULTI_THREADING_ON: " << data.config->MULTI_THREADING << '\n';
 
     // Write the world width and height
@@ -189,10 +188,8 @@ std::optional<SimulationData> serialization::LoadSimulationDataFromFile(const st
             data.config->BOID_COLLISION_RADIUS = value;
         } else if (prefix == "RESTITUTION_COEFFICIENT:") {
             data.config->RESTITUTION_COEFFICIENT = value;
-        } else if (prefix == "LANGUAGE_LOG_INTERVAL:") {
-            data.config->LANGUAGE_LOG_INTERVAL = static_cast<int>(value);
-        } else if (prefix == "POSITION_LOG_INTERVAL:") {
-            data.config->POSITION_LOG_INTERVAL = static_cast<int>(value);
+        } else if (prefix == "ANALYSIS_LOG_INTERVAL:") {
+            data.config->ANALYSIS_LOG_INTERVAL = static_cast<int>(value);
         } else if (prefix == "MULTI_THREADING_ON:") {
             data.config->MULTI_THREADING = static_cast<int>(value);
         } else {

@@ -97,9 +97,9 @@ public:
 };
 
 
-class KeyBoidCircleTool : public BoidTool {
+class CompBoidCircleTool : public BoidTool {
 public:
-    KeyBoidCircleTool();
+    CompBoidCircleTool();
 
     Eigen::Vector2f center_pos;
 
@@ -108,9 +108,9 @@ public:
 
 };
 
-class KeyBoidRectangleTool : public BoidTool {
+class CompBoidRectangleTool : public BoidTool {
 public:
-    KeyBoidRectangleTool();
+    CompBoidRectangleTool();
 
     Eigen::Vector2f start_pos;
 
@@ -119,23 +119,23 @@ public:
 
 };
 
-class StudyBoidCircleTool : public KeyBoidCircleTool {
+class StudyBoidCircleTool : public CompBoidCircleTool {
 public:
     StudyBoidCircleTool();
     void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
 
 };
 
-class StudyBoidRectangleTool : public KeyBoidRectangleTool {
+class StudyBoidRectangleTool : public CompBoidRectangleTool {
 public:
     StudyBoidRectangleTool();
     void OnLeftClick(sf::Vector2f tool_pos, SimulationData & simulation_data) override;
 
 };
 
-class VectorBoidCircleTool : public BoidTool {
+class EvoBoidCircleTool : public BoidTool {
 public:
-    VectorBoidCircleTool();
+    EvoBoidCircleTool();
 
     Eigen::Vector2f center_pos;
 
@@ -143,9 +143,9 @@ public:
     void Draw(sf::Vector2f tool_pos, sf::RenderWindow *window) override;
 };
 
-class VectorBoidRectangleTool : public BoidTool {
+class EvoBoidRectangleTool : public BoidTool {
 public:
-    VectorBoidRectangleTool();
+    EvoBoidRectangleTool();
 
     Eigen::Vector2f start_pos;
 

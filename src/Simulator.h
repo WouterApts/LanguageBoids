@@ -122,14 +122,14 @@ public:
 
     // analysis
     std::unique_ptr<CompAnalyser> analyser;
+    std::string output_file_path;
     bool speed_up_sumlation = false;
 
     // Language dyanmics
     LanguageManager language_manager;
     std::shared_ptr<std::map<int, float>> default_languages_status_map;
 
-
-    CompSimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height);
+    CompSimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string simulation_name, float camera_width, float camera_height);
 
     void Init() override;
 

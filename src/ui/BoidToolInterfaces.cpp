@@ -32,7 +32,7 @@ KeyBoidToolInterface::KeyBoidToolInterface(sf::Vector2f pos, const std::shared_p
 }
 
 VectorBoidToolInterface::VectorBoidToolInterface(sf::Vector2f pos, const std::shared_ptr<BoidTool>& p_boid_tool, InterfaceManager& interface_manager)
-    : Panel(pos, sf::Vector2f(310, 125), sf::Color(125,125,125)) {
+    : Panel(pos, sf::Vector2f(310, 130), sf::Color(125,125,125)) {
 
     // Input fields
     std::vector<std::shared_ptr<InterfaceComponent>> fields;

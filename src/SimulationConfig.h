@@ -22,7 +22,7 @@ struct SimulationConfig {
     float RESTITUTION_COEFFICIENT = 1;
 
     // Default: Analysis
-    int LANGUAGE_LOG_INTERVAL = 0;
+    int ANALYSIS_LOG_INTERVAL = 0;
     int POSITION_LOG_INTERVAL = 0;
 
     // Language Key Simulation

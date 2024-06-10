@@ -13,11 +13,12 @@
 #include "Utility.h"
 #include "Serialization.h"
 
-CompSimulator::CompSimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, float camera_width, float camera_height)
+CompSimulator::CompSimulator(std::shared_ptr<Context>& context, KeySimulationData& simulation_data, std::string simulation_name, float camera_width, float camera_height)
     : Simulator(context, simulation_data.config, simulation_data.world, camera_width, camera_height),
       boid_spawners(simulation_data.boid_spawners),
-      num_threads(std::thread::hardware_concurrency()),
-      spatial_boid_grid(SpatialGrid<CompBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS)))
+      num_threads(std::max(std::thread::hardware_concurrency() - 1.f, 1.f)),
+      spatial_boid_grid(SpatialGrid<CompBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS))),
+      output_file_path("output/" + simulation_name)
 {
     std::map<int, int> languages;
     std::map<int, float> default_languages_status_map;
@@ -34,10 +35,10 @@ CompSimulator::CompSimulator(std::shared_ptr<Context>& context, KeySimulationDat
     }
 
     // Setup analysis logging if enebled
-    if (config->LANGUAGE_LOG_INTERVAL > 0 || config->POSITION_LOG_INTERVAL > 0) {
+    if (config->ANALYSIS_LOG_INTERVAL > 0) {
         analyser = std::make_unique<CompAnalyser>(boids);
-        analyser->SetBPLTimeInterval(sf::seconds(config->LANGUAGE_LOG_INTERVAL));
-        analyser->SetPPLTimeInterval(sf::seconds(config->POSITION_LOG_INTERVAL));
+        analyser->SetBPLTimeInterval(sf::seconds(config->ANALYSIS_LOG_INTERVAL));
+        analyser->SetPPLTimeInterval(sf::seconds(config->ANALYSIS_LOG_INTERVAL));
     }
 }
 
@@ -248,8 +249,8 @@ void CompSimulator::ProcessInput() {
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::F5)) {
-            analyser->SaveBoidPerLanguageToCSV("language_output.csv");
-            analyser->SavePositionPerLanguageCSV("positions_output.csv");
+            analyser->SaveBoidPerLanguageToCSV(output_file_path + "_language_output.txt");
+            analyser->SavePositionPerLanguageCSV(output_file_path + "_position_output.txt");
         }
 
         if (IsKeyPressedOnce(sf::Keyboard::Escape)) {

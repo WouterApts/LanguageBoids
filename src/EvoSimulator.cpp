@@ -16,7 +16,7 @@ EvoSimulator::EvoSimulator(std::shared_ptr<Context>& context, VectorSimulationDa
                            float camera_width, float camera_height)
     : Simulator(context, simulation_data.config, simulation_data.world, camera_width, camera_height),
       boid_spawners(simulation_data.boid_spawners),
-      num_threads(std::thread::hardware_concurrency()),
+      num_threads(std::max(std::thread::hardware_concurrency() - 1.f, 1.f)),
       spatial_boid_grid(SpatialGrid<EvoBoid>(world.size().cast<int>(), static_cast<int>(config->INTERACTION_RADIUS))),
       output_file_path("output/" + simulation_name + "_output.txt") {
 
@@ -47,7 +47,7 @@ void EvoSimulator::Init() {
 
     //Create analyser for logging metrics
     analyser = std::make_shared<EvoAnalyser>(boids);
-    analyser->SetLogTimeInterval(sf::seconds(config->LANGUAGE_LOG_INTERVAL));
+    analyser->SetLogTimeInterval(sf::seconds(config->ANALYSIS_LOG_INTERVAL));
 };
 
 void EvoSimulator::Update(sf::Time delta_time) {
@@ -118,8 +118,9 @@ void EvoSimulator::MultiThreadUpdate(sf::Time delta_time) {
 
 EvoSimulator::BoidValueMap EvoSimulator::MultiThreadUpdateStepOne(
     int start_index, int end_index, sf::Time delta_time) const {
+
     //UpdatedBoidValues boid_values;
-    EvoSimulator::BoidValueMap UpdatedBoidValuesPerBoid;
+    BoidValueMap UpdatedBoidValuesPerBoid;
 
     for (int i = start_index; i < end_index; ++i) {
         std::vector<EvoBoid*> interacting_boids = spatial_boid_grid.ObjRadiusSearch(boids[i]->interaction_radius, boids[i]);
@@ -225,10 +226,6 @@ void EvoSimulator::ProcessInput() {
             spatial_boid_grid.is_visible = !spatial_boid_grid.is_visible;
         }
 
-        if (IsKeyPressedOnce(sf::Keyboard::F5)) {
-            //TODO: Save State?
-        }
-
         if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
             context->state_manager->PopState();
         }
@@ -293,6 +290,7 @@ void EvoSimulator::Draw() {
     if (selected_boid) {
         std::stringstream ss;
         ss << "Boid Language: [" << dynamic_cast<EvoBoid*>(selected_boid)->language_vector.transpose() << "]";
+        ss << "\nAge: " << static_cast<int>(dynamic_cast<EvoBoid*>(selected_boid)->age);
         selected_boid_language_display.setString(ss.str());
         context->window->draw(selected_boid_language_display);
     }

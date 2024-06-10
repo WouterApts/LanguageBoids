@@ -148,16 +148,16 @@ void CompStudySimulator::Update(sf::Time delta_time) {
     //Check if simulation is running.
     else if (!current_simulation) {
         // Start new run of current inital population fraction
-        current_simulation = std::make_unique<CompSimulator>(context, simulation_data, camera.default_width, camera.default_height);
+        current_simulation = std::make_unique<CompSimulator>(context, simulation_data, "study", camera.default_width, camera.default_height);
         current_simulation->camera = camera;
         current_simulation->Init();
 
-        std::string fractionString = std::format("Fraction: {} of {} ({}, {})", current_distrubution_nr + 1, simulation_data.config->FRACTIONS,
+        std::string fractionString = std::format("Fraction: {} of {} ({}, {})", current_distrubution_nr, simulation_data.config->FRACTIONS,
                                                       current_initial_fraction[0], current_initial_fraction[1]);
         study_interface->fraction_fld->text.setString(fractionString);
 
         // Update run number text
-        std::string runNumberString = std::format("Run: {} of {}", current_run_nr + 1, simulation_data.config->RUNS_PER_FRACTION);
+        std::string runNumberString = std::format("Run: {} of {}", current_run_nr, simulation_data.config->RUNS_PER_FRACTION);
         study_interface->run_fld->text.setString(runNumberString);
     }
     else {
@@ -345,59 +345,3 @@ void CompStudySimulator::LogDataToFile(const std::string& file_path,
 
     std::cout << "Saved Output to:" << file_path << std::endl;
 }
-
-
-//----------------------------------//
-//          PREVIEW STATE           //
-//----------------------------------//
-DominanceStudyPreview::DominanceStudyPreview(const std::shared_ptr<Context> &context, KeySimulationData simulation_data,
-                                             float camera_width, float camera_height)
-    : interface_manager(std::make_shared<InterfaceManager>()),
-      context(context),
-      simulation_data(std::move(simulation_data)){
-
-    simulation_preview = std::make_unique<CompSimulator>(this->context, this->simulation_data, camera_width, camera_height);
-
-    // Set camera viewport to take up 3/4 of the screens height, for displaying a preview of the simultion world.
-    simulation_preview->camera.view.setViewport(sf::FloatRect(0.f, 0.25f, 1.f, 0.75f));
-
-}
-
-void DominanceStudyPreview::Init() {
-    // Initialize interfaces.
-
-}
-
-void DominanceStudyPreview::ProcessInput() {
-    sf::Event event{};
-    auto mouse_pos = sf::Mouse::getPosition(*context->window);
-    auto mouse_interface_pos = context->window->mapPixelToCoords(mouse_pos, context->window->getDefaultView());
-    interface_manager->OnMouseEnter(mouse_interface_pos);
-    interface_manager->OnMouseLeave(mouse_interface_pos);
-
-    while (context->window->pollEvent(event)) {
-        if (event.type == sf::Event::MouseButtonPressed) {
-            if (event.mouseButton.button == sf::Mouse::Left) {
-                interface_manager->OnLeftClick(mouse_interface_pos);
-            }
-        }
-
-        if (IsKeyPressedOnce(sf::Keyboard::Escape)) {
-            context->state_manager->PopState();
-        }
-    }
-}
-
-void DominanceStudyPreview::Update(sf::Time deltaTime) {}
-
-void DominanceStudyPreview::Pause() {}
-
-void DominanceStudyPreview::Draw() {
-    if (simulation_preview) {
-        simulation_preview->DrawWorldAndBoids();
-        simulation_preview->DrawSpawners();
-    }
-}
-
-void DominanceStudyPreview::Start() {}
-

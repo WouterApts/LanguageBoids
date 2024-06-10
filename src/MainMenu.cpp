@@ -35,7 +35,7 @@ void MainMenu::StartSimulation() {
         auto simulation_name = ExtractFileName(file_name);
         if (loaded_data->type == CompSimulation) {
             KeySimulationData simulation_data = load_key_simulation_data(loaded_data);
-            auto simulation = std::make_unique<CompSimulator>(context, simulation_data, 1600, 900);
+            auto simulation = std::make_unique<CompSimulator>(context, simulation_data, simulation_name, 1600, 900);
             context->state_manager->AddState(std::move(simulation));
         }else if (loaded_data->type == EvoSimulation) {
             VectorSimulationData simulation_data = load_vector_simulation_data(loaded_data);

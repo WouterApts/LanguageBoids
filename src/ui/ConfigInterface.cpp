@@ -59,6 +59,8 @@ ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_ma
     std::shared_ptr<InterfaceComponent> bit_string_size_txt = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Bit-String Size", *ResourceManager::GetFont("arial"), sf::Color::Black);
     auto life_fld = std::make_shared<IntInputField>(*interface_manager, [&](int value){ simulation_data.config->MIN_ADOPTION_RATE = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.BOID_LIFE_STEPS);
     std::shared_ptr<InterfaceComponent> life_txt = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Boid Life Steps.", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto beta_fld = std::make_shared<FloatInputField>(*interface_manager, [&](float value){ simulation_data.config->BETA = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.BETA);
+    std::shared_ptr<InterfaceComponent> beta_txt = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Beta", *ResourceManager::GetFont("arial"), sf::Color::Black);
 
     vector_config_interface = std::make_shared<Panel>(sf::Vector2f(0,0), active_config_size, sf::Color(100,100,100));
     AddComponentWithRelativePos(vector_config_interface, active_config_position);
@@ -72,6 +74,8 @@ ConfigInterface::ConfigInterface(std::shared_ptr<InterfaceManager>& interface_ma
     vector_config_interface->AddComponentWithRelativePos(life_txt, {2*(fld_w) + 190, 20 + fld_h});
     vector_config_interface->AddComponentWithRelativePos(bit_string_size_fld, {2*(fld_w + 180), 10});
     vector_config_interface->AddComponentWithRelativePos(bit_string_size_txt, {2*(fld_w + 180) + (fld_w + 10), 10});
+    vector_config_interface->AddComponentWithRelativePos(beta_fld, {2*(fld_w + 180), 20 + fld_h});
+    vector_config_interface->AddComponentWithRelativePos(beta_txt, {2*(fld_w + 180) + (fld_w + 10), 20 + fld_h});
     vector_config_interface->Deactivate();
 
     //Dominance Study Configuration Interface:
@@ -193,16 +197,12 @@ void ConfigInterface::CreateDefaultConfigFields(SimulationData &simulation_data,
     txts.push_back(restitution_coefficient_txt);
 
     // Default: Analysis
-    auto language_log_interval_fld = std::make_shared<IntInputField>(interface_manager, [&simulation_data](int value){ simulation_data.config->LANGUAGE_LOG_INTERVAL = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.LANGUAGE_LOG_INTERVAL);
-    auto language_log_interval_txt = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Language LOG Interval", *ResourceManager::GetFont("arial"), sf::Color::Black);
-    auto position_log_interval_fld = std::make_shared<IntInputField>(interface_manager, [&simulation_data](int value){ simulation_data.config->POSITION_LOG_INTERVAL = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.POSITION_LOG_INTERVAL);
-    auto position_log_interval_txt = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Position LOG Interval", *ResourceManager::GetFont("arial"), sf::Color::Black);
+    auto language_log_interval_fld = std::make_shared<IntInputField>(interface_manager, [&simulation_data](int value){ simulation_data.config->ANALYSIS_LOG_INTERVAL = value;}, sf::Vector2f(0,0), sf::Vector2f(fld_w, fld_h), 6, default_config.ANALYSIS_LOG_INTERVAL);
+    auto language_log_interval_txt = std::make_shared<TextField>(sf::Vector2f(0,0), 20, "Analysis Logging Interval", *ResourceManager::GetFont("arial"), sf::Color::Black);
 
     // Add fields and texts to their respective vectors
     flds.push_back(language_log_interval_fld);
     txts.push_back(language_log_interval_txt);
-    flds.push_back(position_log_interval_fld);
-    txts.push_back(position_log_interval_txt);
 
     for (int i = 0; i < flds.size(); ++i) {
         float x = 10 + (fld_w + 250) * std::floor(i/7);

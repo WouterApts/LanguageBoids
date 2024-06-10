@@ -38,22 +38,22 @@ ToolSelectorInterface::ToolSelectorInterface(const std::shared_ptr<InterfaceMana
     interface_manager->AddComponent(terrain_tool_interface);
     terrain_tool_interface->Deactivate();
 
-    auto p_keyboid_circle_tool = std::dynamic_pointer_cast<KeyBoidCircleTool>(p_tool_selector->tools[KeyBoidCircleT]);
+    auto p_keyboid_circle_tool = std::dynamic_pointer_cast<CompBoidCircleTool>(p_tool_selector->tools[KeyBoidCircleT]);
     keyboid_circle_tool_interface = std::make_shared<KeyBoidToolInterface>(tool_interface_position, p_keyboid_circle_tool, *this->interface_manager);
     interface_manager->AddComponent(keyboid_circle_tool_interface);
     keyboid_circle_tool_interface->Deactivate();
 
-    auto p_keyboid_rectangle_tool = std::dynamic_pointer_cast<KeyBoidRectangleTool>(p_tool_selector->tools[KeyBoidRectangleT]);
+    auto p_keyboid_rectangle_tool = std::dynamic_pointer_cast<CompBoidRectangleTool>(p_tool_selector->tools[KeyBoidRectangleT]);
     keyboid_rectangle_tool_interface = std::make_shared<KeyBoidToolInterface>(tool_interface_position, p_keyboid_rectangle_tool, *this->interface_manager);
     interface_manager->AddComponent(keyboid_rectangle_tool_interface);
     keyboid_rectangle_tool_interface->Deactivate();
 
-    auto p_vectorboid_circle_tool = std::dynamic_pointer_cast<VectorBoidCircleTool>(p_tool_selector->tools[VectorBoidCircleT]);
+    auto p_vectorboid_circle_tool = std::dynamic_pointer_cast<EvoBoidCircleTool>(p_tool_selector->tools[VectorBoidCircleT]);
     vectorboid_circle_tool_interface = std::make_shared<VectorBoidToolInterface>(tool_interface_position, p_vectorboid_circle_tool, *this->interface_manager);
     interface_manager->AddComponent(vectorboid_circle_tool_interface);
     vectorboid_circle_tool_interface->Deactivate();
 
-    auto p_vectorboid_rectangle_tool = std::dynamic_pointer_cast<VectorBoidRectangleTool>(p_tool_selector->tools[VectorBoidRectangleT]);
+    auto p_vectorboid_rectangle_tool = std::dynamic_pointer_cast<EvoBoidRectangleTool>(p_tool_selector->tools[VectorBoidRectangleT]);
     vectorboid_rectangle_tool_interface = std::make_shared<VectorBoidToolInterface>(tool_interface_position, p_vectorboid_rectangle_tool, *this->interface_manager);
     interface_manager->AddComponent(vectorboid_rectangle_tool_interface);
     vectorboid_rectangle_tool_interface->Deactivate();

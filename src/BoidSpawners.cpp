@@ -56,7 +56,7 @@ bool RectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
 }
 
 //----------------------------------//
-//         KEY BOID SPAWNERS        //
+//        COMP BOID SPAWNERS        //
 //----------------------------------//
 CompBoidSpawner::CompBoidSpawner(int boids_spawned, int language_key) : boids_spawned(boids_spawned), language_key(language_key) {}
 
@@ -129,7 +129,7 @@ std::shared_ptr<CompBoidCircularSpawner> CompBoidCircularSpawner::FromString(con
 
     if (!(iss >> type >> delimiter >> center.x() >> delimiter >> center.y() >> delimiter
               >> radius >> delimiter >> boids_spawned >> delimiter >> language_key)) {
-                std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
+                std::cerr << "Error: Invalid CircleSpawner string format: " << str << std::endl;
                 return nullptr;
               }
     return std::make_shared<CompBoidCircularSpawner>(boids_spawned, language_key, center, radius);
@@ -195,14 +195,14 @@ std::shared_ptr<CompBoidRectangularSpawner> CompBoidRectangularSpawner::FromStri
 
     if (!(iss >> type >> delimiter >> pos.x() >> delimiter >> pos.y() >> delimiter
               >> width >> delimiter >> height >> delimiter >> boids_spawned >> delimiter >> language_key)) {
-        std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
+        std::cerr << "Error: Invalid RectangleSpawner string format: " << str << std::endl;
         return nullptr;
               }
     return std::make_shared<CompBoidRectangularSpawner>(boids_spawned, language_key, pos, width, height);
 }
 
 //----------------------------------//
-//       VECTOR BOID SPAWNERS       //
+//         EVO BOID SPAWNERS        //
 //----------------------------------//
 EvoBoidSpawner::EvoBoidSpawner(int boids_spawned, int vector_seed, float feature_bias)
     : boids_spawned(boids_spawned), vector_seed(vector_seed), feature_bias(std::min(feature_bias, 1.f)) {}
@@ -290,7 +290,7 @@ std::shared_ptr<EvoBoidCircularSpawner> EvoBoidCircularSpawner::FromString(const
 
     if (!(iss >> type >> delimiter >> center.x() >> delimiter >> center.y() >> delimiter
               >> radius >> delimiter >> boids_spawned >> delimiter >> vector_seed >> delimiter >> feature_bias)) {
-                std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
+                std::cerr << "Error: Invalid CircleSpawner string format: " << str << std::endl;
                 return nullptr;
               }
     return std::make_shared<EvoBoidCircularSpawner>(boids_spawned, vector_seed, feature_bias, center, radius);
@@ -303,11 +303,11 @@ EvoBoidRectangularSpawner::EvoBoidRectangularSpawner(int boids_spawned, int vect
 
     // position text in the rectangle
     sf::Color color = sf::Color::White;
+    text.setCharacterSize(static_cast<int>(std::max(std::min(width/8, 500.f), 50.f)));
     sf::FloatRect textBounds = text.getLocalBounds();
     float textPosX = this->pos.x() + this->rect.getSize().x/2 - textBounds.width / 2.0f;
     float textPosY = this->pos.y() + this->rect.getSize().y/2 - textBounds.height;
     text.setPosition(textPosX, textPosY);
-
     color.a = 100;
     rect.setFillColor(color);
 }
@@ -324,7 +324,8 @@ void EvoBoidRectangularSpawner::AddBoids(const World& world, const std::shared_p
 }
 
 void EvoBoidRectangularSpawner::Draw(sf::RenderWindow *window) const {
-    EvoBoidSpawner::Draw(window);
+    window->draw(rect);
+    window->draw(text);
 }
 
 bool EvoBoidRectangularSpawner::IsInside(Eigen::Vector2f pos, float radius) {
@@ -356,7 +357,7 @@ std::shared_ptr<EvoBoidRectangularSpawner> EvoBoidRectangularSpawner::FromString
 
     if (!(iss >> type >> delimiter >> pos.x() >> delimiter >> pos.y() >> delimiter
               >> width >> delimiter >> height >> delimiter >> boids_spawned >> delimiter >> vector_seed >> delimiter >> feature_bias)) {
-        std::cerr << "Error: Invalid CircleObstacle string format: " << str << std::endl;
+        std::cerr << "Error: Invalid RectangleSpawner string format: " << str << std::endl;
         return nullptr;
               }
     return std::make_shared<EvoBoidRectangularSpawner>(boids_spawned, vector_seed, feature_bias, pos, width, height);

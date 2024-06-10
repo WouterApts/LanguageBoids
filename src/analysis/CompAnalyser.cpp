@@ -34,7 +34,7 @@ void CompAnalyser::LogBoidsPerLanguage() {
         map[boid->language_key] += 1;
     }
     boids_per_language.push_back(std::move(map));
-    std::cout << "BPL logging complete" << std::endl;
+    std::cout << "Language logging complete! (Press F5 to save to output file)" << std::endl;
 }
 
 void CompAnalyser::LogBoidPositions() {
@@ -44,7 +44,7 @@ void CompAnalyser::LogBoidPositions() {
         map[boid->language_key].push_back(pos);
     }
     positions_per_language.push_back(map);
-    std::cout << "PPL logging complete" << std::endl;
+    std::cout << "Position logging logging complete! (Press F5 to save to output file)" << std::endl;
 }
 
 void CompAnalyser::SaveBoidPerLanguageToCSV(const std::string& filename) {
