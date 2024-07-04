@@ -20,8 +20,8 @@ ESC:            Escape to Main Menu
 F5:             Save Language and Positional information into CSV file
 
 Study Controls:
-Left Key:       Skip distribution
-Right Key:      Skip distribution
+Left Key:       Previous Fraction
+Right Key:      Next Fraction
 SPACE:          Disable/Enable visualization
 ESC:            Escape to Main Menu
 
