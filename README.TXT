@@ -25,6 +25,16 @@ Right Key:      Next Fraction
 SPACE:          Disable/Enable visualization
 ESC:            Escape to Main Menu
 
+Preview:
+### Image 1
+![Image 1](https://github.com/WouterApts/LanguageBoids/blob/master/preview/mainmenu.png)
 
+### Image 2
+![Image 2](https://github.com/WouterApts/LanguageBoids/blob/master/preview/simulation.png)
 
+### Image 3
+![Image 3](https://github.com/WouterApts/LanguageBoids/blob/master/preview/editor.png)
+
+### Image 4
+![Image 4](https://github.com/WouterApts/LanguageBoids/blob/master/preview/configuration.png)
 
